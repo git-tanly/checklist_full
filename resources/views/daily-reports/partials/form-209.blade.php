@@ -3,9 +3,42 @@
     $bf = $details['breakfast'] ?? null;
     $lc = $details['lunch'] ?? null;
     $dn = $details['dinner'] ?? null;
+
     $myMenu = $upsellingItems[1] ?? collect([]);
     $foods = $myMenu->where('type', 'food');
     $beverages = $myMenu->where('type', 'beverage');
+
+    $resto209 = $restaurants->where('code', '209')->first();
+    $myStaffList = $resto209 ? $resto209->users : [];
+
+    // Ambil data (bisa dari old input array, atau database array)
+    $bfVipData = old('session.breakfast.vip_remarks', $bf->vip_remarks ?? []);
+    $bfVipValue = is_array($bfVipData) ? json_encode($bfVipData) : $bfVipData; // Jika Array (karena validasi controller atau database), ubah jadi JSON String, Jika sudah String (jarang terjadi di logic baru kita), biarkan
+    $lcVipData = old('session.lunch.vip_remarks', $lc->vip_remarks ?? []);
+    $lcVipValue = is_array($lcVipData) ? json_encode($lcVipData) : $lcVipData;
+    $dnVipData = old('session.dinner.vip_remarks', $dn->vip_remarks ?? []);
+    $dnVipValue = is_array($dnVipData) ? json_encode($dnVipData) : $dnVipData;
+
+    $bfStaffData = old('session.breakfast.staff_on_duty', $bf->staff_on_duty ?? []);
+    $bfStaffValue = is_array($bfStaffData) ? json_encode($bfStaffData) : $bfStaffData;
+    $lcStaffData = old('session.lunch.staff_on_duty', $lc->staff_on_duty ?? []);
+    $lcStaffValue = is_array($lcStaffData) ? json_encode($lcStaffData) : $lcStaffData;
+    $dnStaffData = old('session.dinner.staff_on_duty', $dn->staff_on_duty ?? []);
+    $dnStaffValue = is_array($dnStaffData) ? json_encode($dnStaffData) : $dnStaffData;
+
+    $bfFoodData = old('session.breakfast.upselling_data.food', $bf->upselling_data['food'] ?? []);
+    $bfFoodValue = is_array($bfFoodData) ? json_encode($bfFoodData) : $bfFoodData;
+    $lcFoodData = old('session.lunch.upselling_data.food', $lc->upselling_data['food'] ?? []);
+    $lcFoodValue = is_array($lcFoodData) ? json_encode($lcFoodData) : $lcFoodData;
+    $dnFoodData = old('session.dinner.upselling_data.food', $dn->upselling_data['food'] ?? []);
+    $dnFoodValue = is_array($dnFoodData) ? json_encode($dnFoodData) : $dnFoodData;
+
+    $bfBevData = old('session.breakfast.upselling_data.beverage', $bf->upselling_data['beverage'] ?? []);
+    $bfBevValue = is_array($bfBevData) ? json_encode($bfBevData) : $bfBevData;
+    $lcBevData = old('session.lunch.upselling_data.beverage', $lc->upselling_data['beverage'] ?? []);
+    $lcBevValue = is_array($lcBevData) ? json_encode($lcBevData) : $lcBevData;
+    $dnBevData = old('session.dinner.upselling_data.beverage', $dn->upselling_data['beverage'] ?? []);
+    $dnBevValue = is_array($dnBevData) ? json_encode($dnBevData) : $dnBevData;
 @endphp
 
 {{-- === SESSION: BREAKFAST === --}}
@@ -105,7 +138,7 @@
 
                 {{-- 1. Hidden Input (Penyimpan Data JSON) --}}
                 <input type="hidden" id="input-breakfast-food" name="session[breakfast][upselling_data][food]"
-                    value="{{ old('session.breakfast.upselling_data.food', json_encode($bf->upselling_data['food'] ?? [])) }}">
+                    value="{{ $bfFoodValue }}">
 
                 {{-- 2. Area Input (Dropdown & Pax) --}}
                 <div class="input-group mb-2">
@@ -135,8 +168,7 @@
 
                 {{-- 1. Hidden Input --}}
                 <input type="hidden" id="input-breakfast-beverage"
-                    name="session[breakfast][upselling_data][beverage]"
-                    value="{{ old('session.breakfast.upselling_data.beverage', json_encode($bf->upselling_data['beverage'] ?? [])) }}">
+                    name="session[breakfast][upselling_data][beverage]" value="{{ $bfBevValue }}">
 
                 {{-- 2. Area Input --}}
                 <div class="input-group mb-2">
@@ -173,7 +205,7 @@
                 {{-- 1. Hidden Input (Penyimpan Data JSON ke Database) --}}
                 {{-- Value logic: Prioritaskan old input, lalu data DB, lalu array kosong default --}}
                 <input type="hidden" id="input-vip-breakfast" name="session[breakfast][vip_remarks]"
-                    value="{{ old('session.breakfast.vip_remarks', json_encode($bf->vip_remarks ?? [])) }}">
+                    value="{{ $bfVipValue }}">
 
                 {{-- 2. Area Input (Nama & Jabatan) --}}
                 <div class="input-group mb-2">
@@ -201,14 +233,14 @@
 
                 {{-- 1. Hidden Input (Simpan JSON Array) --}}
                 <input type="hidden" id="input-staff-breakfast" name="session[breakfast][staff_on_duty]"
-                    value="{{ old('session.breakfast.staff_on_duty', json_encode($bf->staff_on_duty ?? [])) }}">
+                    value="{{ $bfStaffValue }}">
 
                 {{-- 2. Area Dropdown & Add --}}
                 <div class="input-group mb-2">
                     <select class="form-select form-select-sm" id="select-staff-breakfast">
                         <option value="" selected>Select Staff...</option>
                         {{-- Ambil Staff List khusus Resto 209 (ID 1) --}}
-                        @foreach ($staffList[1] ?? [] as $staff)
+                        @foreach ($myStaffList ?? [] as $staff)
                             <option value="{{ $staff->id }}">{{ $staff->name }}</option>
                         @endforeach
                     </select>
@@ -360,7 +392,7 @@
 
                 {{-- 1. Hidden Input (Penyimpan Data JSON) --}}
                 <input type="hidden" id="input-lunch-food" name="session[lunch][upselling_data][food]"
-                    value="{{ old('session.lunch.upselling_data.food', json_encode($bf->upselling_data['food'] ?? [])) }}">
+                    value="{{ $lcFoodValue }}">
 
                 {{-- 2. Area Input (Dropdown & Pax) --}}
                 <div class="input-group mb-2">
@@ -389,7 +421,7 @@
 
                 {{-- 1. Hidden Input --}}
                 <input type="hidden" id="input-lunch-beverage" name="session[lunch][upselling_data][beverage]"
-                    value="{{ old('session.lunch.upselling_data.beverage', json_encode($bf->upselling_data['beverage'] ?? [])) }}">
+                    value="{{ $lcBevValue }}">
 
                 {{-- 2. Area Input --}}
                 <div class="input-group mb-2">
@@ -426,7 +458,7 @@
                 {{-- 1. Hidden Input (Penyimpan Data JSON ke Database) --}}
                 {{-- Value logic: Prioritaskan old input, lalu data DB, lalu array kosong default --}}
                 <input type="hidden" id="input-vip-lunch" name="session[lunch][vip_remarks]"
-                    value="{{ old('session.lunch.vip_remarks', json_encode($lc->vip_remarks ?? [])) }}">
+                    value="{{ $lcVipValue }}">
 
                 {{-- 2. Area Input (Nama & Jabatan) --}}
                 <div class="input-group mb-2">
@@ -454,14 +486,14 @@
 
                 {{-- 1. Hidden Input (Simpan JSON Array) --}}
                 <input type="hidden" id="input-staff-lunch" name="session[lunch][staff_on_duty]"
-                    value="{{ old('session.lunch.staff_on_duty', json_encode($lc->staff_on_duty ?? [])) }}">
+                    value="{{ $lcStaffValue }}">
 
                 {{-- 2. Area Dropdown & Add --}}
                 <div class="input-group mb-2">
                     <select class="form-select form-select-sm" id="select-staff-lunch">
                         <option value="" selected>Select Staff...</option>
                         {{-- Ambil Staff List khusus Resto 209 (ID 1) --}}
-                        @foreach ($staffList[1] ?? [] as $staff)
+                        @foreach ($myStaffList ?? [] as $staff)
                             <option value="{{ $staff->id }}">{{ $staff->name }}</option>
                         @endforeach
                     </select>
@@ -611,7 +643,7 @@
 
                 {{-- 1. Hidden Input (Penyimpan Data JSON) --}}
                 <input type="hidden" id="input-dinner-food" name="session[dinner][upselling_data][food]"
-                    value="{{ old('session.dinner.upselling_data.food', json_encode($bf->upselling_data['food'] ?? [])) }}">
+                    value="{{ $dnFoodValue }}">
 
                 {{-- 2. Area Input (Dropdown & Pax) --}}
                 <div class="input-group mb-2">
@@ -640,7 +672,7 @@
 
                 {{-- 1. Hidden Input --}}
                 <input type="hidden" id="input-dinner-beverage" name="session[dinner][upselling_data][beverage]"
-                    value="{{ old('session.dinner.upselling_data.beverage', json_encode($bf->upselling_data['beverage'] ?? [])) }}">
+                    value="{{ $dnBevValue }}">
 
                 {{-- 2. Area Input --}}
                 <div class="input-group mb-2">
@@ -677,7 +709,7 @@
                 {{-- 1. Hidden Input (Penyimpan Data JSON ke Database) --}}
                 {{-- Value logic: Prioritaskan old input, lalu data DB, lalu array kosong default --}}
                 <input type="hidden" id="input-vip-dinner" name="session[dinner][vip_remarks]"
-                    value="{{ old('session.dinner.vip_remarks', json_encode($dn->vip_remarks ?? [])) }}">
+                    value="{{ $dnVipValue }}">
 
                 {{-- 2. Area Input (Nama & Jabatan) --}}
                 <div class="input-group mb-2">
@@ -705,14 +737,14 @@
 
                 {{-- 1. Hidden Input (Simpan JSON Array) --}}
                 <input type="hidden" id="input-staff-dinner" name="session[dinner][staff_on_duty]"
-                    value="{{ old('session.dinner.staff_on_duty', json_encode($dn->staff_on_duty ?? [])) }}">
+                    value="{{ $dnStaffValue }}">
 
                 {{-- 2. Area Dropdown & Add --}}
                 <div class="input-group mb-2">
                     <select class="form-select form-select-sm" id="select-staff-dinner">
                         <option value="" selected>Select Staff...</option>
                         {{-- Ambil Staff List khusus Resto 209 (ID 1) --}}
-                        @foreach ($staffList[1] ?? [] as $staff)
+                        @foreach ($myStaffList ?? [] as $staff)
                             <option value="{{ $staff->id }}">{{ $staff->name }}</option>
                         @endforeach
                     </select>
@@ -754,72 +786,58 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // --- INISIALISASI BREAKFAST ---
-        // Food
-        let bfFood = {!! old('session.breakfast.upselling_data.food', json_encode($bf->upselling_data['food'] ?? [])) !!};
-        if (typeof bfFood === 'string') bfFood = JSON.parse(bfFood);
-        initUpselling('breakfast', 'food', bfFood);
-
-        // Beverage
-        let bfBev = {!! old('session.breakfast.upselling_data.beverage', json_encode($bf->upselling_data['beverage'] ?? [])) !!};
-        if (typeof bfBev === 'string') bfBev = JSON.parse(bfBev);
-        initUpselling('breakfast', 'beverage', bfBev);
-
-
-        // --- INISIALISASI LUNCH ---
-        // Food
-        let lcFood = {!! old('session.lunch.upselling_data.food', json_encode($lc->upselling_data['food'] ?? [])) !!};
-        if (typeof lcFood === 'string') lcFood = JSON.parse(lcFood);
-        initUpselling('lunch', 'food', lcFood);
-
-        // Beverage
-        let lcBev = {!! old('session.lunch.upselling_data.beverage', json_encode($lc->upselling_data['beverage'] ?? [])) !!};
-        if (typeof lcBev === 'string') lcBev = JSON.parse(lcBev);
-        initUpselling('lunch', 'beverage', lcBev);
-
-        // --- INISIALISASI DINNER ---
-        // Food
-        let dnFood = {!! old('session.dinner.upselling_data.food', json_encode($dn->upselling_data['food'] ?? [])) !!};
-        if (typeof dnFood === 'string') dnFood = JSON.parse(dnFood);
-        initUpselling('dinner', 'food', dnFood);
-
-        // Beverage
-        let dnBev = {!! old('session.dinner.upselling_data.beverage', json_encode($dn->upselling_data['beverage'] ?? [])) !!};
-        if (typeof dnBev === 'string') dnBev = JSON.parse(dnBev);
-        initUpselling('dinner', 'beverage', dnBev);
-
-        // === INISIALISASI VIP LIST ===
+        // ============================================================
+        // 1. UPSELLING INITIALIZATION
+        // ============================================================
 
         // --- BREAKFAST ---
-        // Ambil data, parse jika string (dari old input), biarkan jika array (dari DB/Model cast)
-        let bfVip = {!! old('session.breakfast.vip_remarks', json_encode($bf->vip_remarks ?? [])) !!};
-        if (typeof bfVip === 'string') bfVip = JSON.parse(bfVip);
-        initVip('breakfast', bfVip);
+        // Perhatikan: json_encode membungkus SELURUH old()
+        let bfFood = {!! json_encode(old('session.breakfast.upselling_data.food', $bf->upselling_data['food'] ?? [])) !!};
+        initUpselling('breakfast', 'food', bfFood);
+
+        let bfBev = {!! json_encode(old('session.breakfast.upselling_data.beverage', $bf->upselling_data['beverage'] ?? [])) !!};
+        initUpselling('breakfast', 'beverage', bfBev);
 
         // --- LUNCH ---
-        // Pastikan variabel $lc sudah didefinisikan di PHP bagian atas file
-        let lcVip = {!! old('session.lunch.vip_remarks', json_encode($lc->vip_remarks ?? [])) !!};
-        if (typeof lcVip === 'string') lcVip = JSON.parse(lcVip);
-        initVip('lunch', lcVip);
+        let lcFood = {!! json_encode(old('session.lunch.upselling_data.food', $lc->upselling_data['food'] ?? [])) !!};
+        initUpselling('lunch', 'food', lcFood);
+
+        let lcBev = {!! json_encode(old('session.lunch.upselling_data.beverage', $lc->upselling_data['beverage'] ?? [])) !!};
+        initUpselling('lunch', 'beverage', lcBev);
 
         // --- DINNER ---
-        // Pastikan variabel $dn sudah didefinisikan di PHP bagian atas file
-        // (Contoh variabel dinner, sesuaikan dengan nama variabel Anda, misal $dn atau $details['dinner'])
-        let dnVip = {!! old('session.dinner.vip_remarks', json_encode($dn->vip_remarks ?? [])) !!};
-        if (typeof dnVip === 'string') dnVip = JSON.parse(dnVip);
+        let dnFood = {!! json_encode(old('session.dinner.upselling_data.food', $dn->upselling_data['food'] ?? [])) !!};
+        initUpselling('dinner', 'food', dnFood);
+
+        let dnBev = {!! json_encode(old('session.dinner.upselling_data.beverage', $dn->upselling_data['beverage'] ?? [])) !!};
+        initUpselling('dinner', 'beverage', dnBev);
+
+
+        // ============================================================
+        // 2. VIP LIST INITIALIZATION
+        // ============================================================
+
+        let bfVip = {!! json_encode(old('session.breakfast.vip_remarks', $bf->vip_remarks ?? [])) !!};
+        initVip('breakfast', bfVip);
+
+        let lcVip = {!! json_encode(old('session.lunch.vip_remarks', $lc->vip_remarks ?? [])) !!};
+        initVip('lunch', lcVip);
+
+        let dnVip = {!! json_encode(old('session.dinner.vip_remarks', $dn->vip_remarks ?? [])) !!};
         initVip('dinner', dnVip);
 
-        // --- INISIALISASI STAFF ---
-        let bfStaff = {!! old('session.breakfast.staff_on_duty', json_encode($bf->staff_on_duty ?? [])) !!};
-        if (typeof bfStaff === 'string') bfStaff = JSON.parse(bfStaff);
+
+        // ============================================================
+        // 3. STAFF ON DUTY INITIALIZATION
+        // ============================================================
+
+        let bfStaff = {!! json_encode(old('session.breakfast.staff_on_duty', $bf->staff_on_duty ?? [])) !!};
         initStaff('breakfast', bfStaff);
 
-        let lcStaff = {!! old('session.lunch.staff_on_duty', json_encode($lc->staff_on_duty ?? [])) !!};
-        if (typeof lcStaff === 'string') lcStaff = JSON.parse(lcStaff);
+        let lcStaff = {!! json_encode(old('session.lunch.staff_on_duty', $lc->staff_on_duty ?? [])) !!};
         initStaff('lunch', lcStaff);
 
-        let dnStaff = {!! old('session.dinner.staff_on_duty', json_encode($dn->staff_on_duty ?? [])) !!};
-        if (typeof dnStaff === 'string') dnStaff = JSON.parse(dnStaff);
+        let dnStaff = {!! json_encode(old('session.dinner.staff_on_duty', $dn->staff_on_duty ?? [])) !!};
         initStaff('dinner', dnStaff);
     });
 </script>

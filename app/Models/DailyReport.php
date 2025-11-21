@@ -19,7 +19,7 @@ class DailyReport extends Model
     ];
 
     protected $casts = [
-        'date' => 'date',
+        'date' => 'datetime',
         'approved_at' => 'datetime',
     ];
 

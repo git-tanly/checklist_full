@@ -21,4 +21,9 @@ class Restaurant extends Model
     {
         return $this->hasMany(UpsellingItem::class);
     }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'restaurant_user')->withTimestamps();
+    }
 }

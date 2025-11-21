@@ -53,7 +53,10 @@
                             <tbody>
                                 @forelse($reports as $report)
                                     <tr>
-                                        <td>{{ $report->date->format('d M Y') }}</td>
+                                        <td>
+                                            <div class="fw-bold">{{ $report->date->format('d M Y') }}</div>
+                                            <div class="small text-muted">{{ $report->date->format('H:i') }}</div>
+                                        </td>
                                         <td>{{ $report->restaurant->name }}</td>
                                         <td>{{ $report->user->name }}</td>
                                         <td>

@@ -28,10 +28,10 @@ class DailyReportController extends Controller
         $user = Auth::user();
 
         if ($user->hasRole('Super Admin')) {
-            $restaurants = Restaurant::all();
+            $restaurants = Restaurant::with('users')->get();
         } else {
             // User biasa hanya dapat restorannya sendiri
-            $restaurants = $user->restaurants;
+            $restaurants = $user->restaurants()->with('users')->get();
         }
 
         $details = [];
@@ -42,19 +42,7 @@ class DailyReportController extends Controller
         }
         $upsellingItems = $upsellingQuery->get()->groupBy('restaurant_id');
 
-        $staffQuery = User::query();
-
-        // Jika bukan Super Admin, hanya ambil staff dari restorannya sendiri
-        if ($user->restaurant_id && !$user->hasRole('Super Admin')) {
-            $staffQuery->where('restaurant_id', $user->restaurant_id);
-        }
-
-        // Kita ambil ID dan Name saja, group by restaurant_id
-        $staffList = $staffQuery->get()->groupBy('restaurant_id');
-
-        // dd($staffList);
-
-        return view('daily-reports.create', compact('restaurants', 'details', 'upsellingItems', 'staffList'));
+        return view('daily-reports.create', compact('restaurants', 'details', 'upsellingItems'));
     }
 
     public function store(Request $request)
@@ -71,6 +59,8 @@ class DailyReportController extends Controller
                 return back()->with('error', 'Anda tidak memiliki akses ke restoran ini.');
             }
         }
+
+        $request->merge(['date' => now()->format('Y-m-d H:i:s')]);
 
         // 1. Validasi Dasar (Header)
         $request->validate([
@@ -172,7 +162,6 @@ class DailyReportController extends Controller
 
     public function edit(DailyReport $dailyReport)
     {
-        $user = Auth::user();
         // 1. Cek Policy: Hanya status Draft yang boleh diedit
         if ($dailyReport->status !== 'draft') {
             return redirect()->route('daily-reports.index')
@@ -183,13 +172,14 @@ class DailyReportController extends Controller
         // Kita perlu data restoran untuk mengisi dropdown (walaupun nanti sebaiknya didisabled)
         $dailyReport->load(['details', 'restaurant']);
 
+        $user = Auth::user();
         if ($user->hasRole('Super Admin')) {
             // Super Admin lihat semua
-            $restaurants = Restaurant::all();
+            $restaurants = Restaurant::with('users')->get();
         } else {
             // User Biasa / Cluster Manager lihat restoran miliknya saja
             // Kita akses langsung relasi restaurants
-            $restaurants = $user->restaurants;
+            $restaurants = $user->restaurants()->with('users')->get();
         }
 
         // 3. RE-MAPPING DATA DETAIL (PENTING)
@@ -197,15 +187,9 @@ class DailyReportController extends Controller
         // Contoh hasil: ['breakfast' => {OBJECT DATA}, 'lunch' => {OBJECT DATA}]
         $details = $dailyReport->details->keyBy('session_type');
 
-        $upsellingQuery = UpsellingItem::query();
-        if (!$user->hasRole('Super Admin')) {
-            $upsellingQuery->whereIn('restaurant_id', $user->restaurants->pluck('id'));
-        }
-        $upsellingItems = $upsellingQuery->get()->groupBy('restaurant_id');
+        $upsellingItems = UpsellingItem::all()->groupBy('restaurant_id');
 
-        $staffList = User::all()->groupBy('restaurant_id');
-
-        return view('daily-reports.edit', compact('dailyReport', 'restaurants', 'details', 'upsellingItems', 'staffList'));
+        return view('daily-reports.edit', compact('dailyReport', 'restaurants', 'details', 'upsellingItems'));
     }
 
     public function update(Request $request, DailyReport $dailyReport)
@@ -214,6 +198,9 @@ class DailyReportController extends Controller
         if ($dailyReport->status !== 'draft') {
             return back()->with('error', 'Hanya laporan Draft yang bisa diupdate.');
         }
+
+        // Jika ingin mengupdate jam saat diedit (Opsional, kalau tidak mau jam berubah, hapus baris ini)
+        // $request->merge(['date' => now()->format('Y-m-d H:i:s')]);
 
         $request->validate([
             'date' => 'required|date',
@@ -346,33 +333,47 @@ class DailyReportController extends Controller
 
     private function validateSubmission(Request $request)
     {
-        // Jika user hanya ingin Save Draft, kita skip validasi ketat
+        // Jika tombol Draft, lewati semua validasi
         if ($request->input('action') === 'draft') {
             return;
         }
 
-        // Aturan validasi untuk Submit
-        $request->validate([
-            // Wajib ada minimal satu sesi yang diisi
-            'session' => 'required|array',
+        // Aturan Validasi Wajib (Required)
+        $rules = [
+            'session' => 'required|array', // Wajib ada sesi
 
-            // Validasi Revenue (Wajib angka dan minimal 0)
+            // 1. COVER REPORT (Wajib diisi/Array tidak boleh kosong)
+            // Kita cek apakah array cover_data ada isinya
+            'session.*.cover_data' => 'required|array',
+
+            // 2. REVENUE REPORT (Wajib diisi & Angka)
             'session.*.revenue_food' => 'required|numeric|min:0',
             'session.*.revenue_beverage' => 'required|numeric|min:0',
+            'session.*.revenue_others' => 'required|numeric|min:0',
+            'session.*.revenue_event' => 'required|numeric|min:0',
 
-            // Validasi Text Penting
-            'session.*.staff_on_duty' => 'required|string',
+            // 3. GENERAL REMARKS (Wajib Teks)
+            'session.*.remarks' => 'required|string',
 
-            // Validasi Cover (Kita cek salah satu field kunci saja, misal Total Actual)
-            // Sesuaikan dengan field yang pasti ada di semua resto, atau gunakan logic spesifik
-            // Contoh di bawah: Memastikan JSON cover_data tidak kosong/null
-            'session.*.cover_data' => 'required',
-        ], [
-            // Custom Error Messages agar lebih mudah dibaca user
-            'session.required' => 'Mohon isi minimal satu sesi laporan.',
+            // 4. STAFF ON DUTY (Wajib pilih minimal 1 orang)
+            'session.*.staff_on_duty' => 'required|array|min:1',
+
+            // 5. COMPETITOR COMPARISON (Wajib diisi)
+            'session.*.competitor_data' => 'required|array',
+        ];
+
+        // Pesan Error Bahasa Indonesia (Opsional, agar lebih jelas)
+        $messages = [
+            'session.*.cover_data.required' => 'Cover Report details wajib diisi.',
             'session.*.revenue_food.required' => 'Food Revenue wajib diisi (isi 0 jika tidak ada).',
-            'session.*.staff_on_duty.required' => 'Staff on Duty wajib diisi.',
-        ]);
+            'session.*.revenue_beverage.required' => 'Beverage Revenue wajib diisi (isi 0 jika tidak ada).',
+            'session.*.remarks.required' => 'General Remarks wajib diisi.',
+            'session.*.staff_on_duty.min' => 'Staff on Duty wajib dipilih minimal 1 orang.',
+            'session.*.competitor_data.required' => 'Competitor Comparison wajib diisi.',
+        ];
+
+        // Jalankan Validasi
+        $request->validate($rules, $messages);
     }
 
     private function sanitizeSessionData($inputSessions)
@@ -383,16 +384,25 @@ class DailyReportController extends Controller
         foreach ($inputSessions as $session => $data) {
             $cleanedData = $data;
 
-            // Daftar kolom yang mengandung uang
+            // 1. BERSIHKAN UANG (Hapus Titik)
             $moneyFields = ['revenue_food', 'revenue_beverage', 'revenue_others', 'revenue_event'];
-
             foreach ($moneyFields as $field) {
                 if (isset($cleanedData[$field])) {
-                    // Hapus titik (.)
-                    // Jika Anda pakai format US (koma sebagai ribuan), ganti '.' jadi ','
                     $cleanedData[$field] = str_replace('.', '', $cleanedData[$field]);
                 }
             }
+
+            // 2. DECODE JSON STRING MENJADI ARRAY (Agar bisa divalidasi)
+            // Kolom-kolom ini dikirim sebagai string JSON "[...]" oleh JavaScript
+            $jsonFields = ['staff_on_duty', 'upselling_data', 'vip_remarks'];
+            foreach ($jsonFields as $field) {
+                if (isset($cleanedData[$field]) && is_string($cleanedData[$field])) {
+                    $decoded = json_decode($cleanedData[$field], true);
+                    // Jika decode berhasil, pakai arraynya. Jika gagal, biarkan string/null.
+                    $cleanedData[$field] = $decoded ?: [];
+                }
+            }
+
             $cleanedSessions[$session] = $cleanedData;
         }
 

@@ -66,9 +66,15 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="form-label">Date</label>
-                                    <input type="date" name="date" class="form-control" value="{{ date('Y-m-d') }}"
-                                        required>
+                                    <label class="form-label">Date & Time</label>
+
+                                    {{-- 1. Tampilan Visual (Readonly agar tidak bisa diubah user) --}}
+                                    <input type="text" class="form-control bg-light cursor-not-allowed"
+                                        value="{{ now()->format('d F Y - H:i') }}" readonly>
+
+                                    {{-- 2. Data Asli yang dikirim ke Server (Hidden) --}}
+                                    {{-- Kita kirim tanggal hari ini (Y-m-d) agar validasi 'date' di controller tetap lolos --}}
+                                    <input type="hidden" name="date" value="{{ now()->format('Y-m-d') }}">
                                 </div>
                             </div>
                         </div>
@@ -216,8 +222,24 @@
          */
         window.initUpselling = function(session, type, initialData) {
             const key = `${session}_${type}`;
-            // Pastikan initialData adalah array, jika null/undefined jadikan array kosong
-            upsellingState[key] = initialData || [];
+
+            // LOGIKA BARU: Paksa jadi Array
+            let safeData = [];
+            if (initialData) {
+                if (Array.isArray(initialData)) {
+                    safeData = initialData; // Sudah array, aman
+                } else if (typeof initialData === 'object') {
+                    // Jika Object (karena index array acak), ubah jadi Array
+                    safeData = Object.values(initialData);
+                } else if (typeof initialData === 'string') {
+                    // Jika String JSON
+                    try {
+                        safeData = JSON.parse(initialData);
+                    } catch (e) {}
+                }
+            }
+
+            upsellingState[key] = safeData;
             renderUpsellingTable(session, type);
         };
 
@@ -315,10 +337,23 @@
          * Dipanggil dari form-partial saat load halaman
          */
         window.initVip = function(session, initialData) {
-            const key = session; // Key hanya berdasarkan sesi (breakfast/lunch/dinner)
+            const key = session;
 
-            // Pastikan initialData adalah array
-            vipState[key] = initialData || [];
+            // LOGIKA BARU: Paksa jadi Array
+            let safeData = [];
+            if (initialData) {
+                if (Array.isArray(initialData)) {
+                    safeData = initialData;
+                } else if (typeof initialData === 'object') {
+                    safeData = Object.values(initialData);
+                } else if (typeof initialData === 'string') {
+                    try {
+                        safeData = JSON.parse(initialData);
+                    } catch (e) {}
+                }
+            }
+
+            vipState[key] = safeData;
             renderVipTable(session);
         };
 
@@ -420,7 +455,21 @@
         let staffState = {};
 
         window.initStaff = function(session, initialData) {
-            staffState[session] = initialData || [];
+            // LOGIKA BARU: Paksa jadi Array
+            let safeData = [];
+            if (initialData) {
+                if (Array.isArray(initialData)) {
+                    safeData = initialData;
+                } else if (typeof initialData === 'object') {
+                    safeData = Object.values(initialData);
+                } else if (typeof initialData === 'string') {
+                    try {
+                        safeData = JSON.parse(initialData);
+                    } catch (e) {}
+                }
+            }
+
+            staffState[session] = safeData;
             renderStaffTable(session);
         };
 

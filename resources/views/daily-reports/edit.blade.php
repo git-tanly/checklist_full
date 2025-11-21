@@ -62,9 +62,15 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="form-label">Date</label>
-                                    <input type="date" name="date" class="form-control"
-                                        value="{{ old('date', $dailyReport->date->format('Y-m-d')) }}" required>
+                                    <label class="form-label">Report Date & Time</label>
+
+                                    {{-- TAMPILAN VISUAL (Format Manusia) --}}
+                                    <input type="text" class="form-control"
+                                        value="{{ $dailyReport->date->format('d F Y - H:i') }}" disabled>
+
+                                    {{-- DATA ASLI (Format Database Y-m-d H:i:s) --}}
+                                    <input type="hidden" name="date"
+                                        value="{{ $dailyReport->date->format('Y-m-d H:i:s') }}">
                                 </div>
                             </div>
                         </div>
@@ -144,8 +150,24 @@
          */
         window.initUpselling = function(session, type, initialData) {
             const key = `${session}_${type}`;
-            // Pastikan initialData adalah array, jika null/undefined jadikan array kosong
-            upsellingState[key] = initialData || [];
+
+            // LOGIKA BARU: Paksa jadi Array
+            let safeData = [];
+            if (initialData) {
+                if (Array.isArray(initialData)) {
+                    safeData = initialData; // Sudah array, aman
+                } else if (typeof initialData === 'object') {
+                    // Jika Object (karena index array acak), ubah jadi Array
+                    safeData = Object.values(initialData);
+                } else if (typeof initialData === 'string') {
+                    // Jika String JSON
+                    try {
+                        safeData = JSON.parse(initialData);
+                    } catch (e) {}
+                }
+            }
+
+            upsellingState[key] = safeData;
             renderUpsellingTable(session, type);
         };
 
@@ -243,10 +265,23 @@
          * Dipanggil dari form-partial saat load halaman
          */
         window.initVip = function(session, initialData) {
-            const key = session; // Key hanya berdasarkan sesi (breakfast/lunch/dinner)
+            const key = session;
 
-            // Pastikan initialData adalah array
-            vipState[key] = initialData || [];
+            // LOGIKA BARU: Paksa jadi Array
+            let safeData = [];
+            if (initialData) {
+                if (Array.isArray(initialData)) {
+                    safeData = initialData;
+                } else if (typeof initialData === 'object') {
+                    safeData = Object.values(initialData);
+                } else if (typeof initialData === 'string') {
+                    try {
+                        safeData = JSON.parse(initialData);
+                    } catch (e) {}
+                }
+            }
+
+            vipState[key] = safeData;
             renderVipTable(session);
         };
 
@@ -348,7 +383,21 @@
         let staffState = {};
 
         window.initStaff = function(session, initialData) {
-            staffState[session] = initialData || [];
+            // LOGIKA BARU: Paksa jadi Array
+            let safeData = [];
+            if (initialData) {
+                if (Array.isArray(initialData)) {
+                    safeData = initialData;
+                } else if (typeof initialData === 'object') {
+                    safeData = Object.values(initialData);
+                } else if (typeof initialData === 'string') {
+                    try {
+                        safeData = JSON.parse(initialData);
+                    } catch (e) {}
+                }
+            }
+
+            staffState[session] = safeData;
             renderStaffTable(session);
         };
 

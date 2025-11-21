@@ -38,8 +38,9 @@
                             </h6>
                         </li>
                         <li class="list-group-item px-0">
-                            <span class="text-muted mb-1 d-block">Date</span>
-                            <h6 class="mb-0">{{ $dailyReport->date->format('d F Y') }}</h6>
+                            <span class="text-muted mb-1 d-block">Date & Time</span>
+                            {{-- TAMBAHKAN JAM DI SINI --}}
+                            <h6 class="mb-0">{{ $dailyReport->date->format('d F Y - H:i') }}</h6>
                         </li>
                         <li class="list-group-item px-0">
                             <span class="text-muted mb-1 d-block">Created By</span>
