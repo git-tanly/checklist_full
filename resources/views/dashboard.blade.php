@@ -105,6 +105,18 @@
             </div>
         </div>
 
+        {{-- COMPETITOR CHART (BARU) --}}
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Competitor Cover Comparison (Last 7 Days)</h5>
+                </div>
+                <div class="card-body">
+                    <div id="competitor-chart"></div>
+                </div>
+            </div>
+        </div>
+
         {{-- MAIN CONTENT: RECENT REPORTS TABLE --}}
         <div class="col-md-12">
             <div class="card">
@@ -234,6 +246,57 @@
 
             var chart = new ApexCharts(document.querySelector("#revenue-chart"), options);
             chart.render();
+
+            // --- 2. CHART COMPETITOR (KODE BARU) ---
+            var compOptions = {
+                series: @json($compSeries), // Data dari Controller
+                chart: {
+                    height: 350,
+                    type: 'line', // Line chart cocok untuk perbandingan tren
+                    zoom: {
+                        enabled: false
+                    },
+                    toolbar: {
+                        show: false
+                    }
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                stroke: {
+                    width: [3, 2, 2, 2], // Garis kita tebal, kompetitor tipis
+                    curve: 'smooth',
+                    dashArray: [0, 5, 5, 5] // Garis kompetitor putus-putus (opsional, biar kita menonjol)
+                },
+                colors: ['#4680ff', '#ff5252', '#ffba57', '#2ca87f'], // Biru(Kita), Merah, Kuning, Hijau
+                xaxis: {
+                    categories: @json($chartLabels), // Label tanggal sama dengan revenue
+                },
+                yaxis: {
+                    title: {
+                        text: 'Total Covers (Pax)'
+                    }
+                },
+                legend: {
+                    position: 'top'
+                },
+                markers: {
+                    size: 4,
+                    hover: {
+                        size: 6
+                    }
+                },
+                tooltip: {
+                    y: {
+                        formatter: function(val) {
+                            return val + " Pax"
+                        }
+                    }
+                }
+            };
+
+            var chartComp = new ApexCharts(document.querySelector("#competitor-chart"), compOptions);
+            chartComp.render();
         });
     </script>
 @endsection

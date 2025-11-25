@@ -77,7 +77,7 @@
                         </div>
                     @endif --}}
                     @if ($dailyReport->status == 'submitted')
-                        @hasanyrole('Super Admin|Restaurant Manager|Assistant Restaurant Manager|F&B Supervisor')
+                        @hasanyrole('Super Admin|Restaurant Manager')
                             <div class="d-grid mt-3">
                                 {{-- FORM APPROVE --}}
                                 <form action="{{ route('daily-reports.approve', $dailyReport->id) }}" method="POST">
@@ -99,6 +99,10 @@
                                         <i class="ti ti-x"></i> Reject (Return to Draft)
                                     </button>
                                 </form>
+                            </div>
+                        @else
+                            <div class="alert alert-info mt-3 small">
+                                <i class="ti ti-info-circle"></i> Waiting for Restaurant Manager Approval.
                             </div>
                         @endhasanyrole
                     @endif

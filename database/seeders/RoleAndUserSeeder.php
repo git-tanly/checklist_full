@@ -51,61 +51,61 @@ class RoleAndUserSeeder extends Seeder
 
 
         // B. MANAGER 209 (Single Unit)
-        if ($r209) {
-            $manager209 = User::firstOrCreate([
-                'nik' => '1000',
-            ], [
-                'name' => 'Manager 209',
-                'password' => $password,
-            ]);
-            $manager209->assignRole('Restaurant Manager');
+        // if ($r209) {
+        //     $manager209 = User::firstOrCreate([
+        //         'nik' => '1000',
+        //     ], [
+        //         'name' => 'Manager 209',
+        //         'password' => $password,
+        //     ]);
+        //     $manager209->assignRole('Restaurant Manager');
 
-            // HUBUNGKAN KE RESTORAN (LOGIC BARU)
-            $manager209->restaurants()->sync([$r209->id]);
-
-
-            // C. WAITER 209
-            $waiter209 = User::firstOrCreate([
-                'nik' => '1005',
-            ], [
-                'name' => 'Waiter 209',
-                'password' => $password,
-            ]);
-            $waiter209->assignRole('Waiter');
-
-            // HUBUNGKAN KE RESTORAN
-            $waiter209->restaurants()->sync([$r209->id]);
-        }
+        //     // HUBUNGKAN KE RESTORAN (LOGIC BARU)
+        //     $manager209->restaurants()->sync([$r209->id]);
 
 
-        // D. MANAGER NAGANO
-        if ($ngn) {
-            $managerNgn = User::firstOrCreate([
-                'nik' => '2000',
-            ], [
-                'name' => 'Manager Nagano',
-                'password' => $password,
-            ]);
-            $managerNgn->assignRole('Restaurant Manager');
+        //     // C. WAITER 209
+        //     $waiter209 = User::firstOrCreate([
+        //         'nik' => '1005',
+        //     ], [
+        //         'name' => 'Waiter 209',
+        //         'password' => $password,
+        //     ]);
+        //     $waiter209->assignRole('Waiter');
 
-            // HUBUNGKAN KE RESTORAN
-            $managerNgn->restaurants()->sync([$ngn->id]);
-        }
+        //     // HUBUNGKAN KE RESTORAN
+        //     $waiter209->restaurants()->sync([$r209->id]);
+        // }
 
 
-        // E. CONTOH AREA MANAGER (CLUSTER - 2 RESTORAN)
-        // User ini memegang 209 DAN Nagano sekaligus
-        if ($r209 && $ngn) {
-            $areaMgr = User::firstOrCreate([
-                'nik' => '3000',
-            ], [
-                'name' => 'Area Manager (Cluster)',
-                'password' => $password,
-            ]);
-            $areaMgr->assignRole('Restaurant Manager'); // Role tetap Manager
+        // // D. MANAGER NAGANO
+        // if ($ngn) {
+        //     $managerNgn = User::firstOrCreate([
+        //         'nik' => '2000',
+        //     ], [
+        //         'name' => 'Manager Nagano',
+        //         'password' => $password,
+        //     ]);
+        //     $managerNgn->assignRole('Restaurant Manager');
 
-            // HUBUNGKAN KE BANYAK RESTORAN
-            $areaMgr->restaurants()->sync([$r209->id, $ngn->id]);
-        }
+        //     // HUBUNGKAN KE RESTORAN
+        //     $managerNgn->restaurants()->sync([$ngn->id]);
+        // }
+
+
+        // // E. CONTOH AREA MANAGER (CLUSTER - 2 RESTORAN)
+        // // User ini memegang 209 DAN Nagano sekaligus
+        // if ($r209 && $ngn) {
+        //     $areaMgr = User::firstOrCreate([
+        //         'nik' => '3000',
+        //     ], [
+        //         'name' => 'Area Manager (Cluster)',
+        //         'password' => $password,
+        //     ]);
+        //     $areaMgr->assignRole('Restaurant Manager'); // Role tetap Manager
+
+        //     // HUBUNGKAN KE BANYAK RESTORAN
+        //     $areaMgr->restaurants()->sync([$r209->id, $ngn->id]);
+        // }
     }
 }

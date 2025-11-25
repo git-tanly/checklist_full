@@ -84,6 +84,7 @@
                     @php
                         $code = $dailyReport->restaurant->code; // 209, NGN, XFH
                         $viewName = 'daily-reports.partials.form-' . strtolower($code === 'NJR' ? 'nagano' : $code);
+                        $chamasName = 'daily-reports.partials.form-' . strtolower($code === 'CHA' ? 'chamas' : $code);
                         // Note: sesuaikan logika nama file Anda di sini.
                         // Jika code 209 -> form-209.blade.php
                         // Jika code NGN -> form-nagano.blade.php (jika namanya itu)
@@ -91,6 +92,8 @@
 
                     @if (View::exists($viewName))
                         @include($viewName)
+                    @elseif (View::exists($chamasName))
+                        @include($chamasName)
                     @else
                         @include('daily-reports.partials.form-' . strtolower($dailyReport->restaurant->code))
                     @endif
@@ -141,62 +144,53 @@
         });
 
         // --- UPSELLING MANAGER SCRIPT ---
-        // Variabel global untuk menyimpan state data
         let upsellingState = {};
 
-        /**
-         * Fungsi Inisialisasi (Dipanggil saat load halaman)
-         * Berguna untuk memuat data lama (saat Edit atau Error validation)
-         */
-        window.initUpselling = function(session, type, initialData) {
-            const key = `${session}_${type}`;
+        // 1. Init dengan parameter CODE
+        window.initUpselling = function(session, type, initialData, code) {
+            const key = `${session}_${type}_${code}`; // Key unik per resto
 
-            // LOGIKA BARU: Paksa jadi Array
             let safeData = [];
             if (initialData) {
-                if (Array.isArray(initialData)) {
-                    safeData = initialData; // Sudah array, aman
-                } else if (typeof initialData === 'object') {
-                    // Jika Object (karena index array acak), ubah jadi Array
-                    safeData = Object.values(initialData);
-                } else if (typeof initialData === 'string') {
-                    // Jika String JSON
-                    try {
-                        safeData = JSON.parse(initialData);
-                    } catch (e) {}
-                }
+                if (Array.isArray(initialData)) safeData = initialData;
+                else if (typeof initialData === 'object') safeData = Object.values(initialData);
+                else if (typeof initialData === 'string') try {
+                    safeData = JSON.parse(initialData);
+                } catch (e) {}
             }
 
             upsellingState[key] = safeData;
-            renderUpsellingTable(session, type);
+            renderUpsellingTable(session, type, code);
         };
 
-        /**
-         * Fungsi Menambahkan Item
-         */
-        window.addUpsellingItem = function(session, type) {
-            const selectId = `select-${session}-${type}`;
-            const paxId = `pax-${session}-${type}`;
+        // 2. Add Item dengan parameter CODE
+        window.addUpsellingItem = function(session, type, code) {
+            // ID Unik: select-lunch-food-NGN
+            const selectId = `select-${session}-${type}-${code}`;
+            const paxId = `pax-${session}-${type}-${code}`;
 
             const selectEl = document.getElementById(selectId);
             const paxEl = document.getElementById(paxId);
+
+            if (!selectEl || !paxEl) {
+                console.error("Element not found:", selectId, paxId);
+                return;
+            }
 
             const itemId = selectEl.value;
             const itemName = selectEl.options[selectEl.selectedIndex].text;
             const pax = parseInt(paxEl.value);
 
-            // Validasi sederhana
             if (!itemId) {
                 alert("Please select a menu item.");
                 return;
             }
-            if (!pax || pax < 1) {
-                alert("Please enter valid pax/quantity.");
+            if (isNaN(pax) || pax < 0) {
+                alert("Please enter a valid quantity (0 or higher).");
                 return;
             }
 
-            // Tambahkan ke State
-            const key = `${session}_${type}`;
+            const key = `${session}_${type}_${code}`;
             if (!upsellingState[key]) upsellingState[key] = [];
 
             upsellingState[key].push({
@@ -205,54 +199,47 @@
                 pax: pax
             });
 
-            // Reset Input
             selectEl.value = "";
             paxEl.value = "";
-
-            // Render Ulang Tabel & Update Hidden Input
-            renderUpsellingTable(session, type);
+            renderUpsellingTable(session, type, code);
         };
 
-        /**
-         * Fungsi Menghapus Item
-         */
-        window.removeUpsellingItem = function(session, type, index) {
-            const key = `${session}_${type}`;
-            upsellingState[key].splice(index, 1); // Hapus array index tsb
-            renderUpsellingTable(session, type);
+        // 3. Remove Item dengan parameter CODE
+        window.removeUpsellingItem = function(session, type, index, code) {
+            const key = `${session}_${type}_${code}`;
+            upsellingState[key].splice(index, 1);
+            renderUpsellingTable(session, type, code);
         };
 
-        /**
-         * Render Tabel HTML & Update Hidden Input
-         */
-        function renderUpsellingTable(session, type) {
-            const key = `${session}_${type}`;
-            const data = upsellingState[key];
+        // 4. Render Table dengan parameter CODE
+        function renderUpsellingTable(session, type, code) {
+            const key = `${session}_${type}_${code}`;
+            const data = upsellingState[key] || [];
 
-            // 1. Update Hidden Input (Ini yang dikirim ke Server)
-            const hiddenInputId = `input-${session}-${type}`;
-            document.getElementById(hiddenInputId).value = JSON.stringify(data);
+            // Update Hidden Input (ID Unik: input-lunch-food-NGN)
+            const hiddenInputId = `input-${session}-${type}-${code}`;
+            const hiddenInput = document.getElementById(hiddenInputId);
+            if (hiddenInput) hiddenInput.value = JSON.stringify(data);
 
-            // 2. Render Tampilan List
-            const listId = `list-${session}-${type}`;
+            // Render List (ID Unik: list-lunch-food-NGN)
+            const listId = `list-${session}-${type}-${code}`;
             const listEl = document.getElementById(listId);
-            listEl.innerHTML = ""; // Bersihkan list
 
-            data.forEach((item, index) => {
-                const li = document.createElement('li');
-                li.className = "list-group-item d-flex justify-content-between align-items-center p-2";
-                li.innerHTML = `
-                <div>
-                    <span class="fw-bold">${item.name}</span>
-                    <span class="badge bg-primary rounded-pill ms-2">${item.pax} Pax</span>
-                </div>
-                <button type="button" class="btn btn-sm btn-link-danger p-0"
-                    onclick="removeUpsellingItem('${session}', '${type}', ${index})">
-                    <i class="ti ti-x"></i>
-                </button>
-            `;
-                listEl.appendChild(li);
-            });
+            if (listEl) {
+                listEl.innerHTML = "";
+                data.forEach((item, index) => {
+                    const li = document.createElement('li');
+                    li.className = "list-group-item d-flex justify-content-between align-items-center p-2";
+                    li.innerHTML = `
+                    <div><span class="fw-bold">${item.name}</span> <span class="badge bg-primary rounded-pill ms-2">${item.pax} Pax</span></div>
+                    <button type="button" class="btn btn-sm btn-link-danger p-0"
+                        onclick="removeUpsellingItem('${session}', '${type}', ${index}, '${code}')">
+                        <i class="ti ti-x"></i>
+                    </button>
+                `;
+                    listEl.appendChild(li);
+                });
+            }
         }
 
         // --- VIP REMARKS MANAGER SCRIPT ---
@@ -261,45 +248,40 @@
         let vipState = {};
 
         /**
-         * Fungsi Inisialisasi VIP
-         * Dipanggil dari form-partial saat load halaman
+         * 1. Init dengan parameter CODE
          */
-        window.initVip = function(session, initialData) {
-            const key = session;
+        window.initVip = function(session, initialData, code) {
+            const key = `${session}_${code}`; // Key unik: lunch_NGN
 
-            // LOGIKA BARU: Paksa jadi Array
             let safeData = [];
             if (initialData) {
-                if (Array.isArray(initialData)) {
-                    safeData = initialData;
-                } else if (typeof initialData === 'object') {
-                    safeData = Object.values(initialData);
-                } else if (typeof initialData === 'string') {
-                    try {
-                        safeData = JSON.parse(initialData);
-                    } catch (e) {}
-                }
+                if (Array.isArray(initialData)) safeData = initialData;
+                else if (typeof initialData === 'object') safeData = Object.values(initialData);
+                else if (typeof initialData === 'string') try {
+                    safeData = JSON.parse(initialData);
+                } catch (e) {}
             }
 
             vipState[key] = safeData;
-            renderVipTable(session);
+            renderVipTable(session, code);
         };
 
         /**
-         * Fungsi Menambahkan Item VIP
+         * 2. Add Item dengan parameter CODE
          */
-        window.addVipItem = function(session) {
-            // ID Element Input
-            const nameId = `vip-name-${session}`;
-            const posId = `vip-pos-${session}`;
+        window.addVipItem = function(session, code) {
+            // ID Unik: vip-name-lunch-NGN
+            const nameId = `vip-name-${session}-${code}`;
+            const posId = `vip-pos-${session}-${code}`;
 
             const nameEl = document.getElementById(nameId);
             const posEl = document.getElementById(posId);
 
+            if (!nameEl || !posEl) return;
+
             const nameVal = nameEl.value.trim();
             const posVal = posEl.value.trim();
 
-            // Validasi sederhana
             if (!nameVal) {
                 alert("Please enter Guest Name.");
                 return;
@@ -309,8 +291,7 @@
                 return;
             }
 
-            // Tambahkan ke State
-            const key = session;
+            const key = `${session}_${code}`;
             if (!vipState[key]) vipState[key] = [];
 
             vipState[key].push({
@@ -318,48 +299,39 @@
                 position: posVal
             });
 
-            // Reset Input agar siap input berikutnya
             nameEl.value = "";
             posEl.value = "";
-            nameEl.focus(); // Arahkan kursor kembali ke nama
-
-            // Render Ulang Tabel & Update Hidden Input
-            renderVipTable(session);
+            nameEl.focus();
+            renderVipTable(session, code);
         };
 
         /**
-         * Fungsi Menghapus Item VIP
+         * 3. Remove Item dengan parameter CODE
          */
-        window.removeVipItem = function(session, index) {
-            const key = session;
-            vipState[key].splice(index, 1); // Hapus array index tsb
-            renderVipTable(session);
+        window.removeVipItem = function(session, index, code) {
+            const key = `${session}_${code}`;
+            vipState[key].splice(index, 1);
+            renderVipTable(session, code);
         };
 
         /**
-         * Render Tampilan List & Update Hidden Input
+         * 4. Render Table dengan parameter CODE
          */
-        function renderVipTable(session) {
-            const key = session;
-            const data = vipState[key];
+        function renderVipTable(session, code) {
+            const key = `${session}_${code}`;
+            const data = vipState[key] || [];
 
-            // 1. Update Hidden Input (Ini yang dikirim ke Server)
-            // ID Hidden Input: input-vip-breakfast
-            const hiddenInputId = `input-vip-${session}`;
+            // Update Hidden Input (ID Unik: input-vip-lunch-NGN)
+            const hiddenInputId = `input-vip-${session}-${code}`;
             const hiddenInput = document.getElementById(hiddenInputId);
+            if (hiddenInput) hiddenInput.value = JSON.stringify(data);
 
-            if (hiddenInput) {
-                hiddenInput.value = JSON.stringify(data);
-            }
-
-            // 2. Render Tampilan List (<ul>)
-            // ID List: list-vip-breakfast
-            const listId = `list-vip-${session}`;
+            // Render List (ID Unik: list-vip-lunch-NGN)
+            const listId = `list-vip-${session}-${code}`;
             const listEl = document.getElementById(listId);
 
             if (listEl) {
-                listEl.innerHTML = ""; // Bersihkan list
-
+                listEl.innerHTML = "";
                 data.forEach((item, index) => {
                     const li = document.createElement('li');
                     li.className =
@@ -370,7 +342,7 @@
                         <span class="small text-muted">${item.position}</span>
                     </div>
                     <button type="button" class="btn btn-sm btn-link-danger p-0"
-                        onclick="removeVipItem('${session}', ${index})">
+                        onclick="removeVipItem('${session}', ${index}, '${code}')">
                         <i class="ti ti-x fs-4"></i>
                     </button>
                 `;
@@ -382,63 +354,82 @@
         // --- STAFF ON DUTY MANAGER SCRIPT ---
         let staffState = {};
 
-        window.initStaff = function(session, initialData) {
-            // LOGIKA BARU: Paksa jadi Array
+        /**
+         * 1. Init dengan parameter CODE
+         */
+        window.initStaff = function(session, initialData, code) {
+            const key = `${session}_${code}`; // Key unik
+
             let safeData = [];
             if (initialData) {
-                if (Array.isArray(initialData)) {
-                    safeData = initialData;
-                } else if (typeof initialData === 'object') {
-                    safeData = Object.values(initialData);
-                } else if (typeof initialData === 'string') {
-                    try {
-                        safeData = JSON.parse(initialData);
-                    } catch (e) {}
-                }
+                if (Array.isArray(initialData)) safeData = initialData;
+                else if (typeof initialData === 'object') safeData = Object.values(initialData);
+                else if (typeof initialData === 'string') try {
+                    safeData = JSON.parse(initialData);
+                } catch (e) {}
             }
 
-            staffState[session] = safeData;
-            renderStaffTable(session);
+            staffState[key] = safeData;
+            renderStaffTable(session, code);
         };
 
-        window.addStaffItem = function(session) {
-            const selectId = `select-staff-${session}`;
+        /**
+         * 2. Add Item dengan parameter CODE
+         */
+        window.addStaffItem = function(session, code) {
+            // ID Unik: select-staff-lunch-NGN
+            const selectId = `select-staff-${session}-${code}`;
             const selectEl = document.getElementById(selectId);
 
+            if (!selectEl) return;
+
+            const staffId = selectEl.value;
             const staffName = selectEl.options[selectEl.selectedIndex].text;
-            const staffId = selectEl.value; // Kita simpan Namanya saja atau ID, sesuai kebutuhan.
-            // Disini saya simpan Nama agar di report tercetak nama jelas.
 
             if (!staffId) {
                 alert("Please select a staff member.");
                 return;
             }
 
-            // Cek duplikasi (agar tidak add orang yang sama 2x)
-            if (staffState[session].includes(staffName)) {
+            const key = `${session}_${code}`;
+            if (!staffState[key]) staffState[key] = [];
+
+            // Cek Duplikasi
+            if (staffState[key].includes(staffName)) {
                 alert("Staff member already added.");
                 return;
             }
 
-            staffState[session].push(staffName);
+            staffState[key].push(staffName);
             selectEl.value = ""; // Reset dropdown
-            renderStaffTable(session);
+            renderStaffTable(session, code);
         };
 
-        window.removeStaffItem = function(session, index) {
-            staffState[session].splice(index, 1);
-            renderStaffTable(session);
+        /**
+         * 3. Remove Item dengan parameter CODE
+         */
+        window.removeStaffItem = function(session, index, code) {
+            const key = `${session}_${code}`;
+            staffState[key].splice(index, 1);
+            renderStaffTable(session, code);
         };
 
-        function renderStaffTable(session) {
-            const data = staffState[session];
+        /**
+         * 4. Render Table dengan parameter CODE
+         */
+        function renderStaffTable(session, code) {
+            const key = `${session}_${code}`;
+            const data = staffState[key] || [];
 
-            // Update Hidden Input
-            const hiddenInput = document.getElementById(`input-staff-${session}`);
+            // Update Hidden Input (ID Unik: input-staff-lunch-NGN)
+            const hiddenInputId = `input-staff-${session}-${code}`;
+            const hiddenInput = document.getElementById(hiddenInputId);
             if (hiddenInput) hiddenInput.value = JSON.stringify(data);
 
-            // Render UI
-            const listEl = document.getElementById(`list-staff-${session}`);
+            // Render List (ID Unik: list-staff-lunch-NGN)
+            const listId = `list-staff-${session}-${code}`;
+            const listEl = document.getElementById(listId);
+
             if (listEl) {
                 listEl.innerHTML = "";
                 data.forEach((name, index) => {
@@ -446,7 +437,8 @@
                     badge.className = "badge bg-light-primary text-primary me-1 mb-1 fs-6";
                     badge.innerHTML = `
                     ${name}
-                    <i class="ti ti-x ms-1" style="cursor:pointer" onclick="removeStaffItem('${session}', ${index})"></i>
+                    <i class="ti ti-x ms-1" style="cursor:pointer"
+                       onclick="removeStaffItem('${session}', ${index}, '${code}')"></i>
                 `;
                     listEl.appendChild(badge);
                 });

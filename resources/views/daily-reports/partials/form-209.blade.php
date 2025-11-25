@@ -137,27 +137,27 @@
                 <label class="form-label small fw-bold">Upselling Menu (Food)</label>
 
                 {{-- 1. Hidden Input (Penyimpan Data JSON) --}}
-                <input type="hidden" id="input-breakfast-food" name="session[breakfast][upselling_data][food]"
+                <input type="hidden" id="input-breakfast-food-209" name="session[breakfast][upselling_data][food]"
                     value="{{ $bfFoodValue }}">
 
                 {{-- 2. Area Input (Dropdown & Pax) --}}
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-breakfast-food">
+                    <select class="form-select form-select-sm" id="select-breakfast-food-209">
                         <option value="" selected>Select Food...</option>
                         @foreach ($foods as $item)
                             <option value="{{ $item->id }}">{{ $item->name }}</option>
                         @endforeach
                     </select>
-                    <input type="number" class="form-control form-control-sm" id="pax-breakfast-food"
+                    <input type="number" class="form-control form-control-sm" id="pax-breakfast-food-209"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"
-                        onclick="addUpsellingItem('breakfast', 'food')">
+                        onclick="addUpsellingItem('breakfast', 'food', '209')">
                         <i class="ti ti-plus"></i> Add
                     </button>
                 </div>
 
                 {{-- 3. List Tampilan --}}
-                <ul class="list-group small" id="list-breakfast-food">
+                <ul class="list-group small" id="list-breakfast-food-209">
                     {{-- Item akan muncul di sini lewat JS --}}
                 </ul>
             </div>
@@ -167,27 +167,27 @@
                 <label class="form-label small fw-bold">Beverage Upselling</label>
 
                 {{-- 1. Hidden Input --}}
-                <input type="hidden" id="input-breakfast-beverage"
+                <input type="hidden" id="input-breakfast-beverage-209"
                     name="session[breakfast][upselling_data][beverage]" value="{{ $bfBevValue }}">
 
                 {{-- 2. Area Input --}}
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-breakfast-beverage">
+                    <select class="form-select form-select-sm" id="select-breakfast-beverage-209">
                         <option value="" selected>Select Drink...</option>
                         @foreach ($beverages as $item)
                             <option value="{{ $item->id }}">{{ $item->name }}</option>
                         @endforeach
                     </select>
-                    <input type="number" class="form-control form-control-sm" id="pax-breakfast-beverage"
+                    <input type="number" class="form-control form-control-sm" id="pax-breakfast-beverage-209"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"
-                        onclick="addUpsellingItem('breakfast', 'beverage')">
+                        onclick="addUpsellingItem('breakfast', 'beverage', '209')">
                         <i class="ti ti-plus"></i> Add
                     </button>
                 </div>
 
                 {{-- 3. List Tampilan --}}
-                <ul class="list-group small" id="list-breakfast-beverage">
+                <ul class="list-group small" id="list-breakfast-beverage-209">
                     {{-- Item akan muncul di sini lewat JS --}}
                 </ul>
             </div>
@@ -204,53 +204,52 @@
 
                 {{-- 1. Hidden Input (Penyimpan Data JSON ke Database) --}}
                 {{-- Value logic: Prioritaskan old input, lalu data DB, lalu array kosong default --}}
-                <input type="hidden" id="input-vip-breakfast" name="session[breakfast][vip_remarks]"
+                <input type="hidden" id="input-vip-breakfast-209" name="session[breakfast][vip_remarks]"
                     value="{{ $bfVipValue }}">
 
                 {{-- 2. Area Input (Nama & Jabatan) --}}
                 <div class="input-group mb-2">
-                    <input type="text" class="form-control form-control-sm" id="vip-name-breakfast"
+                    <input type="text" class="form-control form-control-sm" id="vip-name-breakfast-209"
                         placeholder="Guest Name (e.g. Mr. Budi)">
-                    <input type="text" class="form-control form-control-sm" id="vip-pos-breakfast"
+                    <input type="text" class="form-control form-control-sm" id="vip-pos-breakfast-209"
                         placeholder="Position/Title (e.g. CEO)">
-                    <button class="btn btn-sm btn-dark" type="button" onclick="addVipItem('breakfast')">
+                    <button class="btn btn-sm btn-dark" type="button" onclick="addVipItem('breakfast', '209')">
                         <i class="ti ti-plus"></i> Add
                     </button>
                 </div>
 
                 {{-- 3. List Tampilan --}}
-                <ul class="list-group small" id="list-vip-breakfast">
+                <ul class="list-group small" id="list-vip-breakfast-209">
                     {{-- Item akan muncul di sini lewat JS --}}
                 </ul>
             </div>
             <div class="col-md-12">
                 <label class="form-label small">General Remarks</label>
-                <input type="text" class="form-control" name="session[breakfast][remarks]"
-                    value="{{ old('session.breakfast.remarks', $bf->remarks ?? '') }}">
+                <textarea class="form-control" name="session[breakfast][remarks]">{{ old('session.breakfast.remarks', $bf->remarks ?? '') }}</textarea>
             </div>
             <div class="col-md-12 mt-3">
                 <label class="form-label small fw-bold">Staff on Duty</label>
 
                 {{-- 1. Hidden Input (Simpan JSON Array) --}}
-                <input type="hidden" id="input-staff-breakfast" name="session[breakfast][staff_on_duty]"
+                <input type="hidden" id="input-staff-breakfast-209" name="session[breakfast][staff_on_duty]"
                     value="{{ $bfStaffValue }}">
 
                 {{-- 2. Area Dropdown & Add --}}
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-staff-breakfast">
+                    <select class="form-select form-select-sm" id="select-staff-breakfast-209">
                         <option value="" selected>Select Staff...</option>
                         {{-- Ambil Staff List khusus Resto 209 (ID 1) --}}
                         @foreach ($myStaffList ?? [] as $staff)
                             <option value="{{ $staff->id }}">{{ $staff->name }}</option>
                         @endforeach
                     </select>
-                    <button class="btn btn-sm btn-dark" type="button" onclick="addStaffItem('breakfast')">
+                    <button class="btn btn-sm btn-dark" type="button" onclick="addStaffItem('breakfast', '209')">
                         <i class="ti ti-plus"></i> Add
                     </button>
                 </div>
 
                 {{-- 3. List Tampilan (Badge) --}}
-                <div id="list-staff-breakfast" class="d-flex flex-wrap">
+                <div id="list-staff-breakfast-209" class="d-flex flex-wrap">
                     {{-- Item badge akan muncul di sini --}}
                 </div>
             </div>
@@ -391,26 +390,27 @@
                 <label class="form-label small fw-bold">Upselling Menu (Food)</label>
 
                 {{-- 1. Hidden Input (Penyimpan Data JSON) --}}
-                <input type="hidden" id="input-lunch-food" name="session[lunch][upselling_data][food]"
+                <input type="hidden" id="input-lunch-food-209" name="session[lunch][upselling_data][food]"
                     value="{{ $lcFoodValue }}">
 
                 {{-- 2. Area Input (Dropdown & Pax) --}}
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-lunch-food">
+                    <select class="form-select form-select-sm" id="select-lunch-food-209">
                         <option value="" selected>Select Food...</option>
                         @foreach ($foods as $item)
                             <option value="{{ $item->id }}">{{ $item->name }}</option>
                         @endforeach
                     </select>
-                    <input type="number" class="form-control form-control-sm" id="pax-lunch-food" placeholder="Qty"
-                        style="max-width: 70px;">
-                    <button class="btn btn-sm btn-dark" type="button" onclick="addUpsellingItem('lunch', 'food')">
+                    <input type="number" class="form-control form-control-sm" id="pax-lunch-food-209"
+                        placeholder="Qty" style="max-width: 70px;">
+                    <button class="btn btn-sm btn-dark" type="button"
+                        onclick="addUpsellingItem('lunch', 'food', '209')">
                         <i class="ti ti-plus"></i> Add
                     </button>
                 </div>
 
                 {{-- 3. List Tampilan --}}
-                <ul class="list-group small" id="list-lunch-food">
+                <ul class="list-group small" id="list-lunch-food-209">
                     {{-- Item akan muncul di sini lewat JS --}}
                 </ul>
             </div>
@@ -420,27 +420,27 @@
                 <label class="form-label small fw-bold">Beverage Upselling</label>
 
                 {{-- 1. Hidden Input --}}
-                <input type="hidden" id="input-lunch-beverage" name="session[lunch][upselling_data][beverage]"
+                <input type="hidden" id="input-lunch-beverage-209" name="session[lunch][upselling_data][beverage]"
                     value="{{ $lcBevValue }}">
 
                 {{-- 2. Area Input --}}
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-lunch-beverage">
+                    <select class="form-select form-select-sm" id="select-lunch-beverage-209">
                         <option value="" selected>Select Drink...</option>
                         @foreach ($beverages as $item)
                             <option value="{{ $item->id }}">{{ $item->name }}</option>
                         @endforeach
                     </select>
-                    <input type="number" class="form-control form-control-sm" id="pax-lunch-beverage"
+                    <input type="number" class="form-control form-control-sm" id="pax-lunch-beverage-209"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"
-                        onclick="addUpsellingItem('lunch', 'beverage')">
+                        onclick="addUpsellingItem('lunch', 'beverage', '209')">
                         <i class="ti ti-plus"></i> Add
                     </button>
                 </div>
 
                 {{-- 3. List Tampilan --}}
-                <ul class="list-group small" id="list-lunch-beverage">
+                <ul class="list-group small" id="list-lunch-beverage-209">
                     {{-- Item akan muncul di sini lewat JS --}}
                 </ul>
             </div>
@@ -457,53 +457,52 @@
 
                 {{-- 1. Hidden Input (Penyimpan Data JSON ke Database) --}}
                 {{-- Value logic: Prioritaskan old input, lalu data DB, lalu array kosong default --}}
-                <input type="hidden" id="input-vip-lunch" name="session[lunch][vip_remarks]"
+                <input type="hidden" id="input-vip-lunch-209" name="session[lunch][vip_remarks]"
                     value="{{ $lcVipValue }}">
 
                 {{-- 2. Area Input (Nama & Jabatan) --}}
                 <div class="input-group mb-2">
-                    <input type="text" class="form-control form-control-sm" id="vip-name-lunch"
+                    <input type="text" class="form-control form-control-sm" id="vip-name-lunch-209"
                         placeholder="Guest Name (e.g. Mr. Budi)">
-                    <input type="text" class="form-control form-control-sm" id="vip-pos-lunch"
+                    <input type="text" class="form-control form-control-sm" id="vip-pos-lunch-209"
                         placeholder="Position/Title (e.g. CEO)">
-                    <button class="btn btn-sm btn-dark" type="button" onclick="addVipItem('lunch')">
+                    <button class="btn btn-sm btn-dark" type="button" onclick="addVipItem('lunch', '209')">
                         <i class="ti ti-plus"></i> Add
                     </button>
                 </div>
 
                 {{-- 3. List Tampilan --}}
-                <ul class="list-group small" id="list-vip-lunch">
+                <ul class="list-group small" id="list-vip-lunch-209">
                     {{-- Item akan muncul di sini lewat JS --}}
                 </ul>
             </div>
             <div class="col-md-12">
                 <label class="form-label small">General Remarks</label>
-                <input type="text" class="form-control" name="session[lunch][remarks]"
-                    value="{{ old('session.lunch.remarks', $lc->remarks ?? '') }}">
+                <textarea class="form-control" name="session[lunch][remarks]">{{ old('session.lunch.remarks', $lc->remarks ?? '') }}</textarea>
             </div>
             <div class="col-md-12 mt-3">
                 <label class="form-label small fw-bold">Staff on Duty</label>
 
                 {{-- 1. Hidden Input (Simpan JSON Array) --}}
-                <input type="hidden" id="input-staff-lunch" name="session[lunch][staff_on_duty]"
+                <input type="hidden" id="input-staff-lunch-209" name="session[lunch][staff_on_duty]"
                     value="{{ $lcStaffValue }}">
 
                 {{-- 2. Area Dropdown & Add --}}
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-staff-lunch">
+                    <select class="form-select form-select-sm" id="select-staff-lunch-209">
                         <option value="" selected>Select Staff...</option>
                         {{-- Ambil Staff List khusus Resto 209 (ID 1) --}}
                         @foreach ($myStaffList ?? [] as $staff)
                             <option value="{{ $staff->id }}">{{ $staff->name }}</option>
                         @endforeach
                     </select>
-                    <button class="btn btn-sm btn-dark" type="button" onclick="addStaffItem('lunch')">
+                    <button class="btn btn-sm btn-dark" type="button" onclick="addStaffItem('lunch', '209')">
                         <i class="ti ti-plus"></i> Add
                     </button>
                 </div>
 
                 {{-- 3. List Tampilan (Badge) --}}
-                <div id="list-staff-lunch" class="d-flex flex-wrap">
+                <div id="list-staff-lunch-209" class="d-flex flex-wrap">
                     {{-- Item badge akan muncul di sini --}}
                 </div>
             </div>
@@ -642,26 +641,27 @@
                 <label class="form-label small fw-bold">Upselling Menu (Food)</label>
 
                 {{-- 1. Hidden Input (Penyimpan Data JSON) --}}
-                <input type="hidden" id="input-dinner-food" name="session[dinner][upselling_data][food]"
+                <input type="hidden" id="input-dinner-food-209" name="session[dinner][upselling_data][food]"
                     value="{{ $dnFoodValue }}">
 
                 {{-- 2. Area Input (Dropdown & Pax) --}}
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-dinner-food">
+                    <select class="form-select form-select-sm" id="select-dinner-food-209">
                         <option value="" selected>Select Food...</option>
                         @foreach ($foods as $item)
                             <option value="{{ $item->id }}">{{ $item->name }}</option>
                         @endforeach
                     </select>
-                    <input type="number" class="form-control form-control-sm" id="pax-dinner-food"
+                    <input type="number" class="form-control form-control-sm" id="pax-dinner-food-209"
                         placeholder="Qty" style="max-width: 70px;">
-                    <button class="btn btn-sm btn-dark" type="button" onclick="addUpsellingItem('dinner', 'food')">
+                    <button class="btn btn-sm btn-dark" type="button"
+                        onclick="addUpsellingItem('dinner', 'food', '209')">
                         <i class="ti ti-plus"></i> Add
                     </button>
                 </div>
 
                 {{-- 3. List Tampilan --}}
-                <ul class="list-group small" id="list-dinner-food">
+                <ul class="list-group small" id="list-dinner-food-209">
                     {{-- Item akan muncul di sini lewat JS --}}
                 </ul>
             </div>
@@ -671,27 +671,27 @@
                 <label class="form-label small fw-bold">Beverage Upselling</label>
 
                 {{-- 1. Hidden Input --}}
-                <input type="hidden" id="input-dinner-beverage" name="session[dinner][upselling_data][beverage]"
+                <input type="hidden" id="input-dinner-beverage-209" name="session[dinner][upselling_data][beverage]"
                     value="{{ $dnBevValue }}">
 
                 {{-- 2. Area Input --}}
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-dinner-beverage">
+                    <select class="form-select form-select-sm" id="select-dinner-beverage-209">
                         <option value="" selected>Select Drink...</option>
                         @foreach ($beverages as $item)
                             <option value="{{ $item->id }}">{{ $item->name }}</option>
                         @endforeach
                     </select>
-                    <input type="number" class="form-control form-control-sm" id="pax-dinner-beverage"
+                    <input type="number" class="form-control form-control-sm" id="pax-dinner-beverage-209"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"
-                        onclick="addUpsellingItem('dinner', 'beverage')">
+                        onclick="addUpsellingItem('dinner', 'beverage', '209')">
                         <i class="ti ti-plus"></i> Add
                     </button>
                 </div>
 
                 {{-- 3. List Tampilan --}}
-                <ul class="list-group small" id="list-dinner-beverage">
+                <ul class="list-group small" id="list-dinner-beverage-209">
                     {{-- Item akan muncul di sini lewat JS --}}
                 </ul>
             </div>
@@ -708,53 +708,52 @@
 
                 {{-- 1. Hidden Input (Penyimpan Data JSON ke Database) --}}
                 {{-- Value logic: Prioritaskan old input, lalu data DB, lalu array kosong default --}}
-                <input type="hidden" id="input-vip-dinner" name="session[dinner][vip_remarks]"
+                <input type="hidden" id="input-vip-dinner-209" name="session[dinner][vip_remarks]"
                     value="{{ $dnVipValue }}">
 
                 {{-- 2. Area Input (Nama & Jabatan) --}}
                 <div class="input-group mb-2">
-                    <input type="text" class="form-control form-control-sm" id="vip-name-dinner"
+                    <input type="text" class="form-control form-control-sm" id="vip-name-dinner-209"
                         placeholder="Guest Name (e.g. Mr. Budi)">
-                    <input type="text" class="form-control form-control-sm" id="vip-pos-dinner"
+                    <input type="text" class="form-control form-control-sm" id="vip-pos-dinner-209"
                         placeholder="Position/Title (e.g. CEO)">
-                    <button class="btn btn-sm btn-dark" type="button" onclick="addVipItem('dinner')">
+                    <button class="btn btn-sm btn-dark" type="button" onclick="addVipItem('dinner', '209')">
                         <i class="ti ti-plus"></i> Add
                     </button>
                 </div>
 
                 {{-- 3. List Tampilan --}}
-                <ul class="list-group small" id="list-vip-dinner">
+                <ul class="list-group small" id="list-vip-dinner-209">
                     {{-- Item akan muncul di sini lewat JS --}}
                 </ul>
             </div>
             <div class="col-md-12">
                 <label class="form-label small">General Remarks</label>
-                <input type="text" class="form-control" name="session[dinner][remarks]"
-                    value="{{ old('session.dinner.remarks', $dn->remarks ?? '') }}">
+                <textarea class="form-control" name="session[dinner][remarks]">{{ old('session.dinner.remarks', $dn->remarks ?? '') }}</textarea>
             </div>
             <div class="col-md-12 mt-3">
                 <label class="form-label small fw-bold">Staff on Duty</label>
 
                 {{-- 1. Hidden Input (Simpan JSON Array) --}}
-                <input type="hidden" id="input-staff-dinner" name="session[dinner][staff_on_duty]"
+                <input type="hidden" id="input-staff-dinner-209" name="session[dinner][staff_on_duty]"
                     value="{{ $dnStaffValue }}">
 
                 {{-- 2. Area Dropdown & Add --}}
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-staff-dinner">
+                    <select class="form-select form-select-sm" id="select-staff-dinner-209">
                         <option value="" selected>Select Staff...</option>
                         {{-- Ambil Staff List khusus Resto 209 (ID 1) --}}
                         @foreach ($myStaffList ?? [] as $staff)
                             <option value="{{ $staff->id }}">{{ $staff->name }}</option>
                         @endforeach
                     </select>
-                    <button class="btn btn-sm btn-dark" type="button" onclick="addStaffItem('dinner')">
+                    <button class="btn btn-sm btn-dark" type="button" onclick="addStaffItem('dinner', '209')">
                         <i class="ti ti-plus"></i> Add
                     </button>
                 </div>
 
                 {{-- 3. List Tampilan (Badge) --}}
-                <div id="list-staff-dinner" class="d-flex flex-wrap">
+                <div id="list-staff-dinner-209" class="d-flex flex-wrap">
                     {{-- Item badge akan muncul di sini --}}
                 </div>
             </div>
@@ -793,24 +792,24 @@
         // --- BREAKFAST ---
         // Perhatikan: json_encode membungkus SELURUH old()
         let bfFood = {!! json_encode(old('session.breakfast.upselling_data.food', $bf->upselling_data['food'] ?? [])) !!};
-        initUpselling('breakfast', 'food', bfFood);
+        initUpselling('breakfast', 'food', bfFood, '209');
 
         let bfBev = {!! json_encode(old('session.breakfast.upselling_data.beverage', $bf->upselling_data['beverage'] ?? [])) !!};
-        initUpselling('breakfast', 'beverage', bfBev);
+        initUpselling('breakfast', 'beverage', bfBev, '209');
 
         // --- LUNCH ---
         let lcFood = {!! json_encode(old('session.lunch.upselling_data.food', $lc->upselling_data['food'] ?? [])) !!};
-        initUpselling('lunch', 'food', lcFood);
+        initUpselling('lunch', 'food', lcFood, '209');
 
         let lcBev = {!! json_encode(old('session.lunch.upselling_data.beverage', $lc->upselling_data['beverage'] ?? [])) !!};
-        initUpselling('lunch', 'beverage', lcBev);
+        initUpselling('lunch', 'beverage', lcBev, '209');
 
         // --- DINNER ---
         let dnFood = {!! json_encode(old('session.dinner.upselling_data.food', $dn->upselling_data['food'] ?? [])) !!};
-        initUpselling('dinner', 'food', dnFood);
+        initUpselling('dinner', 'food', dnFood, '209');
 
         let dnBev = {!! json_encode(old('session.dinner.upselling_data.beverage', $dn->upselling_data['beverage'] ?? [])) !!};
-        initUpselling('dinner', 'beverage', dnBev);
+        initUpselling('dinner', 'beverage', dnBev, '209');
 
 
         // ============================================================
@@ -818,13 +817,13 @@
         // ============================================================
 
         let bfVip = {!! json_encode(old('session.breakfast.vip_remarks', $bf->vip_remarks ?? [])) !!};
-        initVip('breakfast', bfVip);
+        initVip('breakfast', bfVip, '209');
 
         let lcVip = {!! json_encode(old('session.lunch.vip_remarks', $lc->vip_remarks ?? [])) !!};
-        initVip('lunch', lcVip);
+        initVip('lunch', lcVip, '209');
 
         let dnVip = {!! json_encode(old('session.dinner.vip_remarks', $dn->vip_remarks ?? [])) !!};
-        initVip('dinner', dnVip);
+        initVip('dinner', dnVip, '209');
 
 
         // ============================================================
@@ -832,12 +831,12 @@
         // ============================================================
 
         let bfStaff = {!! json_encode(old('session.breakfast.staff_on_duty', $bf->staff_on_duty ?? [])) !!};
-        initStaff('breakfast', bfStaff);
+        initStaff('breakfast', bfStaff, '209');
 
         let lcStaff = {!! json_encode(old('session.lunch.staff_on_duty', $lc->staff_on_duty ?? [])) !!};
-        initStaff('lunch', lcStaff);
+        initStaff('lunch', lcStaff, '209');
 
         let dnStaff = {!! json_encode(old('session.dinner.staff_on_duty', $dn->staff_on_duty ?? [])) !!};
-        initStaff('dinner', dnStaff);
+        initStaff('dinner', dnStaff, '209');
     });
 </script>

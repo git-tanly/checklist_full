@@ -79,6 +79,59 @@ class DashboardController extends Controller
         $chartLabels = $chartData->keys()->map(fn($d) => \Carbon\Carbon::parse($d)->format('d M'))->values();
         $chartValues = $chartData->values();
 
+        // 1. Siapkan Kerangka Array untuk 4 Series
+        $compData = [
+            'us' => clone $chartData,        // Pakai clone agar index tanggalnya sama
+            'shangrila' => clone $chartData,
+            'jw' => clone $chartData,
+            'sheraton' => clone $chartData,
+        ];
+
+        // Reset values jadi 0 semua
+        foreach ($compData as $key => $collection) {
+            $compData[$key] = $collection->map(fn() => 0);
+        }
+
+        // 2. Loop Data Laporan (Pakai variabel $weeklyReports yg sudah ada)
+        foreach ($weeklyReports as $report) {
+            $dateKey = $report->date->format('Y-m-d');
+
+            foreach ($report->details as $detail) {
+
+                // A. HITUNG TOTAL COVER KITA SENDIRI (SUM JSON)
+                $myTotalCover = 0;
+                if (!empty($detail->cover_data) && is_array($detail->cover_data)) {
+                    foreach ($detail->cover_data as $val) {
+                        // Jumlahkan hanya jika nilainya angka
+                        if (is_numeric($val)) {
+                            $myTotalCover += $val;
+                        }
+                    }
+                }
+
+                // B. AMBIL DATA KOMPETITOR
+                $shangrila = $detail->competitor_data['shangrila_cover'] ?? 0;
+                $jw = $detail->competitor_data['jw_marriott_cover'] ?? 0;
+                $sheraton = $detail->competitor_data['sheraton_cover'] ?? 0;
+
+                // C. MASUKKAN KE ARRAY (Accumulate)
+                if ($compData['us']->has($dateKey)) {
+                    $compData['us'][$dateKey] += $myTotalCover;
+                    $compData['shangrila'][$dateKey] += (int)$shangrila;
+                    $compData['jw'][$dateKey] += (int)$jw;
+                    $compData['sheraton'][$dateKey] += (int)$sheraton;
+                }
+            }
+        }
+
+        // 3. Format Data untuk Grafik
+        $compSeries = [
+            ['name' => 'Our Restaurant', 'data' => $compData['us']->values()],
+            ['name' => 'Shangri-La', 'data' => $compData['shangrila']->values()],
+            ['name' => 'JW Marriott', 'data' => $compData['jw']->values()],
+            ['name' => 'Sheraton', 'data' => $compData['sheraton']->values()],
+        ];
+
         // ---------------------------------------------------------
         // 2. TABEL RINGKASAN (5 Laporan Terakhir)
         // ---------------------------------------------------------
@@ -95,7 +148,8 @@ class DashboardController extends Controller
             'todayRevenue',
             'recentReports',
             'chartLabels',
-            'chartValues'
+            'chartValues',
+            'compSeries'
         ));
     }
 }

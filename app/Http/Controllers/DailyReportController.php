@@ -298,6 +298,9 @@ class DailyReportController extends Controller
 
     public function approve(DailyReport $dailyReport)
     {
+        if (!$this->isUserApprover(Auth::user())) {
+            abort(403, 'Unauthorized action. Only Managers can approve reports.');
+        }
         // 1. Validasi: Hanya laporan 'submitted' yang bisa di-approve
         // Laporan 'draft' harus disubmit dulu oleh pembuatnya
         if ($dailyReport->status !== 'submitted') {
@@ -316,6 +319,9 @@ class DailyReportController extends Controller
 
     public function reject(DailyReport $dailyReport)
     {
+        if (!$this->isUserApprover(Auth::user())) {
+            abort(403, 'Unauthorized action. Only Managers can reject reports.');
+        }
         // 1. Validasi: Hanya laporan 'submitted' (atau approved) yang bisa di-reject
         if ($dailyReport->status === 'draft') {
             return back()->with('error', 'Laporan status Draft tidak perlu di-reject.');
@@ -414,8 +420,8 @@ class DailyReportController extends Controller
         return $user->hasRole([
             'Super Admin',
             'Restaurant Manager',
-            'Assistant Restaurant Manager',
-            'F&B Supervisor'
+            // 'Assistant Restaurant Manager',
+            // 'F&B Supervisor'
         ]);
     }
 }

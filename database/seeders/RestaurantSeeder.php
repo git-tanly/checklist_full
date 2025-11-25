@@ -21,6 +21,8 @@ class RestaurantSeeder extends Seeder
             ['code' => 'NJR', 'name' => 'Nagano Japanese Restaurant'],
             ['code' => 'VODA', 'name' => 'Voda Bistro'],
             ['code' => 'JM', 'name' => 'Joe Milano'],
+            ['code' => 'BAQ', 'name' => 'Brazilian Aussie BBQ'],
+            ['code' => 'BQT', 'name' => 'Banquet'],
         ];
 
         foreach ($restaurants as $restaurant) {

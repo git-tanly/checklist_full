@@ -1,1 +1,635 @@
-<div>Form XFH coming soon</div>
+{{-- FORM KHUSUS XIANG FU HAI (XFH) --}}
+
+@php
+    // 1. Ambil Data Detail per Sesi
+    $bf = $details['breakfast'] ?? null;
+    $lc = $details['lunch'] ?? null;
+    $dn = $details['dinner'] ?? null;
+
+    // 2. Ambil Data Master (Staff & Menu) khusus XFH
+    // Pastikan kode 'XFH' sesuai dengan database
+    $restoXfh = $restaurants->where('code', 'XFH')->first();
+
+    // A. Staff List
+    $myStaffList = $restoXfh ? $restoXfh->users : [];
+
+    // B. Upselling Menu
+    $myMenu = $restoXfh && isset($upsellingItems[$restoXfh->id]) ? $upsellingItems[$restoXfh->id] : collect([]);
+    $foods = $myMenu->where('type', 'food');
+    $beverages = $myMenu->where('type', 'beverage');
+@endphp
+
+{{-- ============================================================ --}}
+{{-- SESSION: BREAKFAST --}}
+{{-- ============================================================ --}}
+<div class="card mb-4">
+    <div class="card-header bg-light-warning">
+        <h5 class="mb-0 text-warning"><i class="ti ti-sun"></i> Breakfast Report</h5>
+    </div>
+    <div class="card-body">
+
+        {{-- 1. COVER REPORT --}}
+        <h6 class="fw-bold text-muted mt-3">1. Cover Report</h6>
+        <div class="row g-3">
+            {{-- In-House --}}
+            <div class="col-md-4">
+                <label class="form-label small">In-House (Adult)</label>
+                <input type="number" class="form-control" name="session[breakfast][cover_data][in_house_adult]"
+                    value="{{ old('session.breakfast.cover_data.in_house_adult', $bf->cover_data['in_house_adult'] ?? '') }}"
+                    placeholder="0">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small">In-House (Child)</label>
+                <input type="number" class="form-control" name="session[breakfast][cover_data][in_house_child]"
+                    value="{{ old('session.breakfast.cover_data.in_house_child', $bf->cover_data['in_house_child'] ?? '') }}"
+                    placeholder="0">
+            </div>
+            {{-- <div class="col-md-3 border-start"></div> Spacer --}}
+
+            {{-- Walk-In --}}
+            <div class="col-md-4">
+                <label class="form-label small">Walk-In (Adult)</label>
+                <input type="number" class="form-control" name="session[breakfast][cover_data][walk_in_adult]"
+                    value="{{ old('session.breakfast.cover_data.walk_in_adult', $bf->cover_data['walk_in_adult'] ?? '') }}"
+                    placeholder="0">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small">Walk-In (Child)</label>
+                <input type="number" class="form-control" name="session[breakfast][cover_data][walk_in_child]"
+                    value="{{ old('session.breakfast.cover_data.walk_in_child', $bf->cover_data['walk_in_child'] ?? '') }}"
+                    placeholder="0">
+            </div>
+            {{-- <div class="col-md-3 border-start"></div> Spacer --}}
+
+            {{-- Event --}}
+            <div class="col-md-4">
+                <label class="form-label small">Event (Adult)</label>
+                <input type="number" class="form-control" name="session[breakfast][cover_data][event_adult]"
+                    value="{{ old('session.breakfast.cover_data.event_adult', $bf->cover_data['event_adult'] ?? '') }}"
+                    placeholder="0">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small">Event (Child)</label>
+                <input type="number" class="form-control" name="session[breakfast][cover_data][event_child]"
+                    value="{{ old('session.breakfast.cover_data.event_child', $bf->cover_data['event_child'] ?? '') }}"
+                    placeholder="0">
+            </div>
+        </div>
+
+        <hr>
+
+        {{-- 2. REVENUE REPORT --}}
+        <h6 class="fw-bold text-muted mt-3">2. Revenue Report (IDR)</h6>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label small">Food Revenue</label>
+                <input type="text" class="form-control rupiah" name="session[breakfast][revenue_food]"
+                    value="{{ old('session.breakfast.revenue_food', isset($bf->revenue_food) ? number_format($bf->revenue_food, 0, ',', '.') : '') }}"
+                    placeholder="0" autocomplete="off">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small">Beverage Revenue</label>
+                <input type="text" class="form-control rupiah" name="session[breakfast][revenue_beverage]"
+                    value="{{ old('session.breakfast.revenue_beverage', isset($bf->revenue_beverage) ? number_format($bf->revenue_beverage, 0, ',', '.') : '') }}"
+                    placeholder="0" autocomplete="off">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small">Others Revenue</label>
+                <input type="text" class="form-control rupiah" name="session[breakfast][revenue_others]"
+                    value="{{ old('session.breakfast.revenue_others', isset($bf->revenue_others) ? number_format($bf->revenue_others, 0, ',', '.') : '') }}"
+                    placeholder="0" autocomplete="off">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small">Total Event Revenue</label>
+                <input type="text" class="form-control rupiah" name="session[breakfast][revenue_event]"
+                    value="{{ old('session.breakfast.revenue_event', isset($bf->revenue_event) ? number_format($bf->revenue_event, 0, ',', '.') : '') }}"
+                    placeholder="0" autocomplete="off">
+            </div>
+        </div>
+
+        <hr>
+
+        {{-- 3. UPSELLING, VIP, STAFF --}}
+        <h6 class="fw-bold text-muted mt-3">3. Upselling & Remarks</h6>
+        <div class="row g-3">
+
+            {{-- Food Upselling (XFH) --}}
+            <div class="col-md-6">
+                <label class="form-label small fw-bold">Upselling Menu (Food)</label>
+                @php
+                    $bfFoodVal = old('session.breakfast.upselling_data.food', $bf->upselling_data['food'] ?? []);
+                    $bfFoodJson = is_array($bfFoodVal) ? json_encode($bfFoodVal) : $bfFoodVal;
+                @endphp
+                <input type="hidden" id="input-breakfast-food-XFH" name="session[breakfast][upselling_data][food]"
+                    value="{{ $bfFoodJson }}">
+
+                <div class="input-group mb-2">
+                    <select class="form-select form-select-sm" id="select-breakfast-food-XFH">
+                        <option value="" selected>Select Food...</option>
+                        @foreach ($foods as $item)
+                            <option value="{{ $item->id }}">{{ $item->name }}</option>
+                        @endforeach
+                    </select>
+                    <input type="number" class="form-control form-control-sm" id="pax-breakfast-food-XFH"
+                        placeholder="Qty" style="max-width: 70px;">
+                    <button class="btn btn-sm btn-dark" type="button"
+                        onclick="addUpsellingItem('breakfast', 'food', 'XFH')"><i class="ti ti-plus"></i> Add</button>
+                </div>
+                <ul class="list-group small" id="list-breakfast-food-XFH"></ul>
+            </div>
+
+            {{-- Beverage Upselling (XFH) --}}
+            <div class="col-md-6">
+                <label class="form-label small fw-bold">Beverage Upselling</label>
+                @php
+                    $bfBevVal = old('session.breakfast.upselling_data.beverage', $bf->upselling_data['beverage'] ?? []);
+                    $bfBevJson = is_array($bfBevVal) ? json_encode($bfBevVal) : $bfBevVal;
+                @endphp
+                <input type="hidden" id="input-breakfast-beverage-XFH"
+                    name="session[breakfast][upselling_data][beverage]" value="{{ $bfBevJson }}">
+
+                <div class="input-group mb-2">
+                    <select class="form-select form-select-sm" id="select-breakfast-beverage-XFH">
+                        <option value="" selected>Select Drink...</option>
+                        @foreach ($beverages as $item)
+                            <option value="{{ $item->id }}">{{ $item->name }}</option>
+                        @endforeach
+                    </select>
+                    <input type="number" class="form-control form-control-sm" id="pax-breakfast-beverage-XFH"
+                        placeholder="Qty" style="max-width: 70px;">
+                    <button class="btn btn-sm btn-dark" type="button"
+                        onclick="addUpsellingItem('breakfast', 'beverage', 'XFH')"><i class="ti ti-plus"></i>
+                        Add</button>
+                </div>
+                <ul class="list-group small" id="list-breakfast-beverage-XFH"></ul>
+            </div>
+
+            {{-- VIP List (XFH) --}}
+            <div class="col-md-12 mt-3">
+                <label class="form-label small fw-bold">VIP 1 & 2 List</label>
+                @php
+                    $bfVipVal = old('session.breakfast.vip_remarks', $bf->vip_remarks ?? []);
+                    $bfVipJson = is_array($bfVipVal) ? json_encode($bfVipVal) : $bfVipVal;
+                @endphp
+                <input type="hidden" id="input-vip-breakfast-XFH" name="session[breakfast][vip_remarks]"
+                    value="{{ $bfVipJson }}">
+
+                <div class="input-group mb-2">
+                    <input type="text" class="form-control form-control-sm" id="vip-name-breakfast-XFH"
+                        placeholder="Guest Name (e.g. Mr. Budi)">
+                    <input type="text" class="form-control form-control-sm" id="vip-pos-breakfast-XFH"
+                        placeholder="Position/Title (e.g. CEO)">
+                    <button class="btn btn-sm btn-dark" type="button" onclick="addVipItem('breakfast', 'XFH')"><i
+                            class="ti ti-plus"></i> Add</button>
+                </div>
+                <ul class="list-group small" id="list-vip-breakfast-XFH"></ul>
+            </div>
+
+            {{-- Remarks --}}
+            <div class="col-md-12">
+                <label class="form-label small">General Remarks</label>
+                <textarea class="form-control" name="session[breakfast][remarks]">{{ old('session.breakfast.remarks', $bf->remarks ?? '') }}</textarea>
+            </div>
+
+            {{-- Staff On Duty (XFH) --}}
+            <div class="col-md-12 mt-3">
+                <label class="form-label small fw-bold">Staff on Duty</label>
+                @php
+                    $bfStaffVal = old('session.breakfast.staff_on_duty', $bf->staff_on_duty ?? []);
+                    $bfStaffJson = is_array($bfStaffVal) ? json_encode($bfStaffVal) : $bfStaffVal;
+                @endphp
+                <input type="hidden" id="input-staff-breakfast-XFH" name="session[breakfast][staff_on_duty]"
+                    value="{{ $bfStaffJson }}">
+
+                <div class="input-group mb-2">
+                    <select class="form-select form-select-sm" id="select-staff-breakfast-XFH">
+                        <option value="" selected>Select Staff...</option>
+                        @foreach ($myStaffList as $staff)
+                            <option value="{{ $staff->id }}">{{ $staff->name }}</option>
+                        @endforeach
+                    </select>
+                    <button class="btn btn-sm btn-dark" type="button" onclick="addStaffItem('breakfast', 'XFH')"><i
+                            class="ti ti-plus"></i> Add</button>
+                </div>
+                <div id="list-staff-breakfast-XFH" class="d-flex flex-wrap"></div>
+            </div>
+        </div>
+
+        <hr>
+
+        {{-- 4. COMPETITOR --}}
+        <h6 class="fw-bold text-muted mt-3">4. Competitor Comparison</h6>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label small">Shangri-La</label>
+                <input type="number" class="form-control"
+                    name="session[breakfast][competitor_data][shangrila_cover]"
+                    value="{{ old('session.breakfast.competitor_data.shangrila_cover', $bf->competitor_data['shangrila_cover'] ?? '') }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small">JW Marriott</label>
+                <input type="number" class="form-control"
+                    name="session[breakfast][competitor_data][jw_marriott_cover]"
+                    value="{{ old('session.breakfast.competitor_data.jw_marriott_cover', $bf->competitor_data['jw_marriott_cover'] ?? '') }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small">Sheraton</label>
+                <input type="number" class="form-control" name="session[breakfast][competitor_data][sheraton_cover]"
+                    value="{{ old('session.breakfast.competitor_data.sheraton_cover', $bf->competitor_data['sheraton_cover'] ?? '') }}">
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ============================================================ --}}
+{{-- SESSION: LUNCH --}}
+{{-- ============================================================ --}}
+<div class="card mb-4">
+    <div class="card-header bg-light-primary">
+        <h5 class="mb-0 text-primary"><i class="ti ti-soup"></i> Lunch Report</h5>
+    </div>
+    <div class="card-body">
+
+        {{-- 1. COVER REPORT --}}
+        <h6 class="fw-bold text-muted mt-3">1. Cover Report</h6>
+        <div class="row g-3">
+            <div class="col-md-4"><label class="form-label small">In-House (Adult)</label><input type="number"
+                    class="form-control" name="session[lunch][cover_data][in_house_adult]"
+                    value="{{ old('session.lunch.cover_data.in_house_adult', $lc->cover_data['in_house_adult'] ?? '') }}"
+                    placeholder="0">
+            </div>
+            <div class="col-md-4"><label class="form-label small">In-House (Child)</label><input type="number"
+                    class="form-control" name="session[lunch][cover_data][in_house_child]"
+                    value="{{ old('session.lunch.cover_data.in_house_child', $lc->cover_data['in_house_child'] ?? '') }}"
+                    placeholder="0">
+            </div>
+
+            <div class="col-md-4"><label class="form-label small">Walk-In (Adult)</label><input type="number"
+                    class="form-control" name="session[lunch][cover_data][walk_in_adult]"
+                    value="{{ old('session.lunch.cover_data.walk_in_adult', $lc->cover_data['walk_in_adult'] ?? '') }}"
+                    placeholder="0">
+            </div>
+            <div class="col-md-4"><label class="form-label small">Walk-In (Child)</label><input type="number"
+                    class="form-control" name="session[lunch][cover_data][walk_in_child]"
+                    value="{{ old('session.lunch.cover_data.walk_in_child', $lc->cover_data['walk_in_child'] ?? '') }}"
+                    placeholder="0">
+            </div>
+
+            <div class="col-md-4"><label class="form-label small">Event (Adult)</label><input type="number"
+                    class="form-control" name="session[lunch][cover_data][event_adult]"
+                    value="{{ old('session.lunch.cover_data.event_adult', $lc->cover_data['event_adult'] ?? '') }}"
+                    placeholder="0">
+            </div>
+            <div class="col-md-4"><label class="form-label small">Event (Child)</label><input type="number"
+                    class="form-control" name="session[lunch][cover_data][event_child]"
+                    value="{{ old('session.lunch.cover_data.event_child', $lc->cover_data['event_child'] ?? '') }}"
+                    placeholder="0">
+            </div>
+        </div>
+
+        <hr>
+
+        {{-- 2. REVENUE --}}
+        <h6 class="fw-bold text-muted mt-3">2. Revenue Report (IDR)</h6>
+        <div class="row g-3">
+            <div class="col-md-3"><label class="small">Food</label><input type="text"
+                    class="form-control rupiah" name="session[lunch][revenue_food]"
+                    value="{{ old('session.lunch.revenue_food', isset($lc->revenue_food) ? number_format($lc->revenue_food, 0, ',', '.') : '') }}"
+                    autocomplete="off" placeholder="0">
+            </div>
+            <div class="col-md-3"><label class="small">Beverage</label><input type="text"
+                    class="form-control rupiah" name="session[lunch][revenue_beverage]"
+                    value="{{ old('session.lunch.revenue_beverage', isset($lc->revenue_beverage) ? number_format($lc->revenue_beverage, 0, ',', '.') : '') }}"
+                    autocomplete="off" placeholder="0">
+            </div>
+            <div class="col-md-3"><label class="small">Others</label><input type="text"
+                    class="form-control rupiah" name="session[lunch][revenue_others]"
+                    value="{{ old('session.lunch.revenue_others', isset($lc->revenue_others) ? number_format($lc->revenue_others, 0, ',', '.') : '') }}"
+                    autocomplete="off" placeholder="0">
+            </div>
+            <div class="col-md-3"><label class="small">Event</label><input type="text"
+                    class="form-control rupiah" name="session[lunch][revenue_event]"
+                    value="{{ old('session.lunch.revenue_event', isset($lc->revenue_event) ? number_format($lc->revenue_event, 0, ',', '.') : '') }}"
+                    autocomplete="off" placeholder="0">
+            </div>
+        </div>
+
+        <hr>
+
+        {{-- 3. SMART COMPONENTS --}}
+        <h6 class="fw-bold text-muted mt-3">3. Upselling & Remarks</h6>
+        <div class="row g-3">
+            {{-- Food --}}
+            <div class="col-md-6">
+                <label class="form-label small fw-bold">Upselling Menu (Food)</label>
+                @php $lcFoodVal = old('session.lunch.upselling_data.food', $lc->upselling_data['food'] ?? []); @endphp
+                <input type="hidden" id="input-lunch-food-XFH" name="session[lunch][upselling_data][food]"
+                    value="{{ is_array($lcFoodVal) ? json_encode($lcFoodVal) : $lcFoodVal }}">
+                <div class="input-group mb-2">
+                    <select class="form-select form-select-sm" id="select-lunch-food-XFH">
+                        <option value="" selected>Select Food...</option>
+                        @foreach ($foods as $item)
+                            <option value="{{ $item->id }}">{{ $item->name }}</option>
+                        @endforeach
+                    </select>
+                    <input type="number" class="form-control form-control-sm" id="pax-lunch-food-XFH"
+                        placeholder="Qty" style="max-width: 70px;">
+                    <button class="btn btn-sm btn-dark" type="button"
+                        onclick="addUpsellingItem('lunch', 'food', 'XFH')"><i class="ti ti-plus"></i> Add</button>
+                </div>
+                <ul class="list-group small" id="list-lunch-food-XFH"></ul>
+            </div>
+            {{-- Bev --}}
+            <div class="col-md-6">
+                <label class="form-label small fw-bold">Beverage Upselling</label>
+                @php $lcBevVal = old('session.lunch.upselling_data.beverage', $lc->upselling_data['beverage'] ?? []); @endphp
+                <input type="hidden" id="input-lunch-beverage-XFH" name="session[lunch][upselling_data][beverage]"
+                    value="{{ is_array($lcBevVal) ? json_encode($lcBevVal) : $lcBevVal }}">
+                <div class="input-group mb-2">
+                    <select class="form-select form-select-sm" id="select-lunch-beverage-XFH">
+                        <option value="" selected>Select Drink...</option>
+                        @foreach ($beverages as $item)
+                            <option value="{{ $item->id }}">{{ $item->name }}</option>
+                        @endforeach
+                    </select>
+                    <input type="number" class="form-control form-control-sm" id="pax-lunch-beverage-XFH"
+                        placeholder="Qty" style="max-width: 70px;">
+                    <button class="btn btn-sm btn-dark" type="button"
+                        onclick="addUpsellingItem('lunch', 'beverage', 'XFH')"><i class="ti ti-plus"></i> Add</button>
+                </div>
+                <ul class="list-group small" id="list-lunch-beverage-XFH"></ul>
+            </div>
+            {{-- VIP --}}
+            <div class="col-md-12 mt-3">
+                <label class="form-label small fw-bold">VIP 1 & 2 List</label>
+                @php $lcVipVal = old('session.lunch.vip_remarks', $lc->vip_remarks ?? []); @endphp
+                <input type="hidden" id="input-vip-lunch-XFH" name="session[lunch][vip_remarks]"
+                    value="{{ is_array($lcVipVal) ? json_encode($lcVipVal) : $lcVipVal }}">
+                <div class="input-group mb-2">
+                    <input type="text" class="form-control form-control-sm" id="vip-name-lunch-XFH"
+                        placeholder="Guest Name (e.g. Mr. Budi)">
+                    <input type="text" class="form-control form-control-sm" id="vip-pos-lunch-XFH"
+                        placeholder="Position/Title (e.g. CEO)">
+                    <button class="btn btn-sm btn-dark" type="button" onclick="addVipItem('lunch', 'XFH')"><i
+                            class="ti ti-plus"></i> Add</button>
+                </div>
+                <ul class="list-group small" id="list-vip-lunch-XFH"></ul>
+            </div>
+            {{-- Remarks --}}
+            <div class="col-md-12">
+                <label class="form-label small">General Remarks</label>
+                <textarea class="form-control" name="session[lunch][remarks]">{{ old('session.lunch.remarks', $lc->remarks ?? '') }}</textarea>
+            </div>
+            {{-- Staff --}}
+            <div class="col-md-12 mt-3">
+                <label class="form-label small fw-bold">Staff on Duty</label>
+                @php $lcStaffVal = old('session.lunch.staff_on_duty', $lc->staff_on_duty ?? []); @endphp
+                <input type="hidden" id="input-staff-lunch-XFH" name="session[lunch][staff_on_duty]"
+                    value="{{ is_array($lcStaffVal) ? json_encode($lcStaffVal) : $lcStaffVal }}">
+                <div class="input-group mb-2">
+                    <select class="form-select form-select-sm" id="select-staff-lunch-XFH">
+                        <option value="" selected>Select Staff...</option>
+                        @foreach ($myStaffList as $staff)
+                            <option value="{{ $staff->id }}">{{ $staff->name }}</option>
+                        @endforeach
+                    </select>
+                    <button class="btn btn-sm btn-dark" type="button" onclick="addStaffItem('lunch', 'XFH')"><i
+                            class="ti ti-plus"></i> Add</button>
+                </div>
+                <div id="list-staff-lunch-XFH" class="d-flex flex-wrap"></div>
+            </div>
+        </div>
+
+        <hr>
+
+        <h6 class="fw-bold text-muted mt-3">4. Competitor Comparison</h6>
+        <div class="row g-3">
+            <div class="col-md-4"><label class="small">Shangri-La</label><input type="number" class="form-control"
+                    name="session[lunch][competitor_data][shangrila_cover]"
+                    value="{{ old('session.lunch.competitor_data.shangrila_cover', $lc->competitor_data['shangrila_cover'] ?? '') }}">
+            </div>
+            <div class="col-md-4"><label class="small">JW Marriott</label><input type="number"
+                    class="form-control" name="session[lunch][competitor_data][jw_marriott_cover]"
+                    value="{{ old('session.lunch.competitor_data.jw_marriott_cover', $lc->competitor_data['jw_marriott_cover'] ?? '') }}">
+            </div>
+            <div class="col-md-4"><label class="small">Sheraton</label><input type="number" class="form-control"
+                    name="session[lunch][competitor_data][sheraton_cover]"
+                    value="{{ old('session.lunch.competitor_data.sheraton_cover', $lc->competitor_data['sheraton_cover'] ?? '') }}">
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ============================================================ --}}
+{{-- SESSION: DINNER (COPY DARI LUNCH) --}}
+{{-- ============================================================ --}}
+<div class="card mb-4">
+    <div class="card-header bg-light-dark text-white">
+        <h5 class="mb-0"><i class="ti ti-moon"></i> Dinner Report</h5>
+    </div>
+    <div class="card-body">
+
+        <h6 class="fw-bold text-muted mt-3">1. Cover Report</h6>
+        <div class="row g-3">
+            <div class="col-md-4"><label class="form-label small">In-House (Adult)</label><input type="number"
+                    class="form-control" name="session[dinner][cover_data][in_house_adult]"
+                    value="{{ old('session.dinner.cover_data.in_house_adult', $dn->cover_data['in_house_adult'] ?? '') }}"
+                    placeholder="0">
+            </div>
+            <div class="col-md-4"><label class="form-label small">In-House (Child)</label><input type="number"
+                    class="form-control" name="session[dinner][cover_data][in_house_child]"
+                    value="{{ old('session.dinner.cover_data.in_house_child', $dn->cover_data['in_house_child'] ?? '') }}"
+                    placeholder="0">
+            </div>
+            <div class="col-md-4"><label class="form-label small">Walk-In (Adult)</label><input type="number"
+                    class="form-control" name="session[dinner][cover_data][walk_in_adult]"
+                    value="{{ old('session.dinner.cover_data.walk_in_adult', $dn->cover_data['walk_in_adult'] ?? '') }}"
+                    placeholder="0">
+            </div>
+            <div class="col-md-4"><label class="form-label small">Walk-In (Child)</label><input type="number"
+                    class="form-control" name="session[dinner][cover_data][walk_in_child]"
+                    value="{{ old('session.dinner.cover_data.walk_in_child', $dn->cover_data['walk_in_child'] ?? '') }}"
+                    placeholder="0">
+            </div>
+            <div class="col-md-4"><label class="form-label small">Event (Adult)</label><input type="number"
+                    class="form-control" name="session[dinner][cover_data][event_adult]"
+                    value="{{ old('session.dinner.cover_data.event_adult', $dn->cover_data['event_adult'] ?? '') }}"
+                    placeholder="0">
+            </div>
+            <div class="col-md-4"><label class="form-label small">Event (Child)</label><input type="number"
+                    class="form-control" name="session[dinner][cover_data][event_child]"
+                    value="{{ old('session.dinner.cover_data.event_child', $dn->cover_data['event_child'] ?? '') }}"
+                    placeholder="0">
+            </div>
+        </div>
+
+        <hr>
+
+        <h6 class="fw-bold text-muted mt-3">2. Revenue Report (IDR)</h6>
+        <div class="row g-3">
+            <div class="col-md-3"><label class="small">Food</label><input type="text"
+                    class="form-control rupiah" name="session[dinner][revenue_food]"
+                    value="{{ old('session.dinner.revenue_food', isset($dn->revenue_food) ? number_format($dn->revenue_food, 0, ',', '.') : '') }}"
+                    autocomplete="off" placeholder="0">
+            </div>
+            <div class="col-md-3"><label class="small">Beverage</label><input type="text"
+                    class="form-control rupiah" name="session[dinner][revenue_beverage]"
+                    value="{{ old('session.dinner.revenue_beverage', isset($dn->revenue_beverage) ? number_format($dn->revenue_beverage, 0, ',', '.') : '') }}"
+                    autocomplete="off" placeholder="0">
+            </div>
+            <div class="col-md-3"><label class="small">Others</label><input type="text"
+                    class="form-control rupiah" name="session[dinner][revenue_others]"
+                    value="{{ old('session.dinner.revenue_others', isset($dn->revenue_others) ? number_format($dn->revenue_others, 0, ',', '.') : '') }}"
+                    autocomplete="off" placeholder="0">
+            </div>
+            <div class="col-md-3"><label class="small">Event</label><input type="text"
+                    class="form-control rupiah" name="session[dinner][revenue_event]"
+                    value="{{ old('session.dinner.revenue_event', isset($dn->revenue_event) ? number_format($dn->revenue_event, 0, ',', '.') : '') }}"
+                    autocomplete="off" placeholder="0">
+            </div>
+        </div>
+
+        <hr>
+
+        <h6 class="fw-bold text-muted mt-3">3. Upselling & Remarks</h6>
+        <div class="row g-3">
+            {{-- Food --}}
+            <div class="col-md-6">
+                <label class="form-label small fw-bold">Upselling Menu (Food)</label>
+                @php $dnFoodVal = old('session.dinner.upselling_data.food', $dn->upselling_data['food'] ?? []); @endphp
+                <input type="hidden" id="input-dinner-food-XFH" name="session[dinner][upselling_data][food]"
+                    value="{{ is_array($dnFoodVal) ? json_encode($dnFoodVal) : $dnFoodVal }}">
+                <div class="input-group mb-2">
+                    <select class="form-select form-select-sm" id="select-dinner-food-XFH">
+                        <option value="" selected>Select Food...</option>
+                        @foreach ($foods as $item)
+                            <option value="{{ $item->id }}">{{ $item->name }}</option>
+                        @endforeach
+                    </select>
+                    <input type="number" class="form-control form-control-sm" id="pax-dinner-food-XFH"
+                        placeholder="Qty" style="max-width: 70px;">
+                    <button class="btn btn-sm btn-dark" type="button"
+                        onclick="addUpsellingItem('dinner', 'food', 'XFH')"><i class="ti ti-plus"></i> Add</button>
+                </div>
+                <ul class="list-group small" id="list-dinner-food-XFH"></ul>
+            </div>
+            {{-- Bev --}}
+            <div class="col-md-6">
+                <label class="form-label small fw-bold">Beverage Upselling</label>
+                @php $dnBevVal = old('session.dinner.upselling_data.beverage', $dn->upselling_data['beverage'] ?? []); @endphp
+                <input type="hidden" id="input-dinner-beverage-XFH" name="session[dinner][upselling_data][beverage]"
+                    value="{{ is_array($dnBevVal) ? json_encode($dnBevVal) : $dnBevVal }}">
+                <div class="input-group mb-2">
+                    <select class="form-select form-select-sm" id="select-dinner-beverage-XFH">
+                        <option value="" selected>Select Drink...</option>
+                        @foreach ($beverages as $item)
+                            <option value="{{ $item->id }}">{{ $item->name }}</option>
+                        @endforeach
+                    </select>
+                    <input type="number" class="form-control form-control-sm" id="pax-dinner-beverage-XFH"
+                        placeholder="Qty" style="max-width: 70px;">
+                    <button class="btn btn-sm btn-dark" type="button"
+                        onclick="addUpsellingItem('dinner', 'beverage', 'XFH')"><i class="ti ti-plus"></i>
+                        Add</button>
+                </div>
+                <ul class="list-group small" id="list-dinner-beverage-XFH"></ul>
+            </div>
+            {{-- VIP --}}
+            <div class="col-md-12 mt-3">
+                <label class="form-label small fw-bold">VIP 1 & 2 List</label>
+                @php $dnVipVal = old('session.dinner.vip_remarks', $dn->vip_remarks ?? []); @endphp
+                <input type="hidden" id="input-vip-dinner-XFH" name="session[dinner][vip_remarks]"
+                    value="{{ is_array($dnVipVal) ? json_encode($dnVipVal) : $dnVipVal }}">
+                <div class="input-group mb-2">
+                    <input type="text" class="form-control form-control-sm" id="vip-name-dinner-XFH"
+                        placeholder="Guest Name (e.g. Mr. Budi)">
+                    <input type="text" class="form-control form-control-sm" id="vip-pos-dinner-XFH"
+                        placeholder="Position/Title (e.g. CEO)">
+                    <button class="btn btn-sm btn-dark" type="button" onclick="addVipItem('dinner', 'XFH')"><i
+                            class="ti ti-plus"></i> Add</button>
+                </div>
+                <ul class="list-group small" id="list-vip-dinner-XFH"></ul>
+            </div>
+            {{-- Remarks --}}
+            <div class="col-md-12">
+                <label class="form-label small">General Remarks</label>
+                <textarea class="form-control" name="session[dinner][remarks]">{{ old('session.dinner.remarks', $dn->remarks ?? '') }}</textarea>
+            </div>
+            {{-- Staff --}}
+            <div class="col-md-12 mt-3">
+                <label class="form-label small fw-bold">Staff on Duty</label>
+                @php $dnStaffVal = old('session.dinner.staff_on_duty', $dn->staff_on_duty ?? []); @endphp
+                <input type="hidden" id="input-staff-dinner-XFH" name="session[dinner][staff_on_duty]"
+                    value="{{ is_array($dnStaffVal) ? json_encode($dnStaffVal) : $dnStaffVal }}">
+                <div class="input-group mb-2">
+                    <select class="form-select form-select-sm" id="select-staff-dinner-XFH">
+                        <option value="" selected>Select Staff...</option>
+                        @foreach ($myStaffList as $staff)
+                            <option value="{{ $staff->id }}">{{ $staff->name }}</option>
+                        @endforeach
+                    </select>
+                    <button class="btn btn-sm btn-dark" type="button" onclick="addStaffItem('dinner', 'XFH')"><i
+                            class="ti ti-plus"></i> Add</button>
+                </div>
+                <div id="list-staff-dinner-XFH" class="d-flex flex-wrap"></div>
+            </div>
+        </div>
+
+        <hr>
+
+        <h6 class="fw-bold text-muted mt-3">4. Competitor Comparison</h6>
+        <div class="row g-3">
+            <div class="col-md-4"><label class="small">Shangri-La</label><input type="number" class="form-control"
+                    name="session[dinner][competitor_data][shangrila_cover]"
+                    value="{{ old('session.dinner.competitor_data.shangrila_cover', $dn->competitor_data['shangrila_cover'] ?? '') }}">
+            </div>
+            <div class="col-md-4"><label class="small">JW Marriott</label><input type="number"
+                    class="form-control" name="session[dinner][competitor_data][jw_marriott_cover]"
+                    value="{{ old('session.dinner.competitor_data.jw_marriott_cover', $dn->competitor_data['jw_marriott_cover'] ?? '') }}">
+            </div>
+            <div class="col-md-4"><label class="small">Sheraton</label><input type="number" class="form-control"
+                    name="session[dinner][competitor_data][sheraton_cover]"
+                    value="{{ old('session.dinner.competitor_data.sheraton_cover', $dn->competitor_data['sheraton_cover'] ?? '') }}">
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ============================================================ --}}
+{{-- SCRIPT INITIALIZATION --}}
+{{-- ============================================================ --}}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        // --- BREAKFAST INIT ---
+        let bfFood = {!! json_encode(old('session.breakfast.upselling_data.food', $bf->upselling_data['food'] ?? [])) !!};
+        initUpselling('breakfast', 'food', bfFood, 'XFH');
+        let bfBev = {!! json_encode(old('session.breakfast.upselling_data.beverage', $bf->upselling_data['beverage'] ?? [])) !!};
+        initUpselling('breakfast', 'beverage', bfBev, 'XFH');
+        let bfVip = {!! json_encode(old('session.breakfast.vip_remarks', $bf->vip_remarks ?? [])) !!};
+        initVip('breakfast', bfVip, 'XFH');
+        let bfStaff = {!! json_encode(old('session.breakfast.staff_on_duty', $bf->staff_on_duty ?? [])) !!};
+        initStaff('breakfast', bfStaff, 'XFH');
+
+        // --- LUNCH INIT ---
+        let lcFood = {!! json_encode(old('session.lunch.upselling_data.food', $lc->upselling_data['food'] ?? [])) !!};
+        initUpselling('lunch', 'food', lcFood, 'XFH');
+        let lcBev = {!! json_encode(old('session.lunch.upselling_data.beverage', $lc->upselling_data['beverage'] ?? [])) !!};
+        initUpselling('lunch', 'beverage', lcBev, 'XFH');
+        let lcVip = {!! json_encode(old('session.lunch.vip_remarks', $lc->vip_remarks ?? [])) !!};
+        initVip('lunch', lcVip, 'XFH');
+        let lcStaff = {!! json_encode(old('session.lunch.staff_on_duty', $lc->staff_on_duty ?? [])) !!};
+        initStaff('lunch', lcStaff, 'XFH');
+
+        // --- DINNER INIT ---
+        let dnFood = {!! json_encode(old('session.dinner.upselling_data.food', $dn->upselling_data['food'] ?? [])) !!};
+        initUpselling('dinner', 'food', dnFood, 'XFH');
+        let dnBev = {!! json_encode(old('session.dinner.upselling_data.beverage', $dn->upselling_data['beverage'] ?? [])) !!};
+        initUpselling('dinner', 'beverage', dnBev, 'XFH');
+        let dnVip = {!! json_encode(old('session.dinner.vip_remarks', $dn->vip_remarks ?? [])) !!};
+        initVip('dinner', dnVip, 'XFH');
+        let dnStaff = {!! json_encode(old('session.dinner.staff_on_duty', $dn->staff_on_duty ?? [])) !!};
+        initStaff('dinner', dnStaff, 'XFH');
+
+    });
+</script>
