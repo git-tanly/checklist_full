@@ -104,7 +104,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="text-center py-4 text-muted">
+                                        <td colspan="6" class="text-center py-4 text-muted">
                                             No reports found. Start by creating one!
                                         </td>
                                     </tr>
