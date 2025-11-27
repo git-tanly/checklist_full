@@ -29,6 +29,7 @@ class DashboardController extends Controller
         // Widget 3: Today's Revenue
         // Kita ambil laporan hari ini beserta detail-nya
         $todaysReports = DailyReport::whereDate('date', $today)
+            ->where('status', 'approved') // <--- FILTER: HANYA APPROVED
             ->with('details')
             ->get();
 
@@ -52,6 +53,7 @@ class DashboardController extends Controller
 
         // 2. Ambil Data dari Database (Otomatis terfilter Scope User/Resto)
         $weeklyReports = DailyReport::whereDate('date', '>=', now()->subDays(6))
+            ->where('status', 'approved') // <--- FILTER: HANYA APPROVED
             ->with('details')
             ->get();
 
@@ -139,7 +141,7 @@ class DashboardController extends Controller
         // Filter berdasarkan bulan & tahun ini
         $mtdReports = DailyReport::whereMonth('date', $currentMonth)
             ->whereYear('date', $currentYear)
-            ->where('status', '!=', 'draft') // Hanya hitung yang submitted/approved (Opsional: hapus jika draft mau dihitung)
+            ->where('status', 'approved') // <--- FILTER: HANYA APPROVED
             ->with('details')
             ->get();
 
