@@ -51,8 +51,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/users/{user}', [UserController::class, 'update'])->middleware(['role:Super Admin'])->name('users.update');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->middleware(['role:Super Admin'])->name('users.destroy');
 
-    Route::get('/revenue-targets', [RevenueTargetController::class, 'index'])->name('revenue-targets.index');
-    Route::post('/revenue-targets', [RevenueTargetController::class, 'store'])->name('revenue-targets.store');
+    Route::get('/revenue-targets', [RevenueTargetController::class, 'index'])->middleware(['role:Super Admin|Restaurant Manager'])->name('revenue-targets.index');
+    Route::post('/revenue-targets', [RevenueTargetController::class, 'store'])->middleware(['role:Super Admin|Restaurant Manager'])->name('revenue-targets.store');
 });
 
 Route::middleware('auth')->group(function () {

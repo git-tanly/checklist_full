@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\DailyReport;
+use App\Models\Restaurant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -169,6 +170,55 @@ class DashboardController extends Controller
         // 3. Hitung Persentase (Cegah division by zero)
         $achievementPercent = $monthlyTarget > 0 ? ($mtdRevenue / $monthlyTarget) * 100 : 0;
 
+        $breakdownPerformance = [];
+        $relevantRestaurants = collect();
+
+        // 1. Tentukan Restoran mana yang mau dihitung
+        if ($user->hasRole('Super Admin')) {
+            $relevantRestaurants = Restaurant::all();
+        } else {
+            // Untuk Cluster & Single Unit, ambil dari relasi
+            $relevantRestaurants = $user->restaurants;
+        }
+
+        // 2. Loop setiap restoran untuk hitung target vs actual
+        // Kita hitung manual di sini agar akurat per ID restoran
+        foreach ($relevantRestaurants as $resto) {
+
+            // A. Hitung Actual MTD (Approved Only) untuk Resto ini
+            $restoReports = DailyReport::where('restaurant_id', $resto->id)
+                ->whereMonth('date', $currentMonth)
+                ->whereYear('date', $currentYear)
+                ->where('status', 'approved')
+                ->with('details') // Load detail agar bisa sum revenue
+                ->get();
+
+            $actual = 0;
+            foreach ($restoReports as $rpt) {
+                foreach ($rpt->details as $dtl) {
+                    $actual += $dtl->revenue_food + $dtl->revenue_beverage + $dtl->revenue_others + $dtl->revenue_event;
+                }
+            }
+
+            // B. Ambil Target Bulan Ini untuk Resto ini
+            $target = \App\Models\RevenueTarget::where('restaurant_id', $resto->id)
+                ->where('month', $currentMonth)
+                ->where('year', $currentYear)
+                ->sum('amount');
+
+            // C. Hitung Persentase
+            $percentage = $target > 0 ? ($actual / $target) * 100 : 0;
+
+            // D. Masukkan ke Array
+            $breakdownPerformance[] = [
+                'name' => $resto->name,
+                'code' => $resto->code,
+                'target' => $target,
+                'actual' => $actual,
+                'percentage' => $percentage
+            ];
+        }
+
         // ---------------------------------------------------------
         // 2. TABEL RINGKASAN (5 Laporan Terakhir)
         // ---------------------------------------------------------
@@ -190,6 +240,7 @@ class DashboardController extends Controller
             'mtdRevenue',
             'monthlyTarget',
             'achievementPercent',
+            'breakdownPerformance',
         ));
     }
 }

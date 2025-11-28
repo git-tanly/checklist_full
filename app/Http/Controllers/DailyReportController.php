@@ -115,7 +115,7 @@ class DailyReportController extends Controller
 
             // 4. Simpan Detail Sesi (Looping Breakfast, Lunch, Dinner)
             // Kita asumsikan form mengirim data dengan struktur: name="session[breakfast][revenue_food]"
-            $sessions = ['breakfast', 'lunch', 'dinner'];
+            $sessions = ['breakfast', 'lunch', 'dinner', 'supper'];
             // $inputSessions = $request->input('session', []);
 
             foreach ($sessions as $sessionType) {
@@ -249,7 +249,7 @@ class DailyReportController extends Controller
             $dailyReport->details()->delete();
 
             // --- Mulai Copy-Paste Logika dari Store ---
-            $sessions = ['breakfast', 'lunch', 'dinner'];
+            $sessions = ['breakfast', 'lunch', 'dinner', 'supper'];
             // $inputSessions = $request->input('session', []);
 
             foreach ($sessions as $sessionType) {

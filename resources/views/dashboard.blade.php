@@ -21,35 +21,100 @@
 @section('content')
     <div class="row">
 
+        {{-- PERFORMANCE SECTION (TABS VIEW) --}}
         <div class="col-md-12">
-            <div class="card bg-light-primary border-primary">
+            <div class="card">
+                <div class="card-header p-0 mx-3 mt-3 border-0">
+                    <ul class="nav nav-tabs profile-tabs" id="myTab" role="tablist">
+                        {{-- Tab 1: Overview --}}
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link active pb-2" id="overview-tab" data-bs-toggle="tab" href="#overview"
+                                role="tab" aria-selected="true">
+                                <i class="ti ti-chart-pie me-2"></i> Overview
+                            </a>
+                        </li>
+
+                        {{-- Tab 2: Outlet Details (Hanya muncul jika Multi-Resto) --}}
+                        @if (Auth::user()->hasRole('Super Admin') || Auth::user()->restaurants->count() > 1)
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link pb-2" id="breakdown-tab" data-bs-toggle="tab" href="#breakdown"
+                                    role="tab" aria-selected="false">
+                                    <i class="ti ti-list-details me-2"></i> Outlet Details
+                                </a>
+                            </li>
+                        @endif
+                    </ul>
+                </div>
                 <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h5 class="text-primary mb-2">
-                                <i class="ti ti-chart-pie me-2"></i> Monthly Performance ({{ now()->format('F Y') }})
-                            </h5>
-                            <div class="d-flex align-items-baseline gap-2 mb-2">
-                                <h2 class="mb-0 fw-bold">Rp {{ number_format($mtdRevenue, 0, ',', '.') }}</h2>
-                                <span class="text-muted">/ Target: Rp
-                                    {{ number_format($monthlyTarget, 0, ',', '.') }}</span>
+                    <div class="tab-content" id="myTabContent">
+
+                        {{-- KONTEN TAB 1: OVERVIEW --}}
+                        <div class="tab-pane fade show active" id="overview" role="tabpanel"
+                            aria-labelledby="overview-tab">
+                            <div class="row align-items-center bg-light-primary rounded p-4 border border-primary-subtle">
+                                <div class="col-md-8">
+                                    <h5 class="text-primary mb-2">
+                                        Monthly Performance ({{ now()->format('F Y') }})
+                                    </h5>
+                                    <div class="d-flex align-items-baseline gap-2 mb-2">
+                                        <h2 class="mb-0 fw-bold">Rp {{ number_format($mtdRevenue, 0, ',', '.') }}</h2>
+                                        <span class="text-muted">/ Target: Rp
+                                            {{ number_format($monthlyTarget, 0, ',', '.') }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-md-end">
+                                    <h2
+                                        class="mb-0 {{ $achievementPercent >= 100 ? 'text-success' : ($achievementPercent >= 80 ? 'text-warning' : 'text-danger') }}">
+                                        {{ number_format($achievementPercent, 1) }}%
+                                    </h2>
+                                    <span class="small text-muted">Achievement</span>
+                                </div>
+                                <div class="col-12 mt-3">
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar {{ $achievementPercent >= 100 ? 'bg-success' : ($achievementPercent >= 80 ? 'bg-warning' : 'bg-danger') }} progress-bar-striped progress-bar-animated"
+                                            role="progressbar" style="width: {{ min($achievementPercent, 100) }}%">
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-4 text-md-end">
-                            <h2
-                                class="mb-0 {{ $achievementPercent >= 100 ? 'text-success' : ($achievementPercent >= 80 ? 'text-warning' : 'text-danger') }}">
-                                {{ number_format($achievementPercent, 1) }}%
-                            </h2>
-                            <span class="small text-muted">Achievement</span>
-                        </div>
-                    </div>
 
-                    {{-- Progress Bar --}}
-                    <div class="progress mt-3" style="height: 20px;">
-                        <div class="progress-bar {{ $achievementPercent >= 100 ? 'bg-success' : ($achievementPercent >= 80 ? 'bg-warning' : 'bg-danger') }} progress-bar-striped progress-bar-animated"
-                            role="progressbar" style="width: {{ min($achievementPercent, 100) }}%"
-                            aria-valuenow="{{ $achievementPercent }}" aria-valuemin="0" aria-valuemax="100">
-                        </div>
+                        {{-- KONTEN TAB 2: BREAKDOWN LIST --}}
+                        @if (Auth::user()->hasRole('Super Admin') || Auth::user()->restaurants->count() > 1)
+                            <div class="tab-pane fade" id="breakdown" role="tabpanel" aria-labelledby="breakdown-tab">
+                                <div style="max-height: 400px; overflow-y: auto;">
+                                    <ul class="list-group list-group-flush">
+                                        @foreach ($breakdownPerformance as $data)
+                                            <li class="list-group-item px-0 py-3 border-bottom">
+                                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                                    <div>
+                                                        <h6 class="mb-0 fw-bold">{{ $data['name'] }}</h6>
+                                                        <small class="text-muted">
+                                                            <span class="text-dark fw-bold">Rp
+                                                                {{ number_format($data['actual'], 0, ',', '.') }}</span>
+                                                            / Target: Rp {{ number_format($data['target'], 0, ',', '.') }}
+                                                        </small>
+                                                    </div>
+                                                    <div class="text-end">
+                                                        <span
+                                                            class="badge {{ $data['percentage'] >= 100 ? 'bg-light-success text-success' : ($data['percentage'] >= 80 ? 'bg-light-warning text-warning' : 'bg-light-danger text-danger') }} f-12">
+                                                            {{ number_format($data['percentage'], 1) }}%
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="progress" style="height: 6px;">
+                                                    <div class="progress-bar {{ $data['percentage'] >= 100 ? 'bg-success' : ($data['percentage'] >= 80 ? 'bg-warning' : 'bg-danger') }}"
+                                                        role="progressbar"
+                                                        style="width: {{ min($data['percentage'], 100) }}%">
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        @endif
+
                     </div>
                 </div>
             </div>

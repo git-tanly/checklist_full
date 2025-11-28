@@ -124,6 +124,11 @@
                         {{-- <div class="alert alert-warning">Form Nagano belum dibuat</div> --}}
                     </div>
 
+                    <div id="form-IRD" class="resto-form d-none">
+                        @include('daily-reports.partials.form-ird')
+                        {{-- <div class="alert alert-warning">Form Nagano belum dibuat</div> --}}
+                    </div>
+
                     {{-- Tambahkan div untuk Voda dan Joe Milano nanti --}}
                 </div>
 
