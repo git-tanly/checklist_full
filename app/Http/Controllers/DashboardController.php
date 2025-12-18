@@ -14,6 +14,7 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $today = now()->format('Y-m-d');
+        $queryDraft = DailyReport::where('status', 'draft');
 
         // ---------------------------------------------------------
         // 1. QUERY DASAR (Otomatis terfilter oleh Global Scope)
@@ -23,9 +24,11 @@ class DashboardController extends Controller
         $waitingApproval = DailyReport::where('status', 'submitted')->count();
 
         // Widget 2: Drafts (Status Draft)
-        $myDrafts = DailyReport::where('status', 'draft')
-            ->where('user_id', $user->id) // Draft spesifik milik user login (opsional)
-            ->count();
+        if (!$user->hasRole('Super Admin')) {
+            $queryDraft->where('user_id', $user->id);
+        }
+
+        $myDrafts = $queryDraft->count();
 
         // Widget 3: Today's Revenue
         // Kita ambil laporan hari ini beserta detail-nya
