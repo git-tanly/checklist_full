@@ -416,10 +416,11 @@
                                     <div class="card-body p-3">
                                         <div class="row align-items-start">
                                             {{-- Competitor --}}
-                                            <div class="col-md-6 border-end">
+                                            <div class="mb-4">
                                                 <small class="text-muted d-block mb-2">Competitor Cover Comparison</small>
 
-                                                <div class="d-flex gap-3 text-center align-items-center">
+                                                <div
+                                                    class="d-flex gap-4 text-center align-items-center overflow-auto pb-2">
 
                                                     {{-- A. LOGIKA: Hitung Total Cover Kita --}}
                                                     @php
@@ -437,7 +438,7 @@
                                                     @endphp
 
                                                     {{-- B. TAMPILAN: Restoran Kita (Warna Biru/Primary) --}}
-                                                    <div>
+                                                    <div class="flex-shrink-0">
                                                         <h4 class="mb-0 fw-bold text-primary">{{ $myTotalCover }}</h4>
                                                         <span class="text-primary fw-bold"
                                                             style="font-size: 10px; text-transform: uppercase;">
@@ -446,12 +447,12 @@
                                                     </div>
 
                                                     {{-- Garis Pemisah Vertikal --}}
-                                                    <div class="border-end h-100" style="min-height: 30px;"></div>
+                                                    <div class="border-end h-100 mx-2" style="min-height: 30px;"></div>
 
                                                     {{-- C. TAMPILAN: Kompetitor (Looping) --}}
                                                     @if (!empty($detail->competitor_data))
                                                         @foreach ($detail->competitor_data as $key => $val)
-                                                            <div>
+                                                            <div class="flex-shrink-0">
                                                                 <h4 class="mb-0 fw-bold">{{ $val }}</h4>
                                                                 <span class="text-muted"
                                                                     style="font-size: 10px; text-transform: uppercase;">
@@ -465,8 +466,10 @@
                                                 </div>
                                             </div>
 
+                                            <hr class="border-light my-0 mb-3">
+
                                             {{-- General Remarks --}}
-                                            <div class="col-md-6 ps-md-4 pt-3 pt-md-0">
+                                            <div>
                                                 <small class="text-muted d-block mb-1">General Notes</small>
                                                 <p class="mb-0 small text-dark">
                                                     {{ $detail->remarks ?? '-' }}
