@@ -1,66 +1,32 @@
 @extends('layouts.mantis')
 
-@section('header')
-    {{-- ... Breadcrumb seperti biasa ... --}}
-    <div class="page-header">
-        <div class="page-block">
-            <div class="row align-items-center">
-                <div class="col-md-12">
-                    <div class="page-header-title">
-                        <h5 class="m-b-10">Add User</h5>
-                    </div>
-                    <ul class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('users.index') }}">Users</a></li>
-                        <li class="breadcrumb-item" aria-current="page">Create</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-@endsection
-
 @section('content')
     <div class="row">
         <div class="col-md-8 mx-auto">
             <div class="card">
                 <div class="card-header">
-                    <h5>User Details</h5>
+                    <h5>Grant Access to User</h5>
+                    <small>Tambahkan user yang SUDAH ADA di Portal ke aplikasi Checklist</small>
                 </div>
                 <div class="card-body">
-                    @if ($errors->any())
-                        <div class="alert alert-danger">
-                            <ul>
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
+                    @if (session('error'))
+                        <div class="alert alert-danger">{{ session('error') }}</div>
                     @endif
 
                     <form action="{{ route('users.store') }}" method="POST">
                         @csrf
                         <div class="row">
-                            {{-- Nama & NIK --}}
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Full Name</label>
-                                <input type="text" name="name" class="form-control" value="{{ old('name') }}"
-                                    required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Employee ID</label>
-                                <input type="text" name="nik" class="form-control" value="{{ old('nik') }}"
-                                    required>
-                            </div>
-
-                            {{-- Password --}}
+                            {{-- Email adalah Kunci Pencarian --}}
                             <div class="col-md-12 mb-3">
-                                <label class="form-label">Password</label>
-                                <input type="password" name="password" class="form-control" required>
+                                <label class="form-label">User Email (Registered in Portal)</label>
+                                <input type="email" name="email" class="form-control" value="{{ old('email') }}"
+                                    placeholder="example@tanly.id" required>
+                                <small class="text-muted">Masukkan email user yang sudah terdaftar di SSO Portal.</small>
                             </div>
 
-                            {{-- Role & Resto --}}
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Role</label>
+                            {{-- Role --}}
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Role Access</label>
                                 <select name="role" class="form-select" required>
                                     <option value="" selected disabled>-- Select Role --</option>
                                     @foreach ($roles as $role)
@@ -71,8 +37,10 @@
                                     @endforeach
                                 </select>
                             </div>
+
+                            {{-- Restaurants --}}
                             <div class="col-md-12 mb-3">
-                                <label class="form-label fw-bold">Assigned Restaurants (Cluster Access)</label>
+                                <label class="form-label fw-bold">Assigned Restaurants</label>
                                 <div class="card border bg-light">
                                     <div class="card-body p-3">
                                         <div class="row">
@@ -80,8 +48,7 @@
                                                 <div class="col-md-4 mb-2">
                                                     <div class="form-check">
                                                         <input class="form-check-input" type="checkbox" name="restaurants[]"
-                                                            value="{{ $rest->id }}" id="rest_{{ $rest->id }}"
-                                                            {{ in_array($rest->id, old('restaurants', [])) ? 'checked' : '' }}>
+                                                            value="{{ $rest->id }}" id="rest_{{ $rest->id }}">
                                                         <label class="form-check-label" for="rest_{{ $rest->id }}">
                                                             {{ $rest->name }}
                                                         </label>
@@ -89,18 +56,13 @@
                                                 </div>
                                             @endforeach
                                         </div>
-                                        <small class="text-muted d-block mt-2">
-                                            * Biarkan kosong jika user adalah Super Admin (Global Access).
-                                            <br>* Pilih satu untuk staff biasa, atau pilih banyak untuk Area/Cluster
-                                            Manager.
-                                        </small>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="d-grid gap-2 mt-3">
-                            <button type="submit" class="btn btn-primary">Create User</button>
+                            <button type="submit" class="btn btn-primary">Grant Access</button>
                             <a href="{{ route('users.index') }}" class="btn btn-light">Cancel</a>
                         </div>
                     </form>

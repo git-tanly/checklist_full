@@ -60,22 +60,31 @@
                                     <tr>
                                         <td>
                                             <div class="d-flex align-items-center">
+                                                {{-- Avatar dummy --}}
                                                 <img src="{{ asset('template/dist') }}/assets/images/user/avatar-2.jpg"
                                                     alt="user" class="wid-30 rounded-circle me-2">
                                                 <h6 class="mb-0">{{ $user->name }}</h6>
                                             </div>
                                         </td>
-                                        <td>{{ $user->nik }}</td>
+                                        <td>{{ $user->email }}</td>
                                         <td>
-                                            @foreach ($user->roles as $role)
-                                                <span
-                                                    class="badge bg-light-primary text-primary border border-primary">{{ $role->name }}</span>
-                                            @endforeach
+                                            {{-- Ambil Role via Bridge --}}
+                                            @if ($user->localProfile && $user->localProfile->roles->isNotEmpty())
+                                                @foreach ($user->localProfile->roles as $role)
+                                                    <span class="badge bg-light-primary text-primary border border-primary">
+                                                        {{ $role->name }}
+                                                    </span>
+                                                @endforeach
+                                            @else
+                                                <span class="text-muted small">-</span>
+                                            @endif
                                         </td>
                                         <td>
+                                            {{-- Ambil Restoran via Bridge --}}
                                             @if ($user->hasRole('Super Admin'))
                                                 <span class="badge bg-dark">Global Admin</span>
                                             @elseif($user->restaurants->isNotEmpty())
+                                                {{-- Note: $user->restaurants sudah di-cover oleh Accessor di User.php --}}
                                                 <div class="d-flex flex-wrap gap-1">
                                                     @foreach ($user->restaurants as $rest)
                                                         <span class="badge bg-light-secondary text-dark border">
@@ -97,7 +106,7 @@
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-icon btn-link-danger btn-sm"
-                                                    onclick="return confirm('Hapus user {{ $user->name }}?')">
+                                                    onclick="return confirm('Cabut akses user {{ $user->name }}?')">
                                                     <i class="ti ti-trash"></i>
                                                 </button>
                                             </form>

@@ -89,10 +89,10 @@
                                 <label class="form-label">Employee ID (NIK)</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="ti ti-user"></i></span>
-                                    <input type="text" name="nik" class="form-control"
-                                        placeholder="Enter your NIK" value="{{ old('nik') }}" required autofocus>
+                                    <input type="text" name="email" class="form-control"
+                                        placeholder="Enter your Email" value="{{ old('email') }}" required autofocus>
                                 </div>
-                                @error('nik')
+                                @error('email')
                                     <small class="text-danger mt-1">{{ $message }}</small>
                                 @enderror
                             </div>
