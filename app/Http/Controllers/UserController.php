@@ -2,106 +2,140 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Models\User;      // Model Portal (Bridge)
+use App\Models\LocalUser; // Model Lokal (Tabel users di checklist)
 use App\Models\Restaurant;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
-    //'
     public function index()
     {
-        // Ubah menjadi 'restaurants' (plural)
-        $users = User::with(['restaurants', 'roles'])->paginate(10);
+        // Ambil User Portal yang SUDAH punya akses ke aplikasi ini (ada di tabel users lokal)
+        // Kita ambil email dari LocalUser dulu
+        $localEmails = LocalUser::pluck('email');
+
+        // Ambil object User Portal lengkap dengan relasi lokalnya
+        $users = User::with(['localProfile.roles', 'localProfile.restaurants'])
+            ->whereIn('email', $localEmails)
+            ->latest()
+            ->paginate(10);
+
         return view('users.index', compact('users'));
     }
 
     public function create()
     {
         $restaurants = Restaurant::all();
-        $roles = Role::all(); // Ambil semua role dari Spatie
+        $roles = Role::all();
         return view('users.create', compact('restaurants', 'roles'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'nik' => 'required|string|max:20|unique:users,nik',
-            'password' => 'required|string|min:6',
+            'email' => 'required|email|max:255',
             'role' => 'required|exists:roles,name',
-            // Validasi Array Restoran
             'restaurants' => 'nullable|array',
             'restaurants.*' => 'exists:restaurants,id',
         ]);
 
-        // 1. Buat User (Tanpa restaurant_id)
-        $user = User::create([
-            'name' => $request->name,
-            'nik' => $request->nik,
-            'password' => Hash::make($request->password),
-        ]);
+        // 1. CEK PORTAL: Apakah user ada di Portal Utama?
+        $portalUser = DB::connection('mysql_portal')->table('users')
+            ->where('email', $request->email)->first();
 
-        // 2. Assign Role
-        $user->assignRole($request->role);
-
-        // 3. Assign Restaurants (Pivot)
-        if ($request->has('restaurants')) {
-            $user->restaurants()->sync($request->restaurants);
+        if (!$portalUser) {
+            return back()->withInput()->with('error', 'User belum terdaftar di Portal Utama. Silakan buat akun di Portal terlebih dahulu.');
         }
 
-        return redirect()->route('users.index')->with('success', 'User berhasil dibuat.');
+        // 2. CEK LOKAL: Apakah user sudah punya akses di sini?
+        $existsLocal = LocalUser::where('email', $request->email)->exists();
+        if ($existsLocal) {
+            return back()->withInput()->with('error', 'User ini sudah memiliki akses. Silakan edit saja.');
+        }
+
+        // 3. SYNC ID: Buat LocalUser dengan ID yang SAMA dengan Portal
+        $localUser = LocalUser::create([
+            'id'       => $portalUser->id,       // <--- KUNCI STRICT SYNC
+            'name'     => $portalUser->name,     // Copy nama untuk cache
+            'email'    => $portalUser->email,    // Copy email
+            'password' => $portalUser->password, // Copy hash password
+        ]);
+
+        // 4. ASSIGN ROLE (Spatie)
+        $localUser->assignRole($request->role);
+
+        // 5. ASSIGN RESTAURANTS (Pivot)
+        if ($request->has('restaurants')) {
+            $localUser->restaurants()->sync($request->restaurants);
+        }
+
+        return redirect()->route('users.index')->with('success', 'Hak akses berhasil diberikan ke user.');
     }
 
     public function edit(User $user)
     {
+        // $user adalah object User Portal.
+        // Kita perlu data restoran & role dari profile lokalnya.
+
         $restaurants = Restaurant::all();
         $roles = Role::all();
+
         return view('users.edit', compact('user', 'restaurants', 'roles'));
     }
 
     public function update(Request $request, User $user)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'nik' => 'required|string|max:20|unique:users,nik,' . $user->id,
             'role' => 'required|exists:roles,name',
-            'password' => 'nullable|string|min:6',
-            // Validasi Array
             'restaurants' => 'nullable|array',
             'restaurants.*' => 'exists:restaurants,id',
         ]);
 
-        // 1. Update Data Diri
-        $data = [
-            'name' => $request->name,
-            'nik' => $request->nik,
-        ];
-        if ($request->filled('password')) {
-            $data['password'] = Hash::make($request->password);
+        // Kita TIDAK mengubah Email/Password di sini karena itu wewenang Portal.
+        // Kita hanya mengubah Hak Akses (Role & Restoran) di database Lokal.
+
+        // 1. Ambil Local User
+        $localUser = LocalUser::find($user->id); // Karena ID sudah sinkron, bisa pakai find($user->id)
+
+        if (!$localUser) {
+            // Fallback jika ID belum sinkron (kasus lama), cari by email
+            $localUser = LocalUser::where('email', $user->email)->first();
         }
-        $user->update($data);
 
-        // 2. Sync Role
-        $user->syncRoles($request->role);
+        if (!$localUser) {
+            return back()->with('error', 'Data lokal user tidak ditemukan.');
+        }
 
-        // 3. Sync Restaurants (Pivot)
-        // Jika kosong (uncheck semua), sync([]) akan menghapus semua akses
-        $user->restaurants()->sync($request->input('restaurants', []));
+        // 2. Update Role
+        $localUser->syncRoles($request->role);
 
-        return redirect()->route('users.index')->with('success', 'Data user diperbarui.');
+        // 3. Update Restaurants
+        $localUser->restaurants()->sync($request->input('restaurants', []));
+
+        return redirect()->route('users.index')->with('success', 'Hak akses user diperbarui.');
     }
 
     public function destroy(User $user)
     {
-        // Mencegah hapus diri sendiri
-        if (auth()->id() == $user->id) {
-            return back()->with('error', 'Anda tidak bisa menghapus akun sendiri.');
+        if (Auth::id() == $user->id) {
+            return back()->with('error', 'Anda tidak bisa menghapus akses sendiri.');
         }
 
-        $user->delete();
-        return back()->with('success', 'User berhasil dihapus.');
+        // HAPUS DARI LOKAL SAJA (REVOKE ACCESS)
+        // Hapus role dulu agar bersih (opsional jika cascade sudah nyala)
+        $localUser = $user->localProfile;
+
+        if ($localUser) {
+            // $localUser->roles()->detach();
+            $localUser->removeRole();
+            $localUser->restaurants()->detach(); // Hapus relasi restoran
+            $localUser->delete(); // Hapus user dari tabel lokal
+        }
+
+        return back()->with('success', 'Akses user dicabut dari aplikasi Checklist.');
     }
 }

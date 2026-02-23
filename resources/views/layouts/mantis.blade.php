@@ -339,9 +339,10 @@
                             <div class="tab-content" id="mysrpTabContent">
                                 <div class="tab-pane fade show active" id="drp-tab-1" role="tabpanel"
                                     aria-labelledby="drp-t1" tabindex="0">
-                                    <a href="{{ route('profile.edit') }}" class="dropdown-item">
+                                    <a href="{{ env('APP_PORTAL_URL') }}/users/{{ Auth::user()->id }}/edit?redirect_to={{ urlencode(url()->current()) }}"
+                                        class="dropdown-item">
                                         <i class="ti ti-edit-circle"></i>
-                                        <span>Edit Password</span>
+                                        <span>Edit Profile</span>
                                     </a>
                                     {{-- <a href="#!" class="dropdown-item">
                                         <i class="ti ti-user"></i>

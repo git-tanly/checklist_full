@@ -32,7 +32,8 @@ class DailyReportController extends Controller
             $restaurants = Restaurant::with('users')->get();
         } else {
             // User biasa hanya dapat restorannya sendiri
-            $restaurants = $user->restaurants()->with('users')->get();
+            // $restaurants = $user->restaurants()->with('users')->get();
+            $restaurants = $user->localProfile->restaurants()->with('users')->get();
         }
 
         $details = [];
@@ -180,7 +181,8 @@ class DailyReportController extends Controller
         } else {
             // User Biasa / Cluster Manager lihat restoran miliknya saja
             // Kita akses langsung relasi restaurants
-            $restaurants = $user->restaurants()->with('users')->get();
+            // $restaurants = $user->restaurants()->with('users')->get();
+            $restaurants = $user->localProfile->restaurants()->with('users')->get();
         }
 
         // 3. RE-MAPPING DATA DETAIL (PENTING)
