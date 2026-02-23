@@ -21,6 +21,7 @@ class UserController extends Controller
         // Ambil object User Portal lengkap dengan relasi lokalnya
         $users = User::with(['localProfile.roles', 'localProfile.restaurants'])
             ->whereIn('email', $localEmails)
+            ->where('email', '!=', 'superadmin@tanly.id')
             ->latest()
             ->paginate(10);
 
