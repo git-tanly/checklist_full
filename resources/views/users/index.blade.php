@@ -49,7 +49,7 @@
                             <thead>
                                 <tr>
                                     <th>User</th>
-                                    <th>Employee ID</th>
+                                    <th>Email</th>
                                     <th>Role</th>
                                     <th>Restaurant</th>
                                     <th class="text-end">Actions</th>

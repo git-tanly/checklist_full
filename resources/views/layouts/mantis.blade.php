@@ -316,7 +316,7 @@
                                     </div>
                                     <div class="flex-grow-1 ms-3">
                                         <h6 class="mb-1">{{ Auth::user()->name ?? 'User' }}</h6>
-                                        <span>{{ Auth::user()->nik ?? 'NIK not set' }}</span>
+                                        <span>{{ Auth::user()->email ?? 'Email not set' }}</span>
                                     </div>
                                     {{-- <a href="#!" class="pc-head-link bg-transparent"><i
                                             class="ti ti-power text-danger"></i></a> --}}
