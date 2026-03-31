@@ -212,6 +212,17 @@ class User extends Authenticatable
         return $this->localProfile ? $this->localProfile->restaurants : collect([]);
     }
 
+    public function applications()
+    {
+        // Pastikan nama tabel pivot spesifik jika perlu, atau andalkan konvensi
+        return $this->belongsToMany(Application::class);
+    }
+
+    public function hasAppAccess($slug)
+    {
+        return $this->applications()->where('slug', $slug)->exists();
+    }
+
     // public function restaurants()
     // {
     //     return $this->belongsToMany(Restaurant::class, 'restaurant_user')->withTimestamps();

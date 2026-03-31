@@ -25,7 +25,7 @@ class CheckGlobalChecklistAccess
 
         // 2. CEK GLOBAL FLAG DARI PORTAL
         // Karena $user konek ke DB Portal, kita bisa langsung baca kolom ini.
-        if ($user->access_checklist !== true) {
+        if (!$user->hasAppAccess('report')) {
 
             // Opsional: Logout paksa session lokal agar bersih
             // Auth::logout();
