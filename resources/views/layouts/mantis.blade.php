@@ -31,6 +31,7 @@
     <!-- [Template CSS Files] -->
     <link rel="stylesheet" href="{{ asset('template/dist') }}/assets/css/style.css" id="main-style-link">
     <link rel="stylesheet" href="{{ asset('template/dist') }}/assets/css/style-preset.css">
+    @stack('styles')
 
 </head>
 <!-- [Head] end -->
@@ -475,7 +476,7 @@
         font_change("Public-Sans");
     </script>
 
-
+    @stack('scripts')
 
 </body>
 <!-- [Body] end -->

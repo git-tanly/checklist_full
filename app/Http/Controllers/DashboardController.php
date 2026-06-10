@@ -10,9 +10,14 @@ use Illuminate\Support\Facades\Auth;
 class DashboardController extends Controller
 {
     //
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
+        
+        $startDate = $request->input('start_date', now()->subDays(6)->format('Y-m-d'));
+        $endDate = $request->input('end_date', now()->format('Y-m-d'));
+        $restaurantFilter = $request->input('restaurant_id');
+        
         $today = now()->format('Y-m-d');
         $queryDraft = DailyReport::where('status', 'draft');
 
@@ -21,21 +26,28 @@ class DashboardController extends Controller
         // ---------------------------------------------------------
 
         // Widget 1: Waiting Approval (Status Submitted)
-        $waitingApproval = DailyReport::where('status', 'submitted')->count();
+        $waitingApprovalQuery = DailyReport::where('status', 'submitted');
+        if ($restaurantFilter) {
+            $waitingApprovalQuery->where('restaurant_id', $restaurantFilter);
+        }
+        $waitingApproval = $waitingApprovalQuery->count();
 
         // Widget 2: Drafts (Status Draft)
         if (!$user->hasRole('Super Admin')) {
             $queryDraft->where('user_id', $user->id);
         }
-
+        if ($restaurantFilter) {
+            $queryDraft->where('restaurant_id', $restaurantFilter);
+        }
         $myDrafts = $queryDraft->count();
 
         // Widget 3: Today's Revenue
-        // Kita ambil laporan hari ini beserta detail-nya
-        $todaysReports = DailyReport::whereDate('date', $today)
-            ->where('status', 'approved') // <--- FILTER: HANYA APPROVED
-            ->with('details')
-            ->get();
+        $todaysReportsQuery = DailyReport::whereDate('date', $today)
+            ->where('status', 'approved');
+        if ($restaurantFilter) {
+            $todaysReportsQuery->where('restaurant_id', $restaurantFilter);
+        }
+        $todaysReports = $todaysReportsQuery->with('details')->get();
 
         $todayRevenue = 0;
         foreach ($todaysReports as $report) {
@@ -50,16 +62,22 @@ class DashboardController extends Controller
         }
 
         $chartData = collect();
-        for ($i = 6; $i >= 0; $i--) {
-            $date = now()->subDays($i)->format('Y-m-d');
+        $start = \Carbon\Carbon::parse($startDate);
+        $end = \Carbon\Carbon::parse($endDate);
+        $daysDiff = $start->diffInDays($end);
+        
+        for ($i = 0; $i <= $daysDiff; $i++) {
+            $date = $start->copy()->addDays($i)->format('Y-m-d');
             $chartData->put($date, 0);
         }
 
         // 2. Ambil Data dari Database (Otomatis terfilter Scope User/Resto)
-        $weeklyReports = DailyReport::whereDate('date', '>=', now()->subDays(6))
-            ->where('status', 'approved') // <--- FILTER: HANYA APPROVED
-            ->with('details')
-            ->get();
+        $weeklyReportsQuery = DailyReport::whereBetween('date', [$startDate, $endDate])
+            ->where('status', 'approved');
+        if ($restaurantFilter) {
+            $weeklyReportsQuery->where('restaurant_id', $restaurantFilter);
+        }
+        $weeklyReports = $weeklyReportsQuery->with('details')->get();
 
         // 3. Isi Kerangka Array dengan Data Asli
         foreach ($weeklyReports as $report) {
@@ -142,12 +160,13 @@ class DashboardController extends Controller
         $currentYear = now()->year;
 
         // 1. Hitung Actual Revenue Bulan Ini (MTD)
-        // Filter berdasarkan bulan & tahun ini
-        $mtdReports = DailyReport::whereMonth('date', $currentMonth)
+        $mtdReportsQuery = DailyReport::whereMonth('date', $currentMonth)
             ->whereYear('date', $currentYear)
-            ->where('status', 'approved') // <--- FILTER: HANYA APPROVED
-            ->with('details')
-            ->get();
+            ->where('status', 'approved');
+        if ($restaurantFilter) {
+            $mtdReportsQuery->where('restaurant_id', $restaurantFilter);
+        }
+        $mtdReports = $mtdReportsQuery->with('details')->get();
 
         $mtdRevenue = 0;
         foreach ($mtdReports as $report) {
@@ -167,7 +186,9 @@ class DashboardController extends Controller
         if (!$user->hasRole('Super Admin')) {
             $targetQuery->whereIn('restaurant_id', $user->restaurants->pluck('id'));
         }
-
+        if ($restaurantFilter) {
+            $targetQuery->where('restaurant_id', $restaurantFilter);
+        }
         $monthlyTarget = $targetQuery->sum('amount');
 
         // 3. Hitung Persentase (Cegah division by zero)
@@ -177,7 +198,9 @@ class DashboardController extends Controller
         $relevantRestaurants = collect();
 
         // 1. Tentukan Restoran mana yang mau dihitung
-        if ($user->hasRole('Super Admin')) {
+        if ($restaurantFilter) {
+            $relevantRestaurants = Restaurant::where('id', $restaurantFilter)->get();
+        } elseif ($user->hasRole('Super Admin')) {
             $relevantRestaurants = Restaurant::all();
         } else {
             // Untuk Cluster & Single Unit, ambil dari relasi
@@ -226,11 +249,22 @@ class DashboardController extends Controller
         // ---------------------------------------------------------
         // 2. TABEL RINGKASAN (5 Laporan Terakhir)
         // ---------------------------------------------------------
-        $recentReports = DailyReport::with(['restaurant', 'user'])
+        $recentReportsQuery = DailyReport::with(['restaurant', 'user']);
+        if ($restaurantFilter) {
+            $recentReportsQuery->where('restaurant_id', $restaurantFilter);
+        }
+        $recentReports = $recentReportsQuery
             ->orderBy('date', 'desc')
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();
+        
+        $allRestaurants = collect();
+        if ($user->hasRole('Super Admin')) {
+            $allRestaurants = Restaurant::orderBy('name')->get();
+        } else {
+            $allRestaurants = $user->restaurants;
+        }
 
         // Kirim semua data ke View
         return view('dashboard', compact(
@@ -245,6 +279,10 @@ class DashboardController extends Controller
             'monthlyTarget',
             'achievementPercent',
             'breakdownPerformance',
+            'allRestaurants',
+            'startDate',
+            'endDate',
+            'restaurantFilter'
         ));
     }
 

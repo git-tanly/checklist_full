@@ -1,5 +1,9 @@
 @extends('layouts.mantis')
 
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('template/dist/assets/css/plugins/flatpickr.min.css') }}">
+@endpush
+
 @section('header')
     <div class="page-header">
         <div class="page-block">
@@ -20,6 +24,46 @@
 
 @section('content')
     <div class="row">
+        {{-- FILTER SECTION --}}
+        <div class="col-md-12">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <form method="GET" action="{{ route('dashboard') }}" id="filterForm">
+                        <div class="row align-items-end">
+                            <div class="col-md-4">
+                                <label class="form-label">Date Range</label>
+                                <input type="text" class="form-control" id="dateRangePicker" 
+                                    placeholder="Select date range" readonly>
+                                <input type="hidden" name="start_date" id="start_date" value="{{ $startDate }}">
+                                <input type="hidden" name="end_date" id="end_date" value="{{ $endDate }}">
+                            </div>
+                            @if(Auth::user()->hasRole('Super Admin') || Auth::user()->restaurants->count() > 1)
+                            <div class="col-md-4">
+                                <label class="form-label">Restaurant</label>
+                                <select class="form-select" name="restaurant_id" id="restaurant_id">
+                                    <option value="">All Restaurants</option>
+                                    @foreach($allRestaurants as $resto)
+                                        <option value="{{ $resto->id }}" 
+                                            {{ $restaurantFilter == $resto->id ? 'selected' : '' }}>
+                                            {{ $resto->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @endif
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-primary me-2">
+                                    <i class="ti ti-filter me-1"></i> Apply Filter
+                                </button>
+                                <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary">
+                                    <i class="ti ti-refresh me-1"></i> Reset
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
 
         {{-- PERFORMANCE SECTION (TABS VIEW) --}}
         <div class="col-md-12">
@@ -307,9 +351,25 @@
         </div>
 
     </div>
+@endsection
 
+@push('scripts')
+    <script src="{{ asset('template/dist/assets/js/plugins/flatpickr.min.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Flatpickr
+            const dateRangePicker = flatpickr("#dateRangePicker", {
+                mode: "range",
+                dateFormat: "Y-m-d",
+                defaultDate: ["{{ $startDate }}", "{{ $endDate }}"],
+                onChange: function(selectedDates, dateStr, instance) {
+                    if (selectedDates.length === 2) {
+                        document.getElementById('start_date').value = instance.formatDate(selectedDates[0], 'Y-m-d');
+                        document.getElementById('end_date').value = instance.formatDate(selectedDates[1], 'Y-m-d');
+                    }
+                }
+            });
+            
             var options = {
                 series: [{
                     name: 'Total Revenue',
@@ -801,4 +861,4 @@
             dayTrendChartInstance.render();
         }
     </script>
-@endsection
+@endpush
