@@ -156,20 +156,14 @@ class DashboardController extends Controller
             ['name' => 'Sheraton', 'data' => $compData['sheraton']->values()],
         ];
 
-        $currentMonth = now()->month;
-        $currentYear = now()->year;
+        // ---------------------------------------------------------
+        // PERFORMANCE (mengikuti filter date range + restaurant)
+        // ---------------------------------------------------------
 
-        // 1. Hitung Actual Revenue Bulan Ini (MTD)
-        $mtdReportsQuery = DailyReport::whereMonth('date', $currentMonth)
-            ->whereYear('date', $currentYear)
-            ->where('status', 'approved');
-        if ($restaurantFilter) {
-            $mtdReportsQuery->where('restaurant_id', $restaurantFilter);
-        }
-        $mtdReports = $mtdReportsQuery->with('details')->get();
-
+        // 1. Actual Revenue Periode = jumlah revenue laporan approved
+        //    di rentang tanggal yang dipilih (reuse $weeklyReports).
         $mtdRevenue = 0;
-        foreach ($mtdReports as $report) {
+        foreach ($weeklyReports as $report) {
             foreach ($report->details as $detail) {
                 $mtdRevenue += $detail->revenue_food
                     + $detail->revenue_beverage
@@ -178,21 +172,24 @@ class DashboardController extends Controller
             }
         }
 
-        // 2. Ambil Target Revenue Bulan Ini
-        $targetQuery = \App\Models\RevenueTarget::where('month', $currentMonth)
-            ->where('year', $currentYear);
+        // 2. Target Periode = prorata harian dari revenue_targets per
+        //    bulan yang bersinggungan dengan rentang tanggal.
+        $restaurantIdsForTarget = $user->hasRole('Super Admin')
+            ? null
+            : $user->restaurants->pluck('id')->toArray();
 
-        // Manual Scope: Jika bukan Super Admin, filter target milik restonya saja
-        if (!$user->hasRole('Super Admin')) {
-            $targetQuery->whereIn('restaurant_id', $user->restaurants->pluck('id'));
-        }
-        if ($restaurantFilter) {
-            $targetQuery->where('restaurant_id', $restaurantFilter);
-        }
-        $monthlyTarget = $targetQuery->sum('amount');
+        $monthlyTarget = $this->calculateProratedTarget(
+            $startDate,
+            $endDate,
+            $restaurantIdsForTarget,
+            $restaurantFilter
+        );
 
         // 3. Hitung Persentase (Cegah division by zero)
         $achievementPercent = $monthlyTarget > 0 ? ($mtdRevenue / $monthlyTarget) * 100 : 0;
+
+        // 4. Label periode untuk header card "Performance (...)"
+        $periodLabel = $this->formatPeriodLabel($startDate, $endDate);
 
         $breakdownPerformance = [];
         $relevantRestaurants = collect();
@@ -208,15 +205,14 @@ class DashboardController extends Controller
         }
 
         // 2. Loop setiap restoran untuk hitung target vs actual
-        // Kita hitung manual di sini agar akurat per ID restoran
+        // Hitung dalam rentang tanggal terpilih (bukan hardcoded bulan ini)
         foreach ($relevantRestaurants as $resto) {
 
-            // A. Hitung Actual MTD (Approved Only) untuk Resto ini
+            // A. Hitung Actual Revenue (Approved Only) untuk Resto ini di rentang tanggal
             $restoReports = DailyReport::where('restaurant_id', $resto->id)
-                ->whereMonth('date', $currentMonth)
-                ->whereYear('date', $currentYear)
+                ->whereBetween('date', [$startDate, $endDate])
                 ->where('status', 'approved')
-                ->with('details') // Load detail agar bisa sum revenue
+                ->with('details')
                 ->get();
 
             $actual = 0;
@@ -226,11 +222,8 @@ class DashboardController extends Controller
                 }
             }
 
-            // B. Ambil Target Bulan Ini untuk Resto ini
-            $target = \App\Models\RevenueTarget::where('restaurant_id', $resto->id)
-                ->where('month', $currentMonth)
-                ->where('year', $currentYear)
-                ->sum('amount');
+            // B. Hitung Target Periode (prorata harian) untuk Resto ini
+            $target = $this->calculateProratedTarget($startDate, $endDate, [$resto->id]);
 
             // C. Hitung Persentase
             $percentage = $target > 0 ? ($actual / $target) * 100 : 0;
@@ -278,12 +271,105 @@ class DashboardController extends Controller
             'mtdRevenue',
             'monthlyTarget',
             'achievementPercent',
+            'periodLabel',
             'breakdownPerformance',
             'allRestaurants',
             'startDate',
             'endDate',
             'restaurantFilter'
         ));
+    }
+
+    /**
+     * Hitung total target revenue secara prorata harian untuk rentang tanggal.
+     *
+     * Setiap baris revenue_targets disimpan per (restaurant_id, year, month) sebagai
+     * target satu bulan penuh. Saat user memilih rentang yang tidak persis sama dengan
+     * bulan kalender (mis. 1-15 Nov, atau 25 Okt - 5 Nov), kita prorata berdasarkan
+     * jumlah hari di rentang yang jatuh di bulan tersebut.
+     *
+     * @param string     $startDate          Y-m-d
+     * @param string     $endDate            Y-m-d
+     * @param array|null $allowedRestaurants Daftar restaurant_id yang user boleh akses
+     *                                       (null = semua, untuk Super Admin)
+     * @param int|null   $restaurantFilter   Filter restaurant tertentu dari UI
+     */
+    private function calculateProratedTarget(
+        string $startDate,
+        string $endDate,
+        ?array $allowedRestaurants = null,
+        $restaurantFilter = null
+    ): float {
+        $start = \Carbon\Carbon::parse($startDate)->startOfDay();
+        $end = \Carbon\Carbon::parse($endDate)->endOfDay();
+
+        if ($end->lt($start)) {
+            return 0.0;
+        }
+
+        $total = 0.0;
+
+        // Loop setiap bulan kalender yang bersinggungan dengan rentang
+        $cursor = $start->copy()->startOfMonth();
+        while ($cursor->lte($end)) {
+            $monthStart = $cursor->copy()->startOfMonth();
+            $monthEnd = $cursor->copy()->endOfMonth();
+            $daysInMonth = $cursor->daysInMonth;
+
+            // Irisan rentang dengan bulan ini
+            $sliceStart = $start->greaterThan($monthStart) ? $start : $monthStart;
+            $sliceEnd = $end->lessThan($monthEnd) ? $end : $monthEnd;
+            $daysInSlice = $sliceStart->copy()->startOfDay()->diffInDays($sliceEnd->copy()->endOfDay()) + 1;
+
+            // Ambil semua target untuk bulan ini
+            $targetQuery = \App\Models\RevenueTarget::where('year', $cursor->year)
+                ->where('month', $cursor->month);
+
+            if (is_array($allowedRestaurants)) {
+                $targetQuery->whereIn('restaurant_id', $allowedRestaurants);
+            }
+
+            if ($restaurantFilter) {
+                $targetQuery->where('restaurant_id', $restaurantFilter);
+            }
+
+            $monthAmount = (float) $targetQuery->sum('amount');
+
+            if ($monthAmount > 0 && $daysInMonth > 0) {
+                $total += ($monthAmount / $daysInMonth) * $daysInSlice;
+            }
+
+            $cursor->addMonthNoOverflow();
+        }
+
+        return $total;
+    }
+
+    /**
+     * Format label rentang tanggal yang ramah dibaca untuk header card.
+     * Contoh:
+     *  - "1 Nov 2025"                        → tanggal sama
+     *  - "1 - 15 Nov 2025"                   → bulan & tahun sama
+     *  - "25 Oct - 5 Nov 2025"               → tahun sama, bulan beda
+     *  - "25 Dec 2024 - 5 Jan 2025"          → tahun beda
+     */
+    private function formatPeriodLabel(string $startDate, string $endDate): string
+    {
+        $start = \Carbon\Carbon::parse($startDate);
+        $end = \Carbon\Carbon::parse($endDate);
+
+        if ($start->isSameDay($end)) {
+            return $start->format('d M Y');
+        }
+
+        if ($start->isSameYear($end)) {
+            if ($start->isSameMonth($end)) {
+                return $start->format('d') . ' - ' . $end->format('d M Y');
+            }
+            return $start->format('d M') . ' - ' . $end->format('d M Y');
+        }
+
+        return $start->format('d M Y') . ' - ' . $end->format('d M Y');
     }
 
     public function getOutletAnalytics(Request $request, Restaurant $restaurant)

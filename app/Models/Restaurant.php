@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\LocalUser;
+use App\Models\User;
 
 class Restaurant extends Model
 {
@@ -28,6 +28,6 @@ class Restaurant extends Model
     public function users()
     {
         // return $this->belongsToMany(LocalUser::class, 'restaurant_user')->withTimestamps();
-        return $this->belongsToMany(LocalUser::class, 'restaurant_user', 'restaurant_id', 'user_id');
+        return $this->belongsToMany(User::class, 'restaurant_user', 'restaurant_id', 'user_id');
     }
 }

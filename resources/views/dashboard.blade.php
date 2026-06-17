@@ -98,7 +98,7 @@
                             <div class="row align-items-center bg-light-primary rounded p-4 border border-primary-subtle">
                                 <div class="col-md-8">
                                     <h5 class="text-primary mb-2">
-                                        Monthly Performance ({{ now()->format('F Y') }})
+                                        Performance ({{ $periodLabel }})
                                     </h5>
                                     <div class="d-flex align-items-baseline gap-2 mb-2">
                                         <h2 class="mb-0 fw-bold">Rp {{ number_format($mtdRevenue, 0, ',', '.') }}</h2>

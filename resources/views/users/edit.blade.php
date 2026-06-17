@@ -12,27 +12,28 @@
                         @csrf
                         @method('PUT')
 
+                        <div class="alert alert-light-info border-info mb-4">
+                            <i class="ti ti-lock me-1"></i> Data profil (Nama & Email) dikelola secara terpusat di Portal SSO.
+                        </div>
+
                         <div class="row">
                             {{-- Readonly Info --}}
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Full Name</label>
-                                <input type="text" class="form-control" value="{{ $user->name }}" readonly disabled>
+                                <input type="text" class="form-control bg-light" value="{{ $user->name }}" readonly disabled>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Email</label>
-                                <input type="text" class="form-control" value="{{ $user->email }}" readonly disabled>
-                                <small class="text-muted">Perubahan nama/email/password dilakukan di Portal.</small>
+                                <input type="text" class="form-control bg-light" value="{{ $user->email }}" readonly disabled>
                             </div>
 
                             {{-- Role --}}
                             <div class="col-md-12 mb-3">
                                 <label class="form-label">Role</label>
                                 <select name="role" class="form-select" required>
-                                    {{-- Ambil role dari localProfile (Bridge) --}}
+                                    {{-- Ambil role langsung via Spatie --}}
                                     @php
-                                        $currentRole = $user->localProfile
-                                            ? $user->localProfile->roles->first()?->name
-                                            : '';
+                                        $currentRole = $user->roles->first()?->name ?? '';
                                     @endphp
 
                                     @foreach ($roles as $role)
@@ -51,10 +52,8 @@
                                     <div class="card-body p-3">
                                         <div class="row">
                                             @php
-                                                // Ambil ID Restoran dari Local Profile
-                                                $assignedIds = $user->localProfile
-                                                    ? $user->localProfile->restaurants->pluck('id')->toArray()
-                                                    : [];
+                                                // Ambil ID Restoran langsung dari relasi Many-to-Many
+                                                $assignedIds = $user->restaurants->pluck('id')->toArray();
                                             @endphp
 
                                             @foreach ($restaurants as $rest)
