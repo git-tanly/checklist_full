@@ -11,16 +11,26 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Exports\DailyReportsExport;
 
 class DailyReportController extends Controller
 {
     public function index()
     {
+        $user = Auth::user();
+        
         $reports = DailyReport::with(['restaurant', 'user'])
             ->orderBy('date', 'desc')
             ->paginate(10);
 
-        return view('daily-reports.index', compact('reports'));
+        // Get restaurants for export filter
+        if ($user->hasRole('Super Admin')) {
+            $restaurants = Restaurant::orderBy('name')->get();
+        } else {
+            $restaurants = $user->restaurants()->orderBy('name')->get();
+        }
+
+        return view('daily-reports.index', compact('reports', 'restaurants'));
     }
 
     public function create()
@@ -370,5 +380,60 @@ class DailyReportController extends Controller
             'Super Admin',
             'Restaurant Manager',
         ]);
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $exportAllDates = $request->has('export_all_dates');
+
+        // Conditional validation based on checkbox
+        $rules = [
+            'restaurant_id' => 'nullable|exists:restaurants,id',
+        ];
+
+        if (!$exportAllDates) {
+            $rules['start_date'] = 'required|date';
+            $rules['end_date'] = 'required|date|after_or_equal:start_date';
+        }
+
+        $request->validate($rules);
+
+        $user = Auth::user();
+        $restaurantId = $request->restaurant_id;
+        $restaurantIds = null;
+
+        if ($user->hasRole('Super Admin')) {
+            // Super Admin: export selected restaurant or all restaurants
+            $restaurantIds = $restaurantId ? $restaurantId : null;
+        } else {
+            // Non-Super Admin: export selected restaurant or all their restaurants
+            $userRestaurantIds = $user->restaurants->pluck('id')->toArray();
+            
+            if ($restaurantId) {
+                // Validate user has access to selected restaurant
+                if (!in_array($restaurantId, $userRestaurantIds)) {
+                    abort(403, 'Unauthorized: You do not have access to this restaurant.');
+                }
+                $restaurantIds = $restaurantId;
+            } else {
+                // Export all restaurants user has access to
+                $restaurantIds = $userRestaurantIds;
+            }
+        }
+
+        try {
+            $exporter = new DailyReportsExport(
+                $exportAllDates ? null : $request->start_date,
+                $exportAllDates ? null : $request->end_date,
+                $restaurantIds,
+                $exportAllDates
+            );
+
+            $result = $exporter->export();
+
+            return response()->download($result['file'], $result['filename'])->deleteFileAfterSend(true);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Export failed: ' . $e->getMessage());
+        }
     }
 }

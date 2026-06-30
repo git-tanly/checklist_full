@@ -16,13 +16,70 @@
             </div>
         </div>
     </div>
+
+    {{-- JavaScript for Export Modal --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const exportAllCheckbox = document.getElementById('export_all_dates');
+            const startDateInput = document.getElementById('start_date');
+            const endDateInput = document.getElementById('end_date');
+            const startRequired = document.getElementById('start_required');
+            const endRequired = document.getElementById('end_required');
+
+            if (exportAllCheckbox) {
+                exportAllCheckbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        // Disable date inputs
+                        startDateInput.disabled = true;
+                        endDateInput.disabled = true;
+
+                        // Remove required attribute
+                        startDateInput.removeAttribute('required');
+                        endDateInput.removeAttribute('required');
+
+                        // Hide required asterisk
+                        startRequired.style.display = 'none';
+                        endRequired.style.display = 'none';
+
+                        // Clear values (optional)
+                        startDateInput.value = '';
+                        endDateInput.value = '';
+
+                        // Visual feedback
+                        startDateInput.style.backgroundColor = '#f8f9fa';
+                        endDateInput.style.backgroundColor = '#f8f9fa';
+                    } else {
+                        // Enable date inputs
+                        startDateInput.disabled = false;
+                        endDateInput.disabled = false;
+
+                        // Add back required attribute
+                        startDateInput.setAttribute('required', 'required');
+                        endDateInput.setAttribute('required', 'required');
+
+                        // Show required asterisk
+                        startRequired.style.display = 'inline';
+                        endRequired.style.display = 'inline';
+
+                        // Restore default values
+                        startDateInput.value = '{{ now()->subDays(30)->format('Y-m-d') }}';
+                        endDateInput.value = '{{ now()->format('Y-m-d') }}';
+
+                        // Remove visual feedback
+                        startDateInput.style.backgroundColor = '';
+                        endDateInput.style.backgroundColor = '';
+                    }
+                });
+            }
+        });
+    </script>
 @endsection
 
 @section('content')
     <div class="row">
         <div class="col-md-12">
 
-            {{-- Alert Sukses --}}
+            {{-- Alert Messages --}}
             @if (session('success'))
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
                     {{ session('success') }}
@@ -30,13 +87,38 @@
                 </div>
             @endif
 
+            @if (session('error'))
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ session('error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+
+            @if ($errors->any())
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong>Validation Error:</strong>
+                    <ul class="mb-0">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5>Recent Reports</h5>
-                    {{-- TOMBOL MENUJU HALAMAN CREATE --}}
-                    <a href="{{ route('daily-reports.create') }}" class="btn btn-primary">
-                        <i class="ti ti-plus"></i> Create New Report
-                    </a>
+                    <div class="d-flex gap-2">
+                        {{-- TOMBOL EXPORT TO EXCEL --}}
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exportModal">
+                            <i class="ti ti-file-spreadsheet"></i> Export to Excel
+                        </button>
+                        {{-- TOMBOL MENUJU HALAMAN CREATE --}}
+                        <a href="{{ route('daily-reports.create') }}" class="btn btn-primary">
+                            <i class="ti ti-plus"></i> Create New Report
+                        </a>
+                    </div>
                 </div>
                 <div class="card-body table-border-style">
                     <div class="table-responsive">
@@ -118,6 +200,81 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Modal Export to Excel --}}
+    <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{{ route('daily-reports.export') }}" method="POST">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exportModalLabel">
+                            <i class="ti ti-file-spreadsheet"></i> Export Daily Reports to Excel
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="export_all_dates" name="export_all_dates" value="1">
+                                <label class="form-check-label fw-bold text-primary" for="export_all_dates">
+                                    <i class="ti ti-database"></i> Export All Historical Data (No Date Filter)
+                                </label>
+                            </div>
+                            <small class="text-muted">Check this to export all data from the beginning without date limitation</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="start_date" class="form-label">Start Date <span class="text-danger" id="start_required">*</span></label>
+                            <input type="date" class="form-control" id="start_date" name="start_date"
+                                   value="{{ now()->subDays(30)->format('Y-m-d') }}" required>
+                            <small class="text-muted">Reports from this date onwards</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="end_date" class="form-label">End Date <span class="text-danger" id="end_required">*</span></label>
+                            <input type="date" class="form-control" id="end_date" name="end_date"
+                                   value="{{ now()->format('Y-m-d') }}" required>
+                            <small class="text-muted">Reports up to this date</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="restaurant_id" class="form-label">Restaurant</label>
+                            <select class="form-select" id="restaurant_id" name="restaurant_id">
+                                @hasrole('Super Admin')
+                                    <option value="">All Restaurants</option>
+                                @else
+                                    <option value="">All My Restaurants</option>
+                                @endhasrole
+                                @foreach($restaurants as $restaurant)
+                                    <option value="{{ $restaurant->id }}">{{ $restaurant->name }}</option>
+                                @endforeach
+                            </select>
+                            <small class="text-muted">
+                                @hasrole('Super Admin')
+                                    Leave blank to export all restaurants
+                                @else
+                                    Leave blank to export all your accessible restaurants
+                                @endhasrole
+                            </small>
+                        </div>
+
+                        @if (session('error'))
+                            <div class="alert alert-danger">
+                                {{ session('error') }}
+                            </div>
+                        @endif
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="ti ti-download"></i> Export to Excel
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

@@ -44,6 +44,7 @@ Route::middleware(['auth', 'can:access-checklist-app'])->group(function () {
 
     Route::get('/daily-reports', [DailyReportController::class, 'index'])->name('daily-reports.index');
     Route::get('/daily-reports/create', [DailyReportController::class, 'create'])->name('daily-reports.create');
+    Route::post('/daily-reports/export', [DailyReportController::class, 'exportExcel'])->name('daily-reports.export');
     Route::post('/daily-reports', [DailyReportController::class, 'store'])->name('daily-reports.store');
     Route::get('/daily-reports/{dailyReport}/edit', [DailyReportController::class, 'edit'])->name('daily-reports.edit');
     Route::put('/daily-reports/{dailyReport}', [DailyReportController::class, 'update'])->name('daily-reports.update');
