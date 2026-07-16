@@ -72,7 +72,7 @@ class DashboardController extends Controller
         }
 
         // 2. Ambil Data dari Database (Otomatis terfilter Scope User/Resto)
-        $weeklyReportsQuery = DailyReport::whereBetween('date', [$startDate, $endDate])
+        $weeklyReportsQuery = DailyReport::whereBetween('date', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
             ->where('status', 'approved');
         if ($restaurantFilter) {
             $weeklyReportsQuery->where('restaurant_id', $restaurantFilter);
@@ -210,7 +210,7 @@ class DashboardController extends Controller
 
             // A. Hitung Actual Revenue (Approved Only) untuk Resto ini di rentang tanggal
             $restoReports = DailyReport::where('restaurant_id', $resto->id)
-                ->whereBetween('date', [$startDate, $endDate])
+                ->whereBetween('date', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
                 ->where('status', 'approved')
                 ->with('details')
                 ->get();
@@ -387,7 +387,7 @@ class DashboardController extends Controller
         // 3. Query Data (Hanya Approved)
         $reports = DailyReport::where('restaurant_id', $restaurant->id)
             ->where('status', 'approved') // Wajib Approved
-            ->whereBetween('date', [$startDate, $endDate])
+            ->whereBetween('date', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
             ->with('details')
             ->get();
 

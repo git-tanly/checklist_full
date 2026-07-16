@@ -71,6 +71,41 @@
                     }
                 });
             }
+
+            // For PDF Modal
+            const exportAllCheckboxPdf = document.getElementById('export_all_dates_pdf');
+            const startDateInputPdf = document.getElementById('start_date_pdf');
+            const endDateInputPdf = document.getElementById('end_date_pdf');
+            const startRequiredPdf = document.getElementById('start_required_pdf');
+            const endRequiredPdf = document.getElementById('end_required_pdf');
+
+            if (exportAllCheckboxPdf) {
+                exportAllCheckboxPdf.addEventListener('change', function() {
+                    if (this.checked) {
+                        startDateInputPdf.disabled = true;
+                        endDateInputPdf.disabled = true;
+                        startDateInputPdf.removeAttribute('required');
+                        endDateInputPdf.removeAttribute('required');
+                        startRequiredPdf.style.display = 'none';
+                        endRequiredPdf.style.display = 'none';
+                        startDateInputPdf.value = '';
+                        endDateInputPdf.value = '';
+                        startDateInputPdf.style.backgroundColor = '#f8f9fa';
+                        endDateInputPdf.style.backgroundColor = '#f8f9fa';
+                    } else {
+                        startDateInputPdf.disabled = false;
+                        endDateInputPdf.disabled = false;
+                        startDateInputPdf.setAttribute('required', 'required');
+                        endDateInputPdf.setAttribute('required', 'required');
+                        startRequiredPdf.style.display = 'inline';
+                        endRequiredPdf.style.display = 'inline';
+                        startDateInputPdf.value = '{{ now()->subDays(30)->format('Y-m-d') }}';
+                        endDateInputPdf.value = '{{ now()->format('Y-m-d') }}';
+                        startDateInputPdf.style.backgroundColor = '';
+                        endDateInputPdf.style.backgroundColor = '';
+                    }
+                });
+            }
         });
     </script>
 @endsection
@@ -113,6 +148,10 @@
                         {{-- TOMBOL EXPORT TO EXCEL --}}
                         <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exportModal">
                             <i class="ti ti-file-spreadsheet"></i> Export to Excel
+                        </button>
+                        {{-- TOMBOL EXPORT TO PDF (BULK) --}}
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#exportPdfModal">
+                            <i class="ti ti-file-type-pdf"></i> Bulk Export PDF
                         </button>
                         {{-- TOMBOL MENUJU HALAMAN CREATE --}}
                         <a href="{{ route('daily-reports.create') }}" class="btn btn-primary">
@@ -272,6 +311,75 @@
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-success">
                             <i class="ti ti-download"></i> Export to Excel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- Modal Bulk Export PDF --}}
+    <div class="modal fade" id="exportPdfModal" tabindex="-1" aria-labelledby="exportPdfModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{{ route('daily-reports.export-pdf') }}" method="POST">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exportPdfModalLabel">
+                            <i class="ti ti-file-type-pdf"></i> Bulk Export Daily Reports to PDF
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="export_all_dates_pdf" name="export_all_dates_pdf" value="1">
+                                <label class="form-check-label fw-bold text-danger" for="export_all_dates_pdf">
+                                    <i class="ti ti-database"></i> Export All Historical Data (No Date Filter)
+                                </label>
+                            </div>
+                            <small class="text-muted">Check this to export all data from the beginning without date limitation</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="start_date_pdf" class="form-label">Start Date <span class="text-danger" id="start_required_pdf">*</span></label>
+                            <input type="date" class="form-control" id="start_date_pdf" name="start_date_pdf"
+                                   value="{{ now()->subDays(30)->format('Y-m-d') }}" required>
+                            <small class="text-muted">Reports from this date onwards</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="end_date_pdf" class="form-label">End Date <span class="text-danger" id="end_required_pdf">*</span></label>
+                            <input type="date" class="form-control" id="end_date_pdf" name="end_date_pdf"
+                                   value="{{ now()->format('Y-m-d') }}" required>
+                            <small class="text-muted">Reports up to this date</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="restaurant_id_pdf" class="form-label">Restaurant</label>
+                            <select class="form-select" id="restaurant_id_pdf" name="restaurant_id">
+                                @hasrole('Super Admin')
+                                    <option value="">All Restaurants</option>
+                                @else
+                                    <option value="">All My Restaurants</option>
+                                @endhasrole
+                                @foreach($restaurants as $restaurant)
+                                    <option value="{{ $restaurant->id }}">{{ $restaurant->name }}</option>
+                                @endforeach
+                            </select>
+                            <small class="text-muted">
+                                @hasrole('Super Admin')
+                                    Leave blank to export all restaurants
+                                @else
+                                    Leave blank to export all your accessible restaurants
+                                @endhasrole
+                            </small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="ti ti-download"></i> Export to PDF
                         </button>
                     </div>
                 </form>
