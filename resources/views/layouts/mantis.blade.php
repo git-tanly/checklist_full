@@ -340,7 +340,7 @@
                             <div class="tab-content" id="mysrpTabContent">
                                 <div class="tab-pane fade show active" id="drp-tab-1" role="tabpanel"
                                     aria-labelledby="drp-t1" tabindex="0">
-                                    <a href="{{ env('APP_PORTAL_URL') }}/users/{{ Auth::user()->id }}/edit?redirect_to={{ urlencode(url()->current()) }}"
+                                    <a href="{{ env('SSO_PORTAL_URL') }}/profile" target="_blank"
                                         class="dropdown-item">
                                         <i class="ti ti-edit-circle"></i>
                                         <span>Edit Profile</span>

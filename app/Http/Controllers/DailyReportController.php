@@ -15,15 +15,28 @@ use App\Exports\DailyReportsExport;
 
 class DailyReportController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
-        
-        $reports = DailyReport::with(['restaurant', 'user'])
-            ->orderBy('date', 'desc')
-            ->paginate(10);
 
-        // Get restaurants for export filter
+        $query = DailyReport::with(['restaurant', 'user']);
+
+        // Apply date range filter
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('date', [$request->start_date, $request->end_date]);
+        }
+
+        // Apply restaurant filter
+        if ($request->filled('restaurant_id')) {
+            $query->where('restaurant_id', $request->restaurant_id);
+        }
+
+        $reports = $query->orderBy('date', 'desc')->paginate(10);
+
+        // Append query string to pagination links
+        $reports->appends($request->only(['start_date', 'end_date', 'restaurant_id']));
+
+        // Get restaurants for filter and export
         if ($user->hasRole('Super Admin')) {
             $restaurants = Restaurant::orderBy('name')->get();
         } else {
@@ -145,9 +158,11 @@ class DailyReportController extends Controller
 
     public function edit(DailyReport $dailyReport)
     {
-        if ($dailyReport->status !== 'draft') {
+        $canEdit = $dailyReport->status === 'draft' || ($dailyReport->status === 'approved' && Auth::user()->hasRole('Super Admin'));
+        
+        if (!$canEdit) {
             return redirect()->route('daily-reports.index')
-                ->with('error', 'Laporan yang sudah disubmit atau diapprove tidak dapat diedit.');
+                ->with('error', 'Laporan yang sudah disubmit atau diapprove tidak dapat diedit (kecuali oleh Super Admin).');
         }
 
         $dailyReport->load(['details', 'restaurant']);
@@ -167,8 +182,10 @@ class DailyReportController extends Controller
 
     public function update(Request $request, DailyReport $dailyReport)
     {
-        if ($dailyReport->status !== 'draft') {
-            return back()->with('error', 'Hanya laporan Draft yang bisa diupdate.');
+        $canEdit = $dailyReport->status === 'draft' || ($dailyReport->status === 'approved' && Auth::user()->hasRole('Super Admin'));
+
+        if (!$canEdit) {
+            return back()->with('error', 'Hanya laporan Draft yang bisa diupdate (kecuali oleh Super Admin).');
         }
 
         $request->validate([
@@ -408,7 +425,7 @@ class DailyReportController extends Controller
         } else {
             // Non-Super Admin: export selected restaurant or all their restaurants
             $userRestaurantIds = $user->restaurants->pluck('id')->toArray();
-            
+
             if ($restaurantId) {
                 // Validate user has access to selected restaurant
                 if (!in_array($restaurantId, $userRestaurantIds)) {

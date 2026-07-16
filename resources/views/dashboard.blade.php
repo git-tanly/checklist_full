@@ -32,7 +32,7 @@
                         <div class="row align-items-end">
                             <div class="col-md-4">
                                 <label class="form-label">Date Range</label>
-                                <input type="text" class="form-control" id="dateRangePicker" 
+                                <input type="text" class="form-control" id="dateRangePicker"
                                     placeholder="Select date range" readonly>
                                 <input type="hidden" name="start_date" id="start_date" value="{{ $startDate }}">
                                 <input type="hidden" name="end_date" id="end_date" value="{{ $endDate }}">
@@ -43,7 +43,7 @@
                                 <select class="form-select" name="restaurant_id" id="restaurant_id">
                                     <option value="">All Restaurants</option>
                                     @foreach($allRestaurants as $resto)
-                                        <option value="{{ $resto->id }}" 
+                                        <option value="{{ $resto->id }}"
                                             {{ $restaurantFilter == $resto->id ? 'selected' : '' }}>
                                             {{ $resto->name }}
                                         </option>
@@ -121,6 +121,63 @@
                                     </div>
                                 </div>
                             </div>
+
+                            {{-- MTD STATS SECTION --}}
+                            <div class="mt-4 pt-3 border-top">
+                                <h6 class="fw-bold mb-3 text-muted"><i class="ti ti-calendar-stats text-primary me-1"></i> Month-to-Date (MTD) Analytics</h6>
+                                <div class="row g-3">
+                                    <div class="col-6 col-md-3">
+                                        <div class="p-3 bg-light rounded text-center border">
+                                            <span class="small text-muted d-block mb-1">Total MTD</span>
+                                            <h6 class="fw-bold mb-0">Rp {{ number_format($totalMtdRevenue, 0, ',', '.') }}</h6>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="p-3 bg-light rounded text-center border">
+                                            <span class="small text-muted d-block mb-1">MTD Target</span>
+                                            <h6 class="fw-bold mb-0">Rp {{ number_format($totalMtdTarget, 0, ',', '.') }}</h6>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="p-3 rounded text-center border {{ $mtdBalance >= 0 ? 'border-success-subtle bg-light-success' : 'border-danger-subtle bg-light-danger' }}">
+                                            <span class="small {{ $mtdBalance >= 0 ? 'text-success' : 'text-danger' }} d-block mb-1">Balance</span>
+                                            <h6 class="fw-bold mb-0 {{ $mtdBalance >= 0 ? 'text-success' : 'text-danger' }}">
+                                                {{ $mtdBalance >= 0 ? '+' : '' }}Rp {{ number_format($mtdBalance, 0, ',', '.') }}
+                                            </h6>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="p-3 bg-light rounded text-center border">
+                                            <span class="small text-muted d-block mb-1">MTD Cover</span>
+                                            <h6 class="fw-bold mb-0">{{ number_format($mtdCoverReport, 0, ',', '.') }} Pax</h6>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="p-3 bg-light rounded text-center border">
+                                            <span class="small text-muted d-block mb-1">MTD Food</span>
+                                            <h6 class="fw-bold mb-0 text-dark">Rp {{ number_format($mtdFoodRevenue, 0, ',', '.') }}</h6>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="p-3 bg-light rounded text-center border">
+                                            <span class="small text-muted d-block mb-1">MTD Average Food</span>
+                                            <h6 class="fw-bold mb-0">Rp {{ number_format($mtdAverageFood, 0, ',', '.') }}</h6>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="p-3 bg-light rounded text-center border">
+                                            <span class="small text-muted d-block mb-1">MTD Beverage</span>
+                                            <h6 class="fw-bold mb-0 text-dark">Rp {{ number_format($mtdBeverageRevenue, 0, ',', '.') }}</h6>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="p-3 bg-light rounded text-center border">
+                                            <span class="small text-muted d-block mb-1">MTD Average Bev.</span>
+                                            <h6 class="fw-bold mb-0">Rp {{ number_format($mtdAverageBeverage, 0, ',', '.') }}</h6>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         {{-- KONTEN TAB 2: BREAKDOWN LIST --}}
@@ -171,14 +228,14 @@
                 </div>
             </div>
         </div>
+
         {{-- WIDGET 1: WAITING APPROVAL --}}
-        <div class="col-md-4">
+        {{-- <div class="col-md-4">
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
                             <div class="avtar avtar-s bg-light-warning text-warning">
-                                {{-- Menggunakan icon Jam standar --}}
                                 <i class="ti ti-clock f-24"></i>
                             </div>
                         </div>
@@ -194,10 +251,10 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> --}}
 
         {{-- WIDGET 2: TODAY'S REVENUE --}}
-        <div class="col-md-4">
+        {{-- <div class="col-md-4">
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
@@ -216,16 +273,15 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> --}}
 
         {{-- WIDGET 3: MY DRAFTS --}}
-        <div class="col-md-4">
+        {{-- <div class="col-md-4">
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
                             <div class="avtar avtar-s bg-light-secondary text-secondary">
-                                {{-- Menggunakan icon Edit standar --}}
                                 <i class="ti ti-edit f-24"></i>
                             </div>
                         </div>
@@ -241,7 +297,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> --}}
 
         {{-- CHART SECTION --}}
         <div class="col-md-12">
@@ -369,7 +425,7 @@
                     }
                 }
             });
-            
+
             var options = {
                 series: [{
                     name: 'Total Revenue',
@@ -520,68 +576,11 @@
 
             // Fetch Data dari Server
             fetch(url)
-                .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    return response.text();
-                })
-                .then(html => {
-                    // Masukkan HTML Partial View ke dalam Modal
-                    contentDiv.innerHTML = html;
-                    contentDiv.style.opacity = '1';
-                    contentDiv.style.pointerEvents = 'auto';
-                })
-                .catch(error => {
-                    contentDiv.innerHTML = `
-                    <div class="modal-header"><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-                    <div class="modal-body text-center text-danger p-5">
-                        <i class="ti ti-alert-triangle fs-1 mb-3"></i>
-                        <p>Failed to load data. Please try again.</p>
-                    </div>
-                `;
-                });
-        }
-        // Variabel Global untuk menyimpan object Chart
-        let coverChartInstance = null;
-        let revenueChartInstance = null;
-        let competitorChartInstance = null;
-        let dayTrendChartInstance = null;
-
-        function openAnalyticsModal(restaurantId) {
-            var myModal = new bootstrap.Modal(document.getElementById('analyticsModal'));
-            myModal.show();
-            loadAnalyticsData(restaurantId);
-        }
-
-        function loadAnalyticsData(restaurantId) {
-            const contentDiv = document.getElementById('analyticsModalContent');
-
-            // ... (Kode Ambil Input Filter Tanggal - SAMA SEPERTI SEBELUMNYA) ...
-            const startDateInput = document.getElementById('filter-start-date');
-            const endDateInput = document.getElementById('filter-end-date');
-            let url = `{{ url('/dashboard/analytics') }}/${restaurantId}`;
-
-            if (startDateInput && endDateInput) {
-                url += `?start_date=${startDateInput.value}&end_date=${endDateInput.value}`;
-                contentDiv.style.opacity = '0.5';
-                contentDiv.style.pointerEvents = 'none';
-            } else {
-                // ... (Kode Loading Spinner - SAMA SEPERTI SEBELUMNYA) ...
-                contentDiv.innerHTML =
-                    `<div class="modal-body text-center p-5"><div class="spinner-border text-primary"></div></div>`;
-            }
-
-            fetch(url)
                 .then(response => response.text())
                 .then(html => {
                     contentDiv.innerHTML = html;
                     contentDiv.style.opacity = '1';
                     contentDiv.style.pointerEvents = 'auto';
-
-                    // === TAMBAHAN BARU: RENDER CHART SETELAH HTML MUNCUL ===
-                    renderCoverChart();
-                    renderRevenueChart();
-                    renderCompetitorChart();
-                    renderDayTrendChart();
                 })
                 .catch(error => {
                     console.error(error);
@@ -589,276 +588,6 @@
                 });
         }
 
-        // --- FUNGSI BARU UNTUK RENDER CHART ---
-        function renderCoverChart() {
-            // 1. Ambil Data dari Textarea Tersembunyi
-            const catElement = document.getElementById('chart-categories-data');
-            const serElement = document.getElementById('chart-series-data');
-
-            if (!catElement || !serElement) return; // Stop jika elemen tidak ada
-
-            const categories = JSON.parse(catElement.value);
-            const series = JSON.parse(serElement.value);
-
-            // 2. Hapus Chart Lama (Jika ada) agar tidak error tumpang tindih
-            if (coverChartInstance) {
-                coverChartInstance.destroy();
-            }
-
-            // 3. Konfigurasi ApexCharts (Stacked Column)
-            var options = {
-                series: series,
-                chart: {
-                    type: 'bar',
-                    height: 350,
-                    stacked: true, // Mode Bertumpuk
-                    toolbar: {
-                        show: false
-                    },
-                    fontFamily: 'inherit' // Ikuti font website
-                },
-                plotOptions: {
-                    bar: {
-                        horizontal: false, // Ubah true jika label item terlalu panjang
-                        columnWidth: '50%',
-                        borderRadius: 4
-                    },
-                },
-                dataLabels: {
-                    enabled: false // Matikan angka di dalam bar agar bersih
-                },
-                stroke: {
-                    width: 1,
-                    colors: ['#fff']
-                },
-                xaxis: {
-                    categories: categories, // Item Cover (In House, Walk In, dll)
-                },
-                yaxis: {
-                    title: {
-                        text: 'Total Pax'
-                    }
-                },
-                fill: {
-                    opacity: 1
-                },
-                legend: {
-                    position: 'top',
-                    horizontalAlign: 'left'
-                },
-                colors: ['#ffc107', '#0d6efd', '#212529',
-                    '#6610f2'
-                ] // Warna: Kuning, Biru, Hitam, Ungu (Sesuai tema sesi)
-            };
-
-            // 4. Render Chart
-            coverChartInstance = new ApexCharts(document.querySelector("#coverReportChart"), options);
-            coverChartInstance.render();
-        }
-
-        function renderRevenueChart() {
-            // 1. Ambil Data
-            const catElement = document.getElementById('chart-rev-categories-data');
-            const serElement = document.getElementById('chart-rev-series-data');
-
-            if (!catElement || !serElement) return;
-
-            const categories = JSON.parse(catElement.value);
-            const series = JSON.parse(serElement.value);
-
-            // 2. Destroy Old Chart
-            if (revenueChartInstance) {
-                revenueChartInstance.destroy();
-            }
-
-            // 3. Config (Mirip Cover, tapi ada Yaxis formatter)
-            var options = {
-                series: series,
-                chart: {
-                    type: 'bar',
-                    height: 350,
-                    stacked: true,
-                    toolbar: {
-                        show: false
-                    },
-                    fontFamily: 'inherit'
-                },
-                plotOptions: {
-                    bar: {
-                        horizontal: false,
-                        columnWidth: '50%',
-                        borderRadius: 4
-                    },
-                },
-                dataLabels: {
-                    enabled: false
-                },
-                stroke: {
-                    width: 1,
-                    colors: ['#fff']
-                },
-                xaxis: {
-                    categories: categories,
-                },
-                yaxis: {
-                    title: {
-                        text: 'Revenue (IDR)'
-                    },
-                    labels: {
-                        // FORMATTER RUPIAH DI SUMBU Y
-                        formatter: function(value) {
-                            return value.toLocaleString('id-ID'); // Contoh: 1.000.000
-                        }
-                    }
-                },
-                tooltip: {
-                    y: {
-                        // FORMATTER RUPIAH DI TOOLTIP (Saat mouse hover)
-                        formatter: function(val) {
-                            return "Rp " + val.toLocaleString('id-ID');
-                        }
-                    }
-                },
-                fill: {
-                    opacity: 1
-                },
-                legend: {
-                    position: 'top',
-                    horizontalAlign: 'left'
-                },
-                colors: ['#ffc107', '#0d6efd', '#212529', '#6610f2'] // Kuning, Biru, Hitam, Ungu
-            };
-
-            // 4. Render
-            revenueChartInstance = new ApexCharts(document.querySelector("#revenueReportChart"), options);
-            revenueChartInstance.render();
-        }
-
-        function renderCompetitorChart() {
-            // 1. Ambil Data
-            const catElement = document.getElementById('chart-comp-categories-data');
-            const serElement = document.getElementById('chart-comp-series-data');
-
-            if (!catElement || !serElement) return;
-
-            const categories = JSON.parse(catElement.value);
-            const series = JSON.parse(serElement.value);
-
-            // 2. Destroy Old Chart
-            if (competitorChartInstance) {
-                competitorChartInstance.destroy();
-            }
-
-            // 3. Config
-            var options = {
-                series: series,
-                chart: {
-                    type: 'bar',
-                    height: 350,
-                    stacked: true,
-                    toolbar: {
-                        show: false
-                    },
-                    fontFamily: 'inherit'
-                },
-                plotOptions: {
-                    bar: {
-                        horizontal: false,
-                        columnWidth: '50%',
-                        borderRadius: 4
-                    },
-                },
-                dataLabels: {
-                    enabled: false
-                },
-                stroke: {
-                    width: 1,
-                    colors: ['#fff']
-                },
-                xaxis: {
-                    categories: categories, // Nama Hotel
-                },
-                yaxis: {
-                    title: {
-                        text: 'Total Pax'
-                    }
-                },
-                tooltip: {
-                    y: {
-                        formatter: function(val) {
-                            return val + " Pax";
-                        }
-                    }
-                },
-                fill: {
-                    opacity: 1
-                },
-                legend: {
-                    position: 'top',
-                    horizontalAlign: 'left'
-                },
-                colors: ['#ffc107', '#0d6efd', '#212529', '#6610f2'] // Tetap konsisten (Kuning, Biru, Hitam, Ungu)
-            };
-
-            // 4. Render
-            competitorChartInstance = new ApexCharts(document.querySelector("#competitorReportChart"), options);
-            competitorChartInstance.render();
-        }
-
-        function renderDayTrendChart() {
-            const catElement = document.getElementById('chart-day-categories-data');
-            const serElement = document.getElementById('chart-day-series-data');
-
-            if (!catElement || !serElement) return;
-
-            const categories = JSON.parse(catElement.value);
-            const series = JSON.parse(serElement.value);
-
-            if (dayTrendChartInstance) {
-                dayTrendChartInstance.destroy();
-            }
-
-            var options = {
-                series: series,
-                chart: {
-                    type: 'line', // Ganti jadi 'line' untuk melihat tren
-                    height: 350,
-                    toolbar: {
-                        show: false
-                    },
-                    fontFamily: 'inherit'
-                },
-                stroke: {
-                    curve: 'smooth', // Garis melengkung halus
-                    width: 3
-                },
-                dataLabels: {
-                    enabled: false
-                },
-                xaxis: {
-                    categories: categories, // Mon, Tue, Wed...
-                },
-                yaxis: {
-                    title: {
-                        text: 'Accumulated Pax'
-                    }
-                },
-                tooltip: {
-                    y: {
-                        formatter: function(val) {
-                            return val + " Pax";
-                        }
-                    }
-                },
-                legend: {
-                    position: 'top',
-                    horizontalAlign: 'left'
-                },
-                colors: ['#ffc107', '#0d6efd', '#212529', '#6610f2'] // Kuning, Biru, Hitam, Ungu
-            };
-
-            dayTrendChartInstance = new ApexCharts(document.querySelector("#dayTrendChart"), options);
-            dayTrendChartInstance.render();
-        }
+        // Variabel Global untuk menyimpan object Chart
     </script>
 @endpush

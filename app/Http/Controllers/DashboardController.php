@@ -42,8 +42,7 @@ class DashboardController extends Controller
         $myDrafts = $queryDraft->count();
 
         // Widget 3: Today's Revenue
-        $todaysReportsQuery = DailyReport::whereDate('date', $today)
-            ->where('status', 'approved');
+        $todaysReportsQuery = DailyReport::whereDate('date', $today);
         if ($restaurantFilter) {
             $todaysReportsQuery->where('restaurant_id', $restaurantFilter);
         }
@@ -72,8 +71,7 @@ class DashboardController extends Controller
         }
 
         // 2. Ambil Data dari Database (Otomatis terfilter Scope User/Resto)
-        $weeklyReportsQuery = DailyReport::whereBetween('date', [$startDate, $endDate])
-            ->where('status', 'approved');
+        $weeklyReportsQuery = DailyReport::whereBetween('date', [$startDate, $endDate]);
         if ($restaurantFilter) {
             $weeklyReportsQuery->where('restaurant_id', $restaurantFilter);
         }
@@ -160,7 +158,7 @@ class DashboardController extends Controller
         // PERFORMANCE (mengikuti filter date range + restaurant)
         // ---------------------------------------------------------
 
-        // 1. Actual Revenue Periode = jumlah revenue laporan approved
+        // 1. Actual Revenue Periode = jumlah revenue
         //    di rentang tanggal yang dipilih (reuse $weeklyReports).
         $mtdRevenue = 0;
         foreach ($weeklyReports as $report) {
@@ -208,10 +206,9 @@ class DashboardController extends Controller
         // Hitung dalam rentang tanggal terpilih (bukan hardcoded bulan ini)
         foreach ($relevantRestaurants as $resto) {
 
-            // A. Hitung Actual Revenue (Approved Only) untuk Resto ini di rentang tanggal
+            // A. Hitung Actual Revenue untuk Resto ini di rentang tanggal
             $restoReports = DailyReport::where('restaurant_id', $resto->id)
                 ->whereBetween('date', [$startDate, $endDate])
-                ->where('status', 'approved')
                 ->with('details')
                 ->get();
 
@@ -238,6 +235,55 @@ class DashboardController extends Controller
                 'percentage' => $percentage
             ];
         }
+
+        // ---------------------------------------------------------
+        // TRUE MTD (Month to Date) - STATIC 1st of month to today
+        // ---------------------------------------------------------
+        $mtdStart = now()->startOfMonth()->format('Y-m-d');
+        $mtdEnd = now()->format('Y-m-d');
+        
+        $mtdQuery = DailyReport::whereBetween('date', [$mtdStart, $mtdEnd]);
+        
+        if ($restaurantFilter) {
+            $mtdQuery->where('restaurant_id', $restaurantFilter);
+        } elseif (!$user->hasRole('Super Admin')) {
+            $mtdQuery->whereIn('restaurant_id', $user->restaurants->pluck('id'));
+        }
+        
+        $mtdReports = $mtdQuery->with('details')->get();
+
+        $mtdFoodRevenue = 0;
+        $mtdBeverageRevenue = 0;
+        $mtdCoverReport = 0;
+        $totalMtdRevenue = 0;
+
+        foreach ($mtdReports as $report) {
+            foreach ($report->details as $detail) {
+                $mtdFoodRevenue += (float)$detail->revenue_food;
+                $mtdBeverageRevenue += (float)$detail->revenue_beverage;
+                $totalMtdRevenue += $detail->revenue_food + $detail->revenue_beverage + $detail->revenue_others + $detail->revenue_event;
+
+                if (!empty($detail->cover_data) && is_array($detail->cover_data)) {
+                    foreach ($detail->cover_data as $val) {
+                        if (is_numeric($val)) {
+                            $mtdCoverReport += $val;
+                        }
+                    }
+                }
+            }
+        }
+
+        $mtdAverageFood = $mtdCoverReport > 0 ? $mtdFoodRevenue / $mtdCoverReport : 0;
+        $mtdAverageBeverage = $mtdCoverReport > 0 ? $mtdBeverageRevenue / $mtdCoverReport : 0;
+
+        $totalMtdTarget = $this->calculateProratedTarget(
+            $mtdStart,
+            $mtdEnd,
+            $user->hasRole('Super Admin') ? null : $user->restaurants->pluck('id')->toArray(),
+            $restaurantFilter
+        );
+
+        $mtdBalance = $totalMtdRevenue - $totalMtdTarget;
 
         // ---------------------------------------------------------
         // 2. TABEL RINGKASAN (5 Laporan Terakhir)
@@ -276,7 +322,15 @@ class DashboardController extends Controller
             'allRestaurants',
             'startDate',
             'endDate',
-            'restaurantFilter'
+            'restaurantFilter',
+            'mtdCoverReport',
+            'mtdFoodRevenue',
+            'mtdBeverageRevenue',
+            'mtdAverageFood',
+            'mtdAverageBeverage',
+            'totalMtdRevenue',
+            'totalMtdTarget',
+            'mtdBalance'
         ));
     }
 
@@ -384,9 +438,8 @@ class DashboardController extends Controller
         $startDate = $request->input('start_date', now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', now()->endOfMonth()->format('Y-m-d'));
 
-        // 3. Query Data (Hanya Approved)
+        // 3. Query Data (Semua Report)
         $reports = DailyReport::where('restaurant_id', $restaurant->id)
-            ->where('status', 'approved') // Wajib Approved
             ->whereBetween('date', [$startDate, $endDate])
             ->with('details')
             ->get();
@@ -406,6 +459,23 @@ class DashboardController extends Controller
         $coverMatrix = []; // Dinamis (tergantung key yang ditemukan)
         $competitorMatrix = []; // Dinamis
         $usCoverTotal = array_fill_keys($sessions, 0); // Untuk baris "Us" di tabel kompetitor
+
+        // Inisialisasi untuk Occasion, Promo, Group
+        $occasionMatrix = []; // occasion_items aggregated (pax)
+        $occasionRevenueMatrix = []; // occasion_items aggregated (revenue)
+        $promoMatrix = [];    // promo_items aggregated (pax)
+        $promoRevenueMatrix = []; // promo_items aggregated (revenue)
+        $occOthersAgg = [];   // others_occasion aggregated (legacy)
+        $promoOthersAgg = []; // others_promo aggregated
+        $groupAgg = [];       // group_data aggregated
+
+        // Inisialisasi untuk Nagano Revenue
+        $naganoRevenueMatrix = [
+            'Teppan (Lt 5)' => array_fill_keys($sessions, 0),
+            'Teppan (Lt 6)' => array_fill_keys($sessions, 0),
+            'Yakiniku' => array_fill_keys($sessions, 0),
+            'Ala Carte' => array_fill_keys($sessions, 0),
+        ];
 
         // 5. Loop & Agregasi Data (The Heavy Lifting)
         foreach ($reports as $report) {
@@ -450,6 +520,152 @@ class DashboardController extends Controller
                         }
                     }
                 }
+
+                // D. Agregasi Occasion Items
+                $addData = $detail->additional_data ?? [];
+                if (is_string($addData)) $addData = json_decode($addData, true) ?? [];
+                if (is_array($addData)) {
+                    $occItems = $addData['occasion_items'] ?? [];
+                    if (is_string($occItems)) $occItems = json_decode($occItems, true) ?? [];
+                    if (is_array($occItems)) {
+                        foreach ($occItems as $item) {
+                            $type = $item['type'] ?? 'Unknown';
+                            $pax = $item['pax'] ?? 0;
+                            $rev = $item['revenue'] ?? 0;
+                            if ($pax > 0) {
+                                if (!isset($occasionMatrix[$type])) {
+                                    $occasionMatrix[$type] = array_fill_keys($sessions, 0);
+                                }
+                                $occasionMatrix[$type][$sess] += $pax;
+                            }
+                            if ($rev > 0) {
+                                if (!isset($occasionRevenueMatrix[$type])) {
+                                    $occasionRevenueMatrix[$type] = array_fill_keys($sessions, 0);
+                                }
+                                $occasionRevenueMatrix[$type][$sess] += $rev;
+                            }
+                        }
+                    }
+
+                    // Legacy occasion fields (for backward compatibility)
+                    $legacyFields = ['wedding_party', 'birthday_party', 'social_event'];
+                    foreach ($legacyFields as $field) {
+                        $val = $addData[$field] ?? 0;
+                        if ($val > 0) {
+                            $label = ucwords(str_replace('_', ' ', $field));
+                            if (!isset($occOthersAgg[$label])) {
+                                $occOthersAgg[$label] = array_fill_keys($sessions, 0);
+                            }
+                            $occOthersAgg[$label][$sess] += $val;
+                        }
+                    }
+
+                    // Others Occasion (legacy)
+                    $othersOcc = $addData['others_occasion'] ?? [];
+                    if (is_string($othersOcc)) $othersOcc = json_decode($othersOcc, true) ?? [];
+                    if (is_array($othersOcc)) {
+                        foreach ($othersOcc as $item) {
+                            $name = $item['name'] ?? 'Other Occasion';
+                            $pax = $item['pax'] ?? 0;
+                            if ($pax > 0) {
+                                if (!isset($occOthersAgg[$name])) {
+                                    $occOthersAgg[$name] = array_fill_keys($sessions, 0);
+                                }
+                                $occOthersAgg[$name][$sess] += $pax;
+                            }
+                        }
+                    }
+
+                    // E. Agregasi Promo Items (new format)
+                    $promoItemsData = $addData['promo_items'] ?? [];
+                    if (is_string($promoItemsData)) $promoItemsData = json_decode($promoItemsData, true) ?? [];
+                    if (is_array($promoItemsData)) {
+                        foreach ($promoItemsData as $item) {
+                            $type = $item['type'] ?? 'Unknown Promo';
+                            $pax = $item['pax'] ?? 0;
+                            $rev = $item['revenue'] ?? 0;
+                            if ($pax > 0) {
+                                if (!isset($promoMatrix[$type])) {
+                                    $promoMatrix[$type] = array_fill_keys($sessions, 0);
+                                }
+                                $promoMatrix[$type][$sess] += $pax;
+                            }
+                            if ($rev > 0) {
+                                if (!isset($promoRevenueMatrix[$type])) {
+                                    $promoRevenueMatrix[$type] = array_fill_keys($sessions, 0);
+                                }
+                                $promoRevenueMatrix[$type][$sess] += $rev;
+                            }
+                        }
+                    }
+
+                    // Old promo fields (legacy)
+                    $promoFields = ['mandiri_card', 'bca_card', 'membership'];
+                    foreach ($promoFields as $field) {
+                        $val = $addData[$field] ?? 0;
+                        if ($val > 0) {
+                            $label = ucwords(str_replace('_', ' ', $field));
+                            if (!isset($promoMatrix[$label])) {
+                                $promoMatrix[$label] = array_fill_keys($sessions, 0);
+                            }
+                            $promoMatrix[$label][$sess] += $val;
+                        }
+                    }
+
+                    // Others Promo (legacy)
+                    $othersPromo = $addData['others_promo'] ?? [];
+                    if (is_string($othersPromo)) $othersPromo = json_decode($othersPromo, true) ?? [];
+                    if (is_array($othersPromo)) {
+                        foreach ($othersPromo as $item) {
+                            $name = $item['name'] ?? 'Other Promo';
+                            $qty = $item['qty'] ?? 0;
+                            if ($qty > 0) {
+                                if (!isset($promoOthersAgg[$name])) {
+                                    $promoOthersAgg[$name] = array_fill_keys($sessions, 0);
+                                }
+                                $promoOthersAgg[$name][$sess] += $qty;
+                            }
+                        }
+                    }
+
+                    // F. Agregasi Group
+                    $groupData = $addData['group_data'] ?? [];
+                    if (is_string($groupData)) $groupData = json_decode($groupData, true) ?? [];
+                    if (is_array($groupData)) {
+                        foreach ($groupData as $item) {
+                            $name = $item['name'] ?? 'Group';
+                            $qty = $item['qty'] ?? 0;
+                            if ($qty > 0) {
+                                if (!isset($groupAgg[$name])) {
+                                    $groupAgg[$name] = array_fill_keys($sessions, 0);
+                                }
+                                $groupAgg[$name][$sess] += $qty;
+                            }
+                        }
+                    }
+
+                    // G. Agregasi Nagano Revenue
+                    $teppanItems = $addData['revenue_teppan_items'] ?? [];
+                    if (is_string($teppanItems)) $teppanItems = json_decode($teppanItems, true) ?? [];
+                    if (is_array($teppanItems)) {
+                        foreach ($teppanItems as $item) {
+                            $floor = $item['floor'] ?? '';
+                            $rev = $item['revenue'] ?? 0;
+                            $key = 'Teppan (' . $floor . ')';
+                            if (isset($naganoRevenueMatrix[$key])) {
+                                $naganoRevenueMatrix[$key][$sess] += $rev;
+                            }
+                        }
+                    }
+                    $yakinikuRev = $addData['revenue_yakiniku'] ?? 0;
+                    if ($yakinikuRev > 0) {
+                        $naganoRevenueMatrix['Yakiniku'][$sess] += $yakinikuRev;
+                    }
+                    $alaCarteRev = $addData['revenue_ala_carte'] ?? 0;
+                    if ($alaCarteRev > 0) {
+                        $naganoRevenueMatrix['Ala Carte'][$sess] += $alaCarteRev;
+                    }
+                }
             }
         }
 
@@ -460,107 +676,29 @@ class DashboardController extends Controller
             $competitorMatrix
         );
 
-        // 7A. Siapkan Data untuk Grafik Cover Report
-        $chartCategories = array_keys($coverMatrix); // Label Sumbu X
-        $chartSeries = [];
-
-        foreach ($sessions as $sess) {
-            $dataPerSession = [];
-            foreach ($chartCategories as $category) {
-                // Ambil data dari matrix, default 0 jika error
-                $dataPerSession[] = $coverMatrix[$category][$sess] ?? 0;
-            }
-
-            $chartSeries[] = [
-                'name' => ucfirst($sess), // Breakfast, Lunch, etc
-                'data' => $dataPerSession
-            ];
-        }
-
-        // 7B. SIAPKAN DATA REVENUE CHART
-        // Categories: ['Food Revenue', 'Beverage Revenue', 'Others Revenue', 'Event Revenue']
-        $revChartCategories = array_keys($revenueMatrix);
-        $revChartSeries = [];
-
-        foreach ($sessions as $sess) {
-            $dataPerSession = [];
-            foreach ($revChartCategories as $category) {
-                // Ambil data dari matrix
-                $dataPerSession[] = $revenueMatrix[$category][$sess] ?? 0;
-            }
-
-            $revChartSeries[] = [
-                'name' => ucfirst($sess), // Breakfast, Lunch, etc
-                'data' => $dataPerSession
-            ];
-        }
-
-        // 7C. SIAPKAN DATA COMPETITOR CHART
-        // Categories: ['Us (Restaurant Name)', 'Shangri-La', 'JW Marriott', ...]
-        $compChartCategories = array_keys($competitorMatrix);
-        $compChartSeries = [];
-
-        foreach ($sessions as $sess) {
-            $dataPerSession = [];
-            foreach ($compChartCategories as $hotel) {
-                $dataPerSession[] = $competitorMatrix[$hotel][$sess] ?? 0;
-            }
-
-            $compChartSeries[] = [
-                'name' => ucfirst($sess),
-                'data' => $dataPerSession
-            ];
-        }
-
-        // 7D. SIAPKAN DATA DAILY TREND (BY DAY OF WEEK)
-        // Columns: Mon, Tue, Wed, Thu, Fri, Sat, Sun
+        // 8. Siapkan Data Day Trend (untuk Tab Cover by Day)
         $daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
-        // Rows: Breakfast, Lunch, Dinner, Supper
-        // Structure: ['breakfast' => ['Mon' => 0, 'Tue' => 0...], ...]
         $dayTrendMatrix = [];
         foreach ($sessions as $sess) {
             $dayTrendMatrix[$sess] = array_fill_keys($daysOfWeek, 0);
         }
-
-        // AGREGASI DATA
         foreach ($reports as $report) {
-            // Ambil nama hari (Mon, Tue, etc) dari tanggal laporan
             $dayName = $report->date->format('D');
-
             foreach ($report->details as $detail) {
                 $sess = $detail->session_type;
-
-                // Hitung Total Pax (Sum semua field cover)
                 $pax = 0;
                 if (!empty($detail->cover_data) && is_array($detail->cover_data)) {
                     foreach ($detail->cover_data as $val) {
                         if (is_numeric($val)) $pax += $val;
                     }
                 }
-
-                // Masukkan ke Matrix
                 if (in_array($dayName, $daysOfWeek)) {
                     $dayTrendMatrix[$sess][$dayName] += $pax;
                 }
             }
         }
 
-        // SIAPKAN DATA CHART (Line Chart)
-        $dayChartSeries = [];
-        foreach ($sessions as $sess) {
-            $dataPerDay = [];
-            foreach ($daysOfWeek as $day) {
-                $dataPerDay[] = $dayTrendMatrix[$sess][$day];
-            }
-            $dayChartSeries[] = [
-                'name' => ucfirst($sess),
-                'data' => $dataPerDay
-            ];
-        }
-
-        // 8. Return Partial View
-        // Kita kirim data yang sudah matang ke view khusus (belum kita buat)
+        // 9. Return Partial View
         return view('analytics_modal', compact(
             'restaurant',
             'startDate',
@@ -569,15 +707,16 @@ class DashboardController extends Controller
             'revenueMatrix',
             'coverMatrix',
             'competitorMatrix',
-            'chartCategories',
-            'chartSeries',
-            'revChartCategories',
-            'revChartSeries',
-            'compChartCategories',
-            'compChartSeries',
             'daysOfWeek',
             'dayTrendMatrix',
-            'dayChartSeries',
+            'occasionMatrix',
+            'occOthersAgg',
+            'promoMatrix',
+            'promoRevenueMatrix',
+            'promoOthersAgg',
+            'groupAgg',
+            'occasionRevenueMatrix',
+            'naganoRevenueMatrix',
         ));
     }
 }

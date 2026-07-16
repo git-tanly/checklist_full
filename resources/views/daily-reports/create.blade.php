@@ -116,7 +116,6 @@
 
                     <div id="form-JM" class="resto-form d-none">
                         @include('daily-reports.partials.form-jm')
-                        {{-- <div class="alert alert-warning">Form Nagano belum dibuat</div> --}}
                     </div>
 
                     <div id="form-BQT" class="resto-form d-none">
@@ -128,8 +127,6 @@
                         @include('daily-reports.partials.form-ird')
                         {{-- <div class="alert alert-warning">Form Nagano belum dibuat</div> --}}
                     </div>
-
-                    {{-- Tambahkan div untuk Voda dan Joe Milano nanti --}}
                 </div>
 
                 {{-- ACTION BUTTONS --}}
@@ -532,6 +529,322 @@
                     listEl.appendChild(badge);
                 });
             }
+        }
+
+        // --- GROUP MANAGER SCRIPT ---
+        let groupState = {};
+
+        window.initGroup = function(session, initialData, code) {
+            const key = session + '_' + code;
+            let safeData = [];
+            if (initialData) {
+                if (Array.isArray(initialData)) safeData = initialData;
+                else if (typeof initialData === 'object') safeData = Object.values(initialData);
+                else if (typeof initialData === 'string') try { safeData = JSON.parse(initialData); } catch (e) {}
+            }
+            groupState[key] = safeData;
+            renderGroupList(document.getElementById('list-group-' + session + '-' + code), safeData, session, code);
+        };
+
+        window.addGroupItem = function(session, code) {
+            const nameEl = document.getElementById('group-name-' + session + '-' + code);
+            const qtyEl = document.getElementById('group-qty-' + session + '-' + code);
+            const name = nameEl.value.trim();
+            const qty = qtyEl.value.trim();
+            if (!name) { alert('Please enter group name.'); return; }
+            if (!qty || parseInt(qty) <= 0) { alert('Please enter a valid quantity.'); return; }
+            const key = session + '_' + code;
+            if (!groupState[key]) groupState[key] = [];
+            groupState[key].push({ name: name, qty: parseInt(qty) });
+            nameEl.value = '';
+            qtyEl.value = '';
+            nameEl.focus();
+            const hiddenInput = document.getElementById('input-group-' + session + '-' + code);
+            if (hiddenInput) hiddenInput.value = JSON.stringify(groupState[key]);
+            renderGroupList(document.getElementById('list-group-' + session + '-' + code), groupState[key], session, code);
+        };
+
+        window.removeGroupItem = function(session, code, index) {
+            const key = session + '_' + code;
+            groupState[key].splice(index, 1);
+            const hiddenInput = document.getElementById('input-group-' + session + '-' + code);
+            if (hiddenInput) hiddenInput.value = JSON.stringify(groupState[key]);
+            renderGroupList(document.getElementById('list-group-' + session + '-' + code), groupState[key], session, code);
+        };
+
+        function renderGroupList(listEl, items, session, code) {
+            if (!listEl) return;
+            if (!items || items.length === 0) { listEl.innerHTML = ''; return; }
+            let html = '';
+            items.forEach(function(item, index) {
+                html += '<li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">' +
+                    '<span class="small"><strong>' + escapeHtml(item.name || '') + '</strong> <span class="badge bg-secondary ms-1">' + (item.qty || 0) + ' pax</span></span>' +
+                    '<button class="btn btn-sm btn-link text-danger p-0" onclick="removeGroupItem(\'' + session + '\', \'' + code + '\', ' + index + ')" title="Remove"><i class="ti ti-x"></i></button></li>';
+            });
+            listEl.innerHTML = html;
+        }
+
+        // --- OCCASION OTHERS MANAGER SCRIPT ---
+        let occOthersState = {};
+
+        window.initOccOthers = function(session, initialData, code) {
+            const key = session + '_' + code;
+            let safeData = [];
+            if (initialData) {
+                if (Array.isArray(initialData)) safeData = initialData;
+                else if (typeof initialData === 'object') safeData = Object.values(initialData);
+                else if (typeof initialData === 'string') try { safeData = JSON.parse(initialData); } catch (e) {}
+            }
+            occOthersState[key] = safeData;
+            renderOccOthersList(document.getElementById('list-occothers-' + session + '-' + code), safeData, session, code);
+        };
+
+        window.addOccOthers = function(session, code) {
+            const nameEl = document.getElementById('occothers-name-' + session + '-' + code);
+            const paxEl = document.getElementById('occothers-pax-' + session + '-' + code);
+            const name = nameEl.value.trim();
+            const pax = paxEl.value.trim();
+            if (!name) { alert('Please enter occasion name.'); return; }
+            if (!pax || parseInt(pax) <= 0) { alert('Please enter a valid pax number.'); return; }
+            const key = session + '_' + code;
+            if (!occOthersState[key]) occOthersState[key] = [];
+            occOthersState[key].push({ name: name, pax: parseInt(pax) });
+            nameEl.value = '';
+            paxEl.value = '';
+            nameEl.focus();
+            const hiddenInput = document.getElementById('input-occothers-' + session + '-' + code);
+            if (hiddenInput) hiddenInput.value = JSON.stringify(occOthersState[key]);
+            renderOccOthersList(document.getElementById('list-occothers-' + session + '-' + code), occOthersState[key], session, code);
+        };
+
+        window.removeOccOthers = function(session, code, index) {
+            const key = session + '_' + code;
+            occOthersState[key].splice(index, 1);
+            const hiddenInput = document.getElementById('input-occothers-' + session + '-' + code);
+            if (hiddenInput) hiddenInput.value = JSON.stringify(occOthersState[key]);
+            renderOccOthersList(document.getElementById('list-occothers-' + session + '-' + code), occOthersState[key], session, code);
+        };
+
+        function renderOccOthersList(listEl, items, session, code) {
+            if (!listEl) return;
+            if (!items || items.length === 0) { listEl.innerHTML = ''; return; }
+            let html = '';
+            items.forEach(function(item, index) {
+                html += '<li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">' +
+                    '<span class="small"><strong>' + escapeHtml(item.name || '') + '</strong> <span class="badge bg-primary ms-1">' + (item.pax || 0) + ' pax</span></span>' +
+                    '<button class="btn btn-sm btn-link text-danger p-0" onclick="removeOccOthers(\'' + session + '\', \'' + code + '\', ' + index + ')" title="Remove"><i class="ti ti-x"></i></button></li>';
+            });
+            listEl.innerHTML = html;
+        }
+
+        // --- PROMO OTHERS MANAGER SCRIPT ---
+        let promoOthersState = {};
+
+        window.initPromoOthers = function(session, initialData, code) {
+            const key = session + '_' + code;
+            let safeData = [];
+            if (initialData) {
+                if (Array.isArray(initialData)) safeData = initialData;
+                else if (typeof initialData === 'object') safeData = Object.values(initialData);
+                else if (typeof initialData === 'string') try { safeData = JSON.parse(initialData); } catch (e) {}
+            }
+            promoOthersState[key] = safeData;
+            renderPromoOthersList(document.getElementById('list-promoothers-' + session + '-' + code), safeData, session, code);
+        };
+
+        window.addPromoOthers = function(session, code) {
+            const nameEl = document.getElementById('promoothers-name-' + session + '-' + code);
+            const qtyEl = document.getElementById('promoothers-qty-' + session + '-' + code);
+            const name = nameEl.value.trim();
+            const qty = qtyEl.value.trim();
+            if (!name) { alert('Please enter promo name.'); return; }
+            if (!qty || parseInt(qty) <= 0) { alert('Please enter a valid quantity.'); return; }
+            const key = session + '_' + code;
+            if (!promoOthersState[key]) promoOthersState[key] = [];
+            promoOthersState[key].push({ name: name, qty: parseInt(qty) });
+            nameEl.value = '';
+            qtyEl.value = '';
+            nameEl.focus();
+            const hiddenInput = document.getElementById('input-promoothers-' + session + '-' + code);
+            if (hiddenInput) hiddenInput.value = JSON.stringify(promoOthersState[key]);
+            renderPromoOthersList(document.getElementById('list-promoothers-' + session + '-' + code), promoOthersState[key], session, code);
+        };
+
+        window.removePromoOthers = function(session, code, index) {
+            const key = session + '_' + code;
+            promoOthersState[key].splice(index, 1);
+            const hiddenInput = document.getElementById('input-promoothers-' + session + '-' + code);
+            if (hiddenInput) hiddenInput.value = JSON.stringify(promoOthersState[key]);
+            renderPromoOthersList(document.getElementById('list-promoothers-' + session + '-' + code), promoOthersState[key], session, code);
+        };
+
+        function renderPromoOthersList(listEl, items, session, code) {
+            if (!listEl) return;
+            if (!items || items.length === 0) { listEl.innerHTML = ''; return; }
+            let html = '';
+            items.forEach(function(item, index) {
+                html += '<li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">' +
+                    '<span class="small"><strong>' + escapeHtml(item.name || '') + '</strong> <span class="badge bg-success ms-1">' + (item.qty || 0) + ' pax</span></span>' +
+                    '<button class="btn btn-sm btn-link text-danger p-0" onclick="removePromoOthers(\'' + session + '\', \'' + code + '\', ' + index + ')" title="Remove"><i class="ti ti-x"></i></button></li>';
+            });
+            listEl.innerHTML = html;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            var div = document.createElement('div');
+            div.appendChild(document.createTextNode(text));
+            return div.innerHTML;
+        }
+
+        // --- OCCASION ITEMS MANAGER SCRIPT ---
+        let occasionState = {};
+
+        window.initOccasion = function(session, initialData, code) {
+            const key = session + '_' + code;
+            let safeData = [];
+            if (initialData) {
+                if (Array.isArray(initialData)) safeData = initialData;
+                else if (typeof initialData === 'object') safeData = Object.values(initialData);
+                else if (typeof initialData === 'string') try { safeData = JSON.parse(initialData); } catch (e) {}
+            }
+            occasionState[key] = safeData;
+            const hiddenInput = document.getElementById('input-occasion-' + session + '-' + code);
+            if (hiddenInput) hiddenInput.value = JSON.stringify(safeData);
+            renderOccasionList(document.getElementById('list-occasion-' + session + '-' + code), safeData, session, code);
+        };
+
+        window.addOccasionItem = function(session, code) {
+            const typeEl = document.getElementById('occasion-type-' + session + '-' + code);
+            const nameEl = document.getElementById('occasion-name-' + session + '-' + code);
+            const paxEl = document.getElementById('occasion-pax-' + session + '-' + code);
+            const revEl = document.getElementById('occasion-revenue-' + session + '-' + code);
+
+            const type = typeEl.value;
+            const name = nameEl.value.trim();
+            const pax = paxEl.value.trim();
+            let revenue = revEl.value.replace(/\./g, '').trim();
+
+            if (!type) { alert('Please select an occasion type.'); return; }
+            if (!name) { alert('Please enter a name.'); return; }
+            if (!pax || parseInt(pax) <= 0) { alert('Please enter valid pax.'); return; }
+
+            const key = session + '_' + code;
+            if (!occasionState[key]) occasionState[key] = [];
+            occasionState[key].push({
+                type: type,
+                name: name,
+                pax: parseInt(pax),
+                revenue: revenue ? parseInt(revenue) : 0
+            });
+
+            typeEl.value = '';
+            nameEl.value = '';
+            paxEl.value = '';
+            revEl.value = '';
+            typeEl.focus();
+
+            const hiddenInput = document.getElementById('input-occasion-' + session + '-' + code);
+            if (hiddenInput) hiddenInput.value = JSON.stringify(occasionState[key]);
+            renderOccasionList(document.getElementById('list-occasion-' + session + '-' + code), occasionState[key], session, code);
+        };
+
+        window.removeOccasionItem = function(session, code, index) {
+            const key = session + '_' + code;
+            occasionState[key].splice(index, 1);
+            const hiddenInput = document.getElementById('input-occasion-' + session + '-' + code);
+            if (hiddenInput) hiddenInput.value = JSON.stringify(occasionState[key]);
+            renderOccasionList(document.getElementById('list-occasion-' + session + '-' + code), occasionState[key], session, code);
+        };
+
+        function renderOccasionList(listEl, items, session, code) {
+            if (!listEl) return;
+            if (!items || items.length === 0) { listEl.innerHTML = ''; return; }
+            let html = '';
+            items.forEach(function(item, index) {
+                const rev = item.revenue ? 'Rp ' + Number(item.revenue).toLocaleString('id-ID') : '';
+                html += '<li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">' +
+                    '<span class="small"><span class="badge bg-primary me-1">' + escapeHtml(item.type || '') + '</span>' +
+                    '<strong>' + escapeHtml(item.name || '') + '</strong>' +
+                    ' <span class="badge bg-secondary ms-1">' + (item.pax || 0) + ' pax</span>' +
+                    (rev ? ' <span class="badge bg-success ms-1">' + rev + '</span>' : '') +
+                    '</span>' +
+                    '<button class="btn btn-sm btn-link text-danger p-0" onclick="removeOccasionItem(\'' + session + '\', \'' + code + '\', ' + index + ')" title="Remove"><i class="ti ti-x"></i></button>' +
+                    '</li>';
+            });
+            listEl.innerHTML = html;
+        }
+
+        // --- PROMO ITEMS MANAGER SCRIPT ---
+        let promoItemState = {};
+
+        window.initPromoItems = function(session, initialData, code) {
+            const key = session + '_' + code;
+            let safeData = [];
+            if (initialData) {
+                if (Array.isArray(initialData)) safeData = initialData;
+                else if (typeof initialData === 'object') safeData = Object.values(initialData);
+                else if (typeof initialData === 'string') try { safeData = JSON.parse(initialData); } catch (e) {}
+            }
+            promoItemState[key] = safeData;
+            const hiddenInput = document.getElementById('input-promo-' + session + '-' + code);
+            if (hiddenInput) hiddenInput.value = JSON.stringify(safeData);
+            renderPromoItemList(document.getElementById('list-promo-' + session + '-' + code), safeData, session, code);
+        };
+
+        window.addPromoItem = function(session, code) {
+            const typeEl = document.getElementById('promo-type-' + session + '-' + code);
+            const paxEl = document.getElementById('promo-pax-' + session + '-' + code);
+            const revEl = document.getElementById('promo-revenue-' + session + '-' + code);
+
+            const type = typeEl.value;
+            const pax = paxEl.value.trim();
+            let revenue = revEl.value.replace(/\./g, '').trim();
+
+            if (!type) { alert('Please select a promo type.'); return; }
+            if (!pax || parseInt(pax) <= 0) { alert('Please enter valid pax.'); return; }
+
+            const key = session + '_' + code;
+            if (!promoItemState[key]) promoItemState[key] = [];
+            promoItemState[key].push({
+                type: type,
+                pax: parseInt(pax),
+                revenue: revenue ? parseInt(revenue) : 0
+            });
+
+            typeEl.value = '';
+            paxEl.value = '';
+            revEl.value = '';
+            typeEl.focus();
+
+            const hiddenInput = document.getElementById('input-promo-' + session + '-' + code);
+            if (hiddenInput) hiddenInput.value = JSON.stringify(promoItemState[key]);
+            renderPromoItemList(document.getElementById('list-promo-' + session + '-' + code), promoItemState[key], session, code);
+        };
+
+        window.removePromoItem = function(session, code, index) {
+            const key = session + '_' + code;
+            promoItemState[key].splice(index, 1);
+            const hiddenInput = document.getElementById('input-promo-' + session + '-' + code);
+            if (hiddenInput) hiddenInput.value = JSON.stringify(promoItemState[key]);
+            renderPromoItemList(document.getElementById('list-promo-' + session + '-' + code), promoItemState[key], session, code);
+        };
+
+        function renderPromoItemList(listEl, items, session, code) {
+            if (!listEl) return;
+            if (!items || items.length === 0) { listEl.innerHTML = ''; return; }
+            let html = '';
+            items.forEach(function(item, index) {
+                const rev = item.revenue ? 'Rp ' + Number(item.revenue).toLocaleString('id-ID') : '';
+                html += '<li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">' +
+                    '<span class="small"><span class="badge bg-success me-1">' + escapeHtml(item.type || '') + '</span>' +
+                    ' <span class="badge bg-secondary ms-1">' + (item.pax || 0) + ' pax</span>' +
+                    (rev ? ' <span class="badge bg-primary ms-1">' + rev + '</span>' : '') +
+                    '</span>' +
+                    '<button class="btn btn-sm btn-link text-danger p-0" onclick="removePromoItem(\'' + session + '\', \'' + code + '\', ' + index + ')" title="Remove"><i class="ti ti-x"></i></button>' +
+                    '</li>';
+            });
+            listEl.innerHTML = html;
         }
     </script>
 @endsection
