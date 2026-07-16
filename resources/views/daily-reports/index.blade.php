@@ -150,8 +150,9 @@
                             <i class="ti ti-file-spreadsheet"></i> Export to Excel
                         </button>
                         {{-- TOMBOL EXPORT TO PDF (BULK) --}}
-                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#exportPdfModal">
-                            <i class="ti ti-file-type-pdf"></i> Bulk Export PDF
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal"
+                            data-bs-target="#exportPdfModal">
+                            <i class="ti ti-file-type-pdf"></i> Export PDF
                         </button>
                         {{-- TOMBOL MENUJU HALAMAN CREATE --}}
                         <a href="{{ route('daily-reports.create') }}" class="btn btn-primary">
@@ -258,25 +259,29 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="export_all_dates" name="export_all_dates" value="1">
+                                <input class="form-check-input" type="checkbox" id="export_all_dates"
+                                    name="export_all_dates" value="1">
                                 <label class="form-check-label fw-bold text-primary" for="export_all_dates">
                                     <i class="ti ti-database"></i> Export All Historical Data (No Date Filter)
                                 </label>
                             </div>
-                            <small class="text-muted">Check this to export all data from the beginning without date limitation</small>
+                            <small class="text-muted">Check this to export all data from the beginning without date
+                                limitation</small>
                         </div>
 
                         <div class="mb-3">
-                            <label for="start_date" class="form-label">Start Date <span class="text-danger" id="start_required">*</span></label>
+                            <label for="start_date" class="form-label">Start Date <span class="text-danger"
+                                    id="start_required">*</span></label>
                             <input type="date" class="form-control" id="start_date" name="start_date"
-                                   value="{{ now()->subDays(30)->format('Y-m-d') }}" required>
+                                value="{{ now()->subDays(30)->format('Y-m-d') }}" required>
                             <small class="text-muted">Reports from this date onwards</small>
                         </div>
 
                         <div class="mb-3">
-                            <label for="end_date" class="form-label">End Date <span class="text-danger" id="end_required">*</span></label>
+                            <label for="end_date" class="form-label">End Date <span class="text-danger"
+                                    id="end_required">*</span></label>
                             <input type="date" class="form-control" id="end_date" name="end_date"
-                                   value="{{ now()->format('Y-m-d') }}" required>
+                                value="{{ now()->format('Y-m-d') }}" required>
                             <small class="text-muted">Reports up to this date</small>
                         </div>
 
@@ -288,7 +293,7 @@
                                 @else
                                     <option value="">All My Restaurants</option>
                                 @endhasrole
-                                @foreach($restaurants as $restaurant)
+                                @foreach ($restaurants as $restaurant)
                                     <option value="{{ $restaurant->id }}">{{ $restaurant->name }}</option>
                                 @endforeach
                             </select>
@@ -319,7 +324,8 @@
     </div>
 
     {{-- Modal Bulk Export PDF --}}
-    <div class="modal fade" id="exportPdfModal" tabindex="-1" aria-labelledby="exportPdfModalLabel" aria-hidden="true">
+    <div class="modal fade" id="exportPdfModal" tabindex="-1" aria-labelledby="exportPdfModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <form action="{{ route('daily-reports.export-pdf') }}" method="POST">
@@ -331,27 +337,31 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="mb-3">
+                        {{-- <div class="mb-3">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="export_all_dates_pdf" name="export_all_dates_pdf" value="1">
+                                <input class="form-check-input" type="checkbox" id="export_all_dates_pdf"
+                                    name="export_all_dates_pdf" value="1">
                                 <label class="form-check-label fw-bold text-danger" for="export_all_dates_pdf">
                                     <i class="ti ti-database"></i> Export All Historical Data (No Date Filter)
                                 </label>
                             </div>
-                            <small class="text-muted">Check this to export all data from the beginning without date limitation</small>
-                        </div>
+                            <small class="text-muted">Check this to export all data from the beginning without date
+                                limitation</small>
+                        </div> --}}
 
                         <div class="mb-3">
-                            <label for="start_date_pdf" class="form-label">Start Date <span class="text-danger" id="start_required_pdf">*</span></label>
+                            <label for="start_date_pdf" class="form-label">Start Date <span class="text-danger"
+                                    id="start_required_pdf">*</span></label>
                             <input type="date" class="form-control" id="start_date_pdf" name="start_date_pdf"
-                                   value="{{ now()->subDays(30)->format('Y-m-d') }}" required>
+                                value="{{ now()->subDays(30)->format('Y-m-d') }}" required>
                             <small class="text-muted">Reports from this date onwards</small>
                         </div>
 
                         <div class="mb-3">
-                            <label for="end_date_pdf" class="form-label">End Date <span class="text-danger" id="end_required_pdf">*</span></label>
+                            <label for="end_date_pdf" class="form-label">End Date <span class="text-danger"
+                                    id="end_required_pdf">*</span></label>
                             <input type="date" class="form-control" id="end_date_pdf" name="end_date_pdf"
-                                   value="{{ now()->format('Y-m-d') }}" required>
+                                value="{{ now()->format('Y-m-d') }}" required>
                             <small class="text-muted">Reports up to this date</small>
                         </div>
 
@@ -363,7 +373,7 @@
                                 @else
                                     <option value="">All My Restaurants</option>
                                 @endhasrole
-                                @foreach($restaurants as $restaurant)
+                                @foreach ($restaurants as $restaurant)
                                     <option value="{{ $restaurant->id }}">{{ $restaurant->name }}</option>
                                 @endforeach
                             </select>
