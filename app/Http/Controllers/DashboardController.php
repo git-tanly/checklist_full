@@ -13,11 +13,11 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        
+
         $startDate = $request->input('start_date', now()->subDays(6)->format('Y-m-d'));
         $endDate = $request->input('end_date', now()->format('Y-m-d'));
         $restaurantFilter = $request->input('restaurant_id');
-        
+
         $today = now()->format('Y-m-d');
         $queryDraft = DailyReport::where('status', 'draft');
 
@@ -64,14 +64,15 @@ class DashboardController extends Controller
         $start = \Carbon\Carbon::parse($startDate);
         $end = \Carbon\Carbon::parse($endDate);
         $daysDiff = $start->diffInDays($end);
-        
+
         for ($i = 0; $i <= $daysDiff; $i++) {
             $date = $start->copy()->addDays($i)->format('Y-m-d');
             $chartData->put($date, 0);
         }
 
         // 2. Ambil Data dari Database (Otomatis terfilter Scope User/Resto)
-        $weeklyReportsQuery = DailyReport::whereBetween('date', [$startDate, $endDate]);
+        $weeklyReportsQuery = DailyReport::whereBetween('date', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+            ->where('status', 'approved');
         if ($restaurantFilter) {
             $weeklyReportsQuery->where('restaurant_id', $restaurantFilter);
         }
@@ -208,7 +209,8 @@ class DashboardController extends Controller
 
             // A. Hitung Actual Revenue untuk Resto ini di rentang tanggal
             $restoReports = DailyReport::where('restaurant_id', $resto->id)
-                ->whereBetween('date', [$startDate, $endDate])
+                ->whereBetween('date', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+                ->where('status', 'approved')
                 ->with('details')
                 ->get();
 
@@ -241,15 +243,15 @@ class DashboardController extends Controller
         // ---------------------------------------------------------
         $mtdStart = now()->startOfMonth()->format('Y-m-d');
         $mtdEnd = now()->format('Y-m-d');
-        
+
         $mtdQuery = DailyReport::whereBetween('date', [$mtdStart, $mtdEnd]);
-        
+
         if ($restaurantFilter) {
             $mtdQuery->where('restaurant_id', $restaurantFilter);
         } elseif (!$user->hasRole('Super Admin')) {
             $mtdQuery->whereIn('restaurant_id', $user->restaurants->pluck('id'));
         }
-        
+
         $mtdReports = $mtdQuery->with('details')->get();
 
         $mtdFoodRevenue = 0;
@@ -297,7 +299,7 @@ class DashboardController extends Controller
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();
-        
+
         $allRestaurants = collect();
         if ($user->hasRole('Super Admin')) {
             $allRestaurants = Restaurant::orderBy('name')->get();
@@ -440,7 +442,8 @@ class DashboardController extends Controller
 
         // 3. Query Data (Semua Report)
         $reports = DailyReport::where('restaurant_id', $restaurant->id)
-            ->whereBetween('date', [$startDate, $endDate])
+            ->where('status', 'approved') // Wajib Approved
+            ->whereBetween('date', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
             ->with('details')
             ->get();
 

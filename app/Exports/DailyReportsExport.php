@@ -40,7 +40,7 @@ class DailyReportsExport
 
         // Only add date filter if NOT exporting all dates
         if (!$this->exportAllDates && $this->startDate && $this->endDate) {
-            $query->whereBetween('date', [$this->startDate, $this->endDate]);
+            $query->whereBetween('date', [$this->startDate . ' 00:00:00', $this->endDate . ' 23:59:59']);
         }
 
         if ($this->restaurantIds) {

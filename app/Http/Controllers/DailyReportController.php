@@ -159,7 +159,7 @@ class DailyReportController extends Controller
     public function edit(DailyReport $dailyReport)
     {
         $canEdit = $dailyReport->status === 'draft' || ($dailyReport->status === 'approved' && Auth::user()->hasRole('Super Admin'));
-        
+
         if (!$canEdit) {
             return redirect()->route('daily-reports.index')
                 ->with('error', 'Laporan yang sudah disubmit atau diapprove tidak dapat diedit (kecuali oleh Super Admin).');
@@ -452,5 +452,66 @@ class DailyReportController extends Controller
         } catch (\Exception $e) {
             return back()->with('error', 'Export failed: ' . $e->getMessage());
         }
+    }
+
+    public function exportPdfBulk(Request $request)
+    {
+        $exportAllDates = $request->has('export_all_dates_pdf');
+
+        $rules = [
+            'restaurant_id' => 'nullable|exists:restaurants,id',
+        ];
+
+        if (!$exportAllDates) {
+            $rules['start_date_pdf'] = 'required|date';
+            $rules['end_date_pdf'] = 'required|date|after_or_equal:start_date_pdf';
+        }
+
+        $request->validate($rules);
+
+        $user = Auth::user();
+        $restaurantId = $request->restaurant_id;
+
+        $query = DailyReport::with(['restaurant', 'user', 'details', 'approver'])
+            ->where('status', 'approved')
+            ->orderBy('date', 'desc')
+            ->orderBy('restaurant_id', 'asc');
+
+        if (!$exportAllDates && $request->start_date_pdf && $request->end_date_pdf) {
+            $query->whereBetween('date', [$request->start_date_pdf . ' 00:00:00', $request->end_date_pdf . ' 23:59:59']);
+        }
+
+        if ($user->hasRole('Super Admin')) {
+            if ($restaurantId) {
+                $query->where('restaurant_id', $restaurantId);
+            }
+        } else {
+            $userRestaurantIds = $user->restaurants->pluck('id')->toArray();
+            if ($restaurantId) {
+                if (!in_array($restaurantId, $userRestaurantIds)) {
+                    abort(403, 'Unauthorized: You do not have access to this restaurant.');
+                }
+                $query->where('restaurant_id', $restaurantId);
+            } else {
+                $query->whereIn('restaurant_id', $userRestaurantIds);
+            }
+        }
+
+        $reports = $query->get();
+
+        if ($reports->isEmpty()) {
+            return back()->with('error', 'Tidak ada data laporan (Approved) pada rentang tanggal dan outlet tersebut.');
+        }
+
+        $pdf = Pdf::loadView('daily-reports.pdf-bulk', compact('reports'));
+        $pdf->setPaper('a4', 'portrait');
+
+        if ($exportAllDates) {
+            $filename = 'Bulk_Report_All_Dates_' . date('Y-m-d_His') . '.pdf';
+        } else {
+            $filename = 'Bulk_Report_' . $request->start_date_pdf . '_to_' . $request->end_date_pdf . '.pdf';
+        }
+
+        return $pdf->download($filename);
     }
 }
