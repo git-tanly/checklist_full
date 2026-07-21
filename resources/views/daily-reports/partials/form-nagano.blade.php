@@ -23,6 +23,11 @@
     $lcTeppanValue = is_array($lcTeppanData) ? json_encode($lcTeppanData) : $lcTeppanData;
     $dnTeppanData = old('session.dinner.additional_data.revenue_teppan_items', $dn->additional_data['revenue_teppan_items'] ?? []);
     $dnTeppanValue = is_array($dnTeppanData) ? json_encode($dnTeppanData) : $dnTeppanData;
+
+    $lcSetMenuData = old('session.lunch.additional_data.setmenu_items', $lc->additional_data['setmenu_items'] ?? []);
+    $lcSetMenuValue = is_array($lcSetMenuData) ? json_encode($lcSetMenuData) : $lcSetMenuData;
+    $dnSetMenuData = old('session.dinner.additional_data.setmenu_items', $dn->additional_data['setmenu_items'] ?? []);
+    $dnSetMenuValue = is_array($dnSetMenuData) ? json_encode($dnSetMenuData) : $dnSetMenuData;
 @endphp
 
 {{-- ============================================================ --}}
@@ -102,6 +107,7 @@
                         <option value="Wedding Party">Wedding Party</option>
                         <option value="Birthday Party">Birthday Party</option>
                         <option value="Social Event">Social Event</option>
+                        <option value="Corporate Event">Corporate Event</option>
                     </select>
                     <input type="text" class="form-control form-control-sm" id="occasion-name-lunch-NJR"
                         placeholder="Name (e.g. Mr. Budi)">
@@ -145,8 +151,46 @@
 
         <hr>
 
-        {{-- 4. REVENUE REPORT --}}
-        <h6 class="fw-bold text-muted mt-3">4. Revenue Report (IDR)</h6>
+        {{-- 4. SET MENU --}}
+        <h6 class="fw-bold text-muted mt-3">4. Set Menu</h6>
+        <div class="row g-3">
+            <div class="col-md-12">
+                <input type="hidden" id="input-setmenu-lunch-NJR" name="session[lunch][additional_data][setmenu_items]" value="{{ $lcSetMenuValue ?? '[]' }}">
+                <div class="input-group mb-2">
+                    <select class="form-select form-select-sm" id="setmenu-type-lunch-NJR">
+                        <option value="" selected>Select Set Menu...</option>
+                        <option value="NOZAWA SET">NOZAWA SET</option>
+                        <option value="NAGANO PREMIUM">NAGANO PREMIUM</option>
+                        <option value="Add On Japanese Set">Add On Japanese Set</option>
+                        <option value="MATSUMOTO SET">MATSUMOTO SET</option>
+                        <option value="NAGANO SALAD">NAGANO SALAD</option>
+                        <option value="NIGATA SET">NIGATA SET</option>
+                        <option value="SHINANO SET">SHINANO SET</option>
+                        <option value="AYCE GOCHISO YAKINIKU">AYCE GOCHISO YAKINIKU</option>
+                        <option value="Add On Wagyu Superior Set">Add On Wagyu Superior Set</option>
+                        <option value="Nagano Superior Course Ebi Set">Nagano Superior Course Ebi Set</option>
+                        <option value="Japanese Superior Set Course">Japanese Superior Set Course</option>
+                        <option value="Nagano Ocean Course Prawn Set">Nagano Ocean Course Prawn Set</option>
+                        <option value="Nagano Superior Course Lobster Set">Nagano Superior Course Lobster Set</option>
+                        <option value="Nagano Ocean Course Lobster Set">Nagano Ocean Course Lobster Set</option>
+                        <option value="Nagano Superior Course Hotate Set">Nagano Superior Course Hotate Set</option>
+                    </select>
+                    <input type="number" class="form-control form-control-sm" id="setmenu-pax-lunch-NJR"
+                        placeholder="Pax" style="max-width: 80px;">
+                    <input type="text" class="form-control form-control-sm rupiah" id="setmenu-revenue-lunch-NJR"
+                        placeholder="Revenue" style="max-width: 120px;" autocomplete="off">
+                    <button class="btn btn-sm btn-dark" type="button" onclick="addSetMenuItem('lunch', 'NJR')">
+                        <i class="ti ti-plus"></i> Add
+                    </button>
+                </div>
+                <ul class="list-group small" id="list-setmenu-lunch-NJR"></ul>
+            </div>
+        </div>
+
+        <hr>
+
+        {{-- 5. REVENUE REPORT --}}
+        <h6 class="fw-bold text-muted mt-3">5. Revenue Report (IDR)</h6>
         <div class="row g-3">
             <div class="col-md-3">
                 <label class="form-label small">Food Revenue</label>
@@ -176,20 +220,20 @@
         <div class="row g-3 mt-2">
             <div class="col-md-4">
                 <label class="form-label small fw-bold">Revenue Teppan</label>
-                <input type="hidden" id="input-teppan-dinner-NJR" name="session[dinner][additional_data][revenue_teppan_items]" value="{{ $dnTeppanValue ?? '[]' }}">
+                <input type="hidden" id="input-teppan-lunch-NJR" name="session[lunch][additional_data][revenue_teppan_items]" value="{{ $lcTeppanValue ?? '[]' }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="teppan-floor-dinner-NJR" style="max-width: 100px;">
+                    <select class="form-select form-select-sm" id="teppan-floor-lunch-NJR" style="max-width: 100px;">
                         <option value="">Floor</option>
                         <option value="Lt 5">Lt 5</option>
                         <option value="Lt 6">Lt 6</option>
                     </select>
-                    <input type="text" class="form-control form-control-sm rupiah" id="teppan-revenue-dinner-NJR"
+                    <input type="text" class="form-control form-control-sm rupiah" id="teppan-revenue-lunch-NJR"
                         placeholder="Revenue" style="max-width: 120px;" autocomplete="off">
-                    <button class="btn btn-sm btn-dark" type="button" onclick="addTeppanItem('dinner', 'NJR')">
+                    <button class="btn btn-sm btn-dark" type="button" onclick="addTeppanItem('lunch', 'NJR')">
                         <i class="ti ti-plus"></i> Add
                     </button>
                 </div>
-                <ul class="list-group small" id="list-teppan-dinner-NJR"></ul>
+                <ul class="list-group small" id="list-teppan-lunch-NJR"></ul>
             </div>
             <div class="col-md-4">
                 <label class="form-label small fw-bold">Revenue Yakiniku</label>
@@ -208,7 +252,7 @@
         <hr>
 
         {{-- 5. UPSELLING & REMARKS --}}
-        <h6 class="fw-bold text-muted mt-3">5. Upselling & Remarks</h6>
+        <h6 class="fw-bold text-muted mt-3">6. Upselling & Remarks</h6>
         <div class="row g-3">
             <div class="col-md-6">
                 <label class="form-label small fw-bold">Upselling Menu (Food)</label>
@@ -216,12 +260,7 @@
                 <input type="hidden" id="input-lunch-food-NJR" name="session[lunch][upselling_data][food]"
                     value="{{ is_array($lcFoodVal) ? json_encode($lcFoodVal) : $lcFoodVal }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-lunch-food-NJR">
-                        <option value="" selected>Select Food...</option>
-                        @foreach ($foods as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                        @endforeach
-                    </select>
+                    <input type="text" class="form-control form-control-sm" id="select-lunch-food-NJR" placeholder="Enter food name...">
                     <input type="number" class="form-control form-control-sm" id="pax-lunch-food-NJR"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"
@@ -274,7 +313,7 @@
         <hr>
 
         {{-- 6. COMPETITOR --}}
-        <h6 class="fw-bold text-muted mt-3">6. Competitor Comparison</h6>
+        <h6 class="fw-bold text-muted mt-3">7. Competitor Comparison</h6>
         <div class="row g-3">
             <div class="col-md-4">
                 <label class="form-label small">Shangri-La</label>
@@ -372,6 +411,7 @@
                         <option value="Wedding Party">Wedding Party</option>
                         <option value="Birthday Party">Birthday Party</option>
                         <option value="Social Event">Social Event</option>
+                        <option value="Corporate Event">Corporate Event</option>
                     </select>
                     <input type="text" class="form-control form-control-sm" id="occasion-name-dinner-NJR"
                         placeholder="Name (e.g. Mr. Budi)">
@@ -415,8 +455,46 @@
 
         <hr>
 
-        {{-- 4. REVENUE REPORT --}}
-        <h6 class="fw-bold text-muted mt-3">4. Revenue Report (IDR)</h6>
+        {{-- 4. SET MENU --}}
+        <h6 class="fw-bold text-muted mt-3">4. Set Menu</h6>
+        <div class="row g-3">
+            <div class="col-md-12">
+                <input type="hidden" id="input-setmenu-dinner-NJR" name="session[dinner][additional_data][setmenu_items]" value="{{ $dnSetMenuValue ?? '[]' }}">
+                <div class="input-group mb-2">
+                    <select class="form-select form-select-sm" id="setmenu-type-dinner-NJR">
+                        <option value="" selected>Select Set Menu...</option>
+                        <option value="NOZAWA SET">NOZAWA SET</option>
+                        <option value="NAGANO PREMIUM">NAGANO PREMIUM</option>
+                        <option value="Add On Japanese Set">Add On Japanese Set</option>
+                        <option value="MATSUMOTO SET">MATSUMOTO SET</option>
+                        <option value="NAGANO SALAD">NAGANO SALAD</option>
+                        <option value="NIGATA SET">NIGATA SET</option>
+                        <option value="SHINANO SET">SHINANO SET</option>
+                        <option value="AYCE GOCHISO YAKINIKU">AYCE GOCHISO YAKINIKU</option>
+                        <option value="Add On Wagyu Superior Set">Add On Wagyu Superior Set</option>
+                        <option value="Nagano Superior Course Ebi Set">Nagano Superior Course Ebi Set</option>
+                        <option value="Japanese Superior Set Course">Japanese Superior Set Course</option>
+                        <option value="Nagano Ocean Course Prawn Set">Nagano Ocean Course Prawn Set</option>
+                        <option value="Nagano Superior Course Lobster Set">Nagano Superior Course Lobster Set</option>
+                        <option value="Nagano Ocean Course Lobster Set">Nagano Ocean Course Lobster Set</option>
+                        <option value="Nagano Superior Course Hotate Set">Nagano Superior Course Hotate Set</option>
+                    </select>
+                    <input type="number" class="form-control form-control-sm" id="setmenu-pax-dinner-NJR"
+                        placeholder="Pax" style="max-width: 80px;">
+                    <input type="text" class="form-control form-control-sm rupiah" id="setmenu-revenue-dinner-NJR"
+                        placeholder="Revenue" style="max-width: 120px;" autocomplete="off">
+                    <button class="btn btn-sm btn-dark" type="button" onclick="addSetMenuItem('dinner', 'NJR')">
+                        <i class="ti ti-plus"></i> Add
+                    </button>
+                </div>
+                <ul class="list-group small" id="list-setmenu-dinner-NJR"></ul>
+            </div>
+        </div>
+
+        <hr>
+
+        {{-- 5. REVENUE REPORT --}}
+        <h6 class="fw-bold text-muted mt-3">5. Revenue Report (IDR)</h6>
         <div class="row g-3">
             <div class="col-md-3">
                 <label class="form-label small">Food Revenue</label>
@@ -446,20 +524,20 @@
         <div class="row g-3 mt-2">
             <div class="col-md-4">
                 <label class="form-label small fw-bold">Revenue Teppan</label>
-                <input type="hidden" id="input-teppan-lunch-NJR" name="session[lunch][additional_data][revenue_teppan_items]" value="{{ $lcTeppanValue ?? '[]' }}">
+                <input type="hidden" id="input-teppan-dinner-NJR" name="session[dinner][additional_data][revenue_teppan_items]" value="{{ $dnTeppanValue ?? '[]' }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="teppan-floor-lunch-NJR" style="max-width: 100px;">
+                    <select class="form-select form-select-sm" id="teppan-floor-dinner-NJR" style="max-width: 100px;">
                         <option value="">Floor</option>
                         <option value="Lt 5">Lt 5</option>
                         <option value="Lt 6">Lt 6</option>
                     </select>
-                    <input type="text" class="form-control form-control-sm rupiah" id="teppan-revenue-lunch-NJR"
+                    <input type="text" class="form-control form-control-sm rupiah" id="teppan-revenue-dinner-NJR"
                         placeholder="Revenue" style="max-width: 120px;" autocomplete="off">
-                    <button class="btn btn-sm btn-dark" type="button" onclick="addTeppanItem('lunch', 'NJR')">
+                    <button class="btn btn-sm btn-dark" type="button" onclick="addTeppanItem('dinner', 'NJR')">
                         <i class="ti ti-plus"></i> Add
                     </button>
                 </div>
-                <ul class="list-group small" id="list-teppan-lunch-NJR"></ul>
+                <ul class="list-group small" id="list-teppan-dinner-NJR"></ul>
             </div>
             <div class="col-md-4">
                 <label class="form-label small fw-bold">Revenue Yakiniku</label>
@@ -478,7 +556,7 @@
         <hr>
 
         {{-- 5. UPSELLING & REMARKS --}}
-        <h6 class="fw-bold text-muted mt-3">5. Upselling & Remarks</h6>
+        <h6 class="fw-bold text-muted mt-3">6. Upselling & Remarks</h6>
         <div class="row g-3">
             <div class="col-md-6">
                 <label class="form-label small fw-bold">Upselling Menu (Food)</label>
@@ -486,12 +564,7 @@
                 <input type="hidden" id="input-dinner-food-NJR" name="session[dinner][upselling_data][food]"
                     value="{{ is_array($dnFoodVal) ? json_encode($dnFoodVal) : $dnFoodVal }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-dinner-food-NJR">
-                        <option value="" selected>Select Food...</option>
-                        @foreach ($foods as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                        @endforeach
-                    </select>
+                    <input type="text" class="form-control form-control-sm" id="select-dinner-food-NJR" placeholder="Enter food name...">
                     <input type="number" class="form-control form-control-sm" id="pax-dinner-food-NJR"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"
@@ -544,7 +617,7 @@
         <hr>
 
         {{-- 6. COMPETITOR --}}
-        <h6 class="fw-bold text-muted mt-3">6. Competitor Comparison</h6>
+        <h6 class="fw-bold text-muted mt-3">7. Competitor Comparison</h6>
         <div class="row g-3">
             <div class="col-md-4">
                 <label class="form-label small">Shangri-La</label>
@@ -569,7 +642,8 @@
 {{-- SCRIPT INITIALIZATION --}}
 {{-- ============================================================ --}}
 <script>
-    let teppanState = {};
+    var teppanState = window.teppanState || {};
+    var setmenuState = window.setmenuState || {};
 
     window.initTeppanItems = function(session, initialData, code) {
         const key = session + '_' + code;
@@ -633,6 +707,74 @@
         listEl.innerHTML = html;
     }
 
+    window.initSetMenuItems = function(session, initialData, code) {
+        const key = session + '_' + code;
+        let safeData = [];
+        if (initialData) {
+            if (Array.isArray(initialData)) safeData = initialData;
+            else if (typeof initialData === 'object') safeData = Object.values(initialData);
+            else if (typeof initialData === 'string') try { safeData = JSON.parse(initialData); } catch (e) {}
+        }
+        setmenuState[key] = safeData;
+        const hiddenInput = document.getElementById('input-setmenu-' + session + '-' + code);
+        if (hiddenInput) hiddenInput.value = JSON.stringify(safeData);
+        renderSetMenuList(document.getElementById('list-setmenu-' + session + '-' + code), safeData, session, code);
+    };
+
+    window.addSetMenuItem = function(session, code) {
+        const typeEl = document.getElementById('setmenu-type-' + session + '-' + code);
+        const paxEl = document.getElementById('setmenu-pax-' + session + '-' + code);
+        const revEl = document.getElementById('setmenu-revenue-' + session + '-' + code);
+        const type = typeEl.value;
+        const pax = paxEl.value.trim();
+        let revenue = revEl.value.replace(/\./g, '').trim();
+
+        if (!type) { alert('Please select a set menu type.'); return; }
+        if (!pax || parseInt(pax) <= 0) { alert('Please enter valid pax.'); return; }
+
+        const key = session + '_' + code;
+        if (!setmenuState[key]) setmenuState[key] = [];
+        setmenuState[key].push({
+            type: type,
+            pax: parseInt(pax),
+            revenue: revenue ? parseInt(revenue) : 0
+        });
+
+        typeEl.value = '';
+        paxEl.value = '';
+        revEl.value = '';
+        typeEl.focus();
+
+        const hiddenInput = document.getElementById('input-setmenu-' + session + '-' + code);
+        if (hiddenInput) hiddenInput.value = JSON.stringify(setmenuState[key]);
+        renderSetMenuList(document.getElementById('list-setmenu-' + session + '-' + code), setmenuState[key], session, code);
+    };
+
+    window.removeSetMenuItem = function(session, code, index) {
+        const key = session + '_' + code;
+        setmenuState[key].splice(index, 1);
+        const hiddenInput = document.getElementById('input-setmenu-' + session + '-' + code);
+        if (hiddenInput) hiddenInput.value = JSON.stringify(setmenuState[key]);
+        renderSetMenuList(document.getElementById('list-setmenu-' + session + '-' + code), setmenuState[key], session, code);
+    };
+
+    function renderSetMenuList(listEl, items, session, code) {
+        if (!listEl) return;
+        if (!items || items.length === 0) { listEl.innerHTML = ''; return; }
+        let html = '';
+        items.forEach(function(item, index) {
+            const rev = item.revenue ? 'Rp ' + Number(item.revenue).toLocaleString('id-ID') : '';
+            html += '<li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">' +
+                '<span class="small"><span class="badge bg-secondary me-1">' + escapeHtml(item.type || '') + '</span>' +
+                ' <span class="badge bg-primary ms-1">' + (item.pax || 0) + ' pax</span>' +
+                (rev ? ' <span class="badge bg-success ms-1">' + rev + '</span>' : '') +
+                '</span>' +
+                '<button class="btn btn-sm btn-link text-danger p-0" onclick="removeSetMenuItem(\'' + session + '\', \'' + code + '\', ' + index + ')" title="Remove"><i class="ti ti-x"></i></button>' +
+                '</li>';
+        });
+        listEl.innerHTML = html;
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         // --- LUNCH INIT ---
         let lcFood = {!! json_encode(old('session.lunch.upselling_data.food', $lc->upselling_data['food'] ?? [])) !!};
@@ -647,6 +789,8 @@
         initPromoItems('lunch', lcPromo, 'NJR');
         let lcTeppan = {!! json_encode(old('session.lunch.additional_data.revenue_teppan_items', $lc->additional_data['revenue_teppan_items'] ?? [])) !!};
         initTeppanItems('lunch', lcTeppan, 'NJR');
+        let lcSetMenu = {!! json_encode(old('session.lunch.additional_data.setmenu_items', $lc->additional_data['setmenu_items'] ?? [])) !!};
+        initSetMenuItems('lunch', lcSetMenu, 'NJR');
 
         // --- DINNER INIT ---
         let dnFood = {!! json_encode(old('session.dinner.upselling_data.food', $dn->upselling_data['food'] ?? [])) !!};
@@ -661,5 +805,7 @@
         initPromoItems('dinner', dnPromo, 'NJR');
         let dnTeppan = {!! json_encode(old('session.dinner.additional_data.revenue_teppan_items', $dn->additional_data['revenue_teppan_items'] ?? [])) !!};
         initTeppanItems('dinner', dnTeppan, 'NJR');
+        let dnSetMenu = {!! json_encode(old('session.dinner.additional_data.setmenu_items', $dn->additional_data['setmenu_items'] ?? [])) !!};
+        initSetMenuItems('dinner', dnSetMenu, 'NJR');
     });
 </script>

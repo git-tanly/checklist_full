@@ -82,6 +82,7 @@
                         <option value="Wedding Party">Wedding Party</option>
                         <option value="Birthday Party">Birthday Party</option>
                         <option value="Social Event">Social Event</option>
+                        <option value="Corporate Event">Corporate Event</option>
                     </select>
                     <input type="text" class="form-control form-control-sm" id="occasion-name-lunch-VODA"
                         placeholder="Name (e.g. Mr. Budi)">
@@ -290,6 +291,7 @@
                         <option value="Wedding Party">Wedding Party</option>
                         <option value="Birthday Party">Birthday Party</option>
                         <option value="Social Event">Social Event</option>
+                        <option value="Corporate Event">Corporate Event</option>
                     </select>
                     <input type="text" class="form-control form-control-sm" id="occasion-name-dinner-VODA"
                         placeholder="Name (e.g. Mr. Budi)">
@@ -333,6 +335,32 @@
         <hr>
 
         <h6 class="fw-bold text-muted mt-3">4. Revenue Report (IDR)</h6>
+        <div class="row g-3">
+            <div class="col-md-3"><label class="small">Food</label><input type="text" class="form-control rupiah"
+                    name="session[dinner][revenue_food]"
+                    value="{{ old('session.dinner.revenue_food', isset($dn->revenue_food) ? number_format($dn->revenue_food, 0, ',', '.') : '') }}"
+                    placeholder="0" autocomplete="off">
+            </div>
+            <div class="col-md-3"><label class="small">Beverage</label><input type="text"
+                    class="form-control rupiah" name="session[dinner][revenue_beverage]"
+                    value="{{ old('session.dinner.revenue_beverage', isset($dn->revenue_beverage) ? number_format($dn->revenue_beverage, 0, ',', '.') : '') }}"
+                    placeholder="0" autocomplete="off">
+            </div>
+            <div class="col-md-3"><label class="small">Others</label><input type="text" class="form-control rupiah"
+                    name="session[dinner][revenue_others]"
+                    value="{{ old('session.dinner.revenue_others', isset($dn->revenue_others) ? number_format($dn->revenue_others, 0, ',', '.') : '') }}"
+                    placeholder="0" autocomplete="off">
+            </div>
+            <div class="col-md-3"><label class="small">Event</label><input type="text" class="form-control rupiah"
+                    name="session[dinner][revenue_event]"
+                    value="{{ old('session.dinner.revenue_event', isset($dn->revenue_event) ? number_format($dn->revenue_event, 0, ',', '.') : '') }}"
+                    placeholder="0" autocomplete="off">
+            </div>
+        </div>
+
+        <hr>
+
+        <h6 class="fw-bold text-muted mt-3">5. Upselling & Remarks</h6>
         <div class="row g-3">
             {{-- Food --}}
             <div class="col-md-6">

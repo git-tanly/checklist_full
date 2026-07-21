@@ -178,6 +178,11 @@
 
                         {{-- SET MENU SECTION --}}
                         @php
+                            $setMenuItems = $data->additional_data['setmenu_items'] ?? [];
+                            if (is_string($setMenuItems)) {
+                                $setMenuItems = json_decode($setMenuItems, true) ?? [];
+                            }
+
                             $setMenuFields = [
                                 'set_menu_family_8000' => 'Family 8000',
                                 'set_menu_family_5000' => 'Family 5000',
@@ -187,30 +192,55 @@
                                 'set_menu_988' => 'Set Menu 988',
                                 'set_menu_1188' => 'Set Menu 1188',
                             ];
-                            $hasSetMenu = false;
+                            $hasOldSetMenu = false;
                             foreach (array_keys($setMenuFields) as $key) {
                                 if (!empty($data->additional_data[$key])) {
-                                    $hasSetMenu = true;
+                                    $hasOldSetMenu = true;
                                     break;
                                 }
                             }
+                            $hasNewSetMenu = !empty($setMenuItems) && is_array($setMenuItems) && count($setMenuItems) > 0;
                         @endphp
-                        @if ($hasSetMenu)
+                        @if ($hasNewSetMenu || $hasOldSetMenu)
                             <h6 class="text-muted text-uppercase small fw-bold mt-4">Set Menu</h6>
-                            <div class="row g-2">
-                                @foreach ($setMenuFields as $key => $label)
-                                    @if (!empty($data->additional_data[$key]))
-                                        <div class="col-md-4 col-6">
-                                            <div class="p-2 border rounded bg-light">
-                                                <small class="d-block text-muted text-uppercase" style="font-size: 10px;">
-                                                    {{ $label }}
-                                                </small>
-                                                <span class="fw-bold">{{ $data->additional_data[$key] }} pax</span>
+                            @if ($hasNewSetMenu)
+                                <div class="table-responsive mb-3">
+                                    <table class="table table-sm table-bordered mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Type</th>
+                                                <th class="text-end">Pax</th>
+                                                <th class="text-end">Revenue</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($setMenuItems as $item)
+                                                <tr>
+                                                    <td><span class="badge bg-secondary">{{ $item['type'] ?? '-' }}</span></td>
+                                                    <td class="text-end">{{ number_format($item['pax'] ?? 0) }}</td>
+                                                    <td class="text-end">Rp {{ number_format($item['revenue'] ?? 0, 0, ',', '.') }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @endif
+                            @if ($hasOldSetMenu)
+                                <div class="row g-2">
+                                    @foreach ($setMenuFields as $key => $label)
+                                        @if (!empty($data->additional_data[$key]))
+                                            <div class="col-md-4 col-6">
+                                                <div class="p-2 border rounded bg-light">
+                                                    <small class="d-block text-muted text-uppercase" style="font-size: 10px;">
+                                                        {{ $label }}
+                                                    </small>
+                                                    <span class="fw-bold">{{ $data->additional_data[$key] }} pax</span>
+                                                </div>
                                             </div>
-                                        </div>
-                                    @endif
-                                @endforeach
-                            </div>
+                                        @endif
+                                    @endforeach
+                                </div>
+                            @endif
                         @endif
 
                         {{-- ALA CARTE SECTION --}}

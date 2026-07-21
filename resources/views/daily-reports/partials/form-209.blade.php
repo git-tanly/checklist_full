@@ -119,6 +119,7 @@
                         <option value="Wedding Party">Wedding Party</option>
                         <option value="Birthday Party">Birthday Party</option>
                         <option value="Social Event">Social Event</option>
+                        <option value="Corporate Event">Corporate Event</option>
                     </select>
                     <input type="text" class="form-control form-control-sm" id="occasion-name-breakfast-209"
                         placeholder="Name (e.g. Mr. Budi)">
@@ -401,6 +402,7 @@
                         <option value="Wedding Party">Wedding Party</option>
                         <option value="Birthday Party">Birthday Party</option>
                         <option value="Social Event">Social Event</option>
+                        <option value="Corporate Event">Corporate Event</option>
                     </select>
                     <input type="text" class="form-control form-control-sm" id="occasion-name-lunch-209"
                         placeholder="Name (e.g. Mr. Budi)">
@@ -672,6 +674,7 @@
                         <option value="Wedding Party">Wedding Party</option>
                         <option value="Birthday Party">Birthday Party</option>
                         <option value="Social Event">Social Event</option>
+                        <option value="Corporate Event">Corporate Event</option>
                     </select>
                     <input type="text" class="form-control form-control-sm" id="occasion-name-dinner-209"
                         placeholder="Name (e.g. Mr. Budi)">

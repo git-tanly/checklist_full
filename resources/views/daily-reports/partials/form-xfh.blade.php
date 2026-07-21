@@ -31,6 +31,14 @@
     $lcPromoValue = is_array($lcPromoData) ? json_encode($lcPromoData) : $lcPromoData;
     $dnPromoData = old('session.dinner.additional_data.promo_items', $dn->additional_data['promo_items'] ?? []);
     $dnPromoValue = is_array($dnPromoData) ? json_encode($dnPromoData) : $dnPromoData;
+
+    // E. Set Menu Items (Dynamic Repeater)
+    $bfSetMenuData = old('session.breakfast.additional_data.setmenu_items', $bf->additional_data['setmenu_items'] ?? []);
+    $bfSetMenuValue = is_array($bfSetMenuData) ? json_encode($bfSetMenuData) : $bfSetMenuData;
+    $lcSetMenuData = old('session.lunch.additional_data.setmenu_items', $lc->additional_data['setmenu_items'] ?? []);
+    $lcSetMenuValue = is_array($lcSetMenuData) ? json_encode($lcSetMenuData) : $lcSetMenuData;
+    $dnSetMenuData = old('session.dinner.additional_data.setmenu_items', $dn->additional_data['setmenu_items'] ?? []);
+    $dnSetMenuValue = is_array($dnSetMenuData) ? json_encode($dnSetMenuData) : $dnSetMenuData;
 @endphp
 
 {{-- ============================================================ --}}
@@ -103,6 +111,7 @@
                         <option value="Wedding Party">Wedding Party</option>
                         <option value="Birthday Party">Birthday Party</option>
                         <option value="Social Event">Social Event</option>
+                        <option value="Corporate Event">Corporate Event</option>
                     </select>
                     <input type="text" class="form-control form-control-sm" id="occasion-name-breakfast-XFH"
                         placeholder="Name (e.g. Mr. Budi)">
@@ -146,58 +155,73 @@
 
         <hr>
 
-        {{-- 4. REVENUE REPORT --}}
-        <h6 class="fw-bold text-muted mt-3">4. Revenue Report (IDR)</h6>
+        <h6 class="fw-bold text-muted mt-3">4. Set Menu &amp; AYCE</h6>
         <div class="row g-3">
-            <div class="col-md-3">
-                <label class="form-label small">Food Revenue</label>
-                <input type="text" class="form-control rupiah" name="session[breakfast][revenue_food]"
-                    value="{{ old('session.breakfast.revenue_food', isset($bf->revenue_food) ? number_format($bf->revenue_food, 0, ',', '.') : '') }}"
-                    placeholder="0" autocomplete="off">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label small">Beverage Revenue</label>
-                <input type="text" class="form-control rupiah" name="session[breakfast][revenue_beverage]"
-                    value="{{ old('session.breakfast.revenue_beverage', isset($bf->revenue_beverage) ? number_format($bf->revenue_beverage, 0, ',', '.') : '') }}"
-                    placeholder="0" autocomplete="off">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label small">Others Revenue</label>
-                <input type="text" class="form-control rupiah" name="session[breakfast][revenue_others]"
-                    value="{{ old('session.breakfast.revenue_others', isset($bf->revenue_others) ? number_format($bf->revenue_others, 0, ',', '.') : '') }}"
-                    placeholder="0" autocomplete="off">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label small">Total Event Revenue</label>
-                <input type="text" class="form-control rupiah" name="session[breakfast][revenue_event]"
-                    value="{{ old('session.breakfast.revenue_event', isset($bf->revenue_event) ? number_format($bf->revenue_event, 0, ',', '.') : '') }}"
-                    placeholder="0" autocomplete="off">
+            <div class="col-md-12">
+                <input type="hidden" id="input-setmenu-breakfast-XFH" name="session[breakfast][additional_data][setmenu_items]" value="{{ $bfSetMenuValue ?? '[]' }}">
+                <div class="input-group mb-2">
+                    <select class="form-select form-select-sm" id="setmenu-type-breakfast-XFH" >
+                        <option value="" selected>Select Set Menu / AYCE...</option>
+                        <option value="Set Menu Family 8000">Set Menu Family 8000</option>
+                        <option value="Set Menu Family 5000">Set Menu Family 5000</option>
+                        <option value="Set Menu Family 6000">Set Menu Family 6000</option>
+                        <option value="AYCE Dimsum">AYCE Dimsum</option>
+                        <option value="SET MENU 788">SET MENU 788</option>
+                        <option value="SET MENU 988">SET MENU 988</option>
+                        <option value="SET MENU 1188">SET MENU 1188</option>
+                    </select>
+                    <input type="number" class="form-control form-control-sm" id="setmenu-pax-breakfast-XFH"
+                        placeholder="Pax" style="max-width: 80px;">
+                    <input type="text" class="form-control form-control-sm rupiah" id="setmenu-revenue-breakfast-XFH"
+                        placeholder="Revenue" style="max-width: 120px;" autocomplete="off">
+                    <button class="btn btn-sm btn-dark" type="button" onclick="addSetMenuItem('breakfast', 'XFH')">
+                        <i class="ti ti-plus"></i> Add
+                    </button>
+                </div>
+                <ul class="list-group small" id="list-setmenu-breakfast-XFH"></ul>
             </div>
         </div>
 
         <hr>
 
-        {{-- 5. UPSELLING & REMARKS --}}
-        <h6 class="fw-bold text-muted mt-3">5. Upselling & Remarks</h6>
+        {{-- 5. REVENUE REPORT --}}
+        <h6 class="fw-bold text-muted mt-3">5. Revenue Report (IDR)</h6>
         <div class="row g-3">
+            <div class="col-md-3"><label class="small">Food</label><input type="text"
+                    class="form-control rupiah" name="session[breakfast][revenue_food]"
+                    value="{{ old('session.breakfast.revenue_food', isset($bf->revenue_food) ? number_format($bf->revenue_food, 0, ',', '.') : '') }}"
+                    autocomplete="off" placeholder="0">
+            </div>
+            <div class="col-md-3"><label class="small">Beverage</label><input type="text"
+                    class="form-control rupiah" name="session[breakfast][revenue_beverage]"
+                    value="{{ old('session.breakfast.revenue_beverage', isset($bf->revenue_beverage) ? number_format($bf->revenue_beverage, 0, ',', '.') : '') }}"
+                    autocomplete="off" placeholder="0">
+            </div>
+            <div class="col-md-3"><label class="small">Others</label><input type="text"
+                    class="form-control rupiah" name="session[breakfast][revenue_others]"
+                    value="{{ old('session.breakfast.revenue_others', isset($bf->revenue_others) ? number_format($bf->revenue_others, 0, ',', '.') : '') }}"
+                    autocomplete="off" placeholder="0">
+            </div>
+            <div class="col-md-3"><label class="small">Event</label><input type="text"
+                    class="form-control rupiah" name="session[breakfast][revenue_event]"
+                    value="{{ old('session.breakfast.revenue_event', isset($bf->revenue_event) ? number_format($bf->revenue_event, 0, ',', '.') : '') }}"
+                    autocomplete="off" placeholder="0">
+            </div>
+        </div>
 
-            {{-- Food Upselling (XFH) --}}
+        <hr>
+
+        {{-- 6. UPSELLING & REMARKS --}}
+        <h6 class="fw-bold text-muted mt-3">6. Upselling & Remarks</h6>
+        <div class="row g-3">
+            {{-- Food --}}
             <div class="col-md-6">
                 <label class="form-label small fw-bold">Upselling Menu (Food)</label>
-                @php
-                    $bfFoodVal = old('session.breakfast.upselling_data.food', $bf->upselling_data['food'] ?? []);
-                    $bfFoodJson = is_array($bfFoodVal) ? json_encode($bfFoodVal) : $bfFoodVal;
-                @endphp
+                @php $bfFoodVal = old('session.breakfast.upselling_data.food', $bf->upselling_data['food'] ?? []); @endphp
                 <input type="hidden" id="input-breakfast-food-XFH" name="session[breakfast][upselling_data][food]"
-                    value="{{ $bfFoodJson }}">
-
+                    value="{{ is_array($bfFoodVal) ? json_encode($bfFoodVal) : $bfFoodVal }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-breakfast-food-XFH">
-                        <option value="" selected>Select Food...</option>
-                        @foreach ($foods as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                        @endforeach
-                    </select>
+                    <input type="text" class="form-control form-control-sm" id="select-breakfast-food-XFH" placeholder="Enter food name...">
                     <input type="number" class="form-control form-control-sm" id="pax-breakfast-food-XFH"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"
@@ -205,17 +229,12 @@
                 </div>
                 <ul class="list-group small" id="list-breakfast-food-XFH"></ul>
             </div>
-
-            {{-- Beverage Upselling (XFH) --}}
+            {{-- Bev --}}
             <div class="col-md-6">
                 <label class="form-label small fw-bold">Beverage Upselling</label>
-                @php
-                    $bfBevVal = old('session.breakfast.upselling_data.beverage', $bf->upselling_data['beverage'] ?? []);
-                    $bfBevJson = is_array($bfBevVal) ? json_encode($bfBevVal) : $bfBevVal;
-                @endphp
-                <input type="hidden" id="input-breakfast-beverage-XFH"
-                    name="session[breakfast][upselling_data][beverage]" value="{{ $bfBevJson }}">
-
+                @php $bfBevVal = old('session.breakfast.upselling_data.beverage', $bf->upselling_data['beverage'] ?? []); @endphp
+                <input type="hidden" id="input-breakfast-beverage-XFH" name="session[breakfast][upselling_data][beverage]"
+                    value="{{ is_array($bfBevVal) ? json_encode($bfBevVal) : $bfBevVal }}">
                 <div class="input-group mb-2">
                     <select class="form-select form-select-sm" id="select-breakfast-beverage-XFH">
                         <option value="" selected>Select Drink...</option>
@@ -226,28 +245,21 @@
                     <input type="number" class="form-control form-control-sm" id="pax-breakfast-beverage-XFH"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"
-                        onclick="addUpsellingItem('breakfast', 'beverage', 'XFH')"><i class="ti ti-plus"></i>
-                        Add</button>
+                        onclick="addUpsellingItem('breakfast', 'beverage', 'XFH')"><i class="ti ti-plus"></i> Add</button>
                 </div>
                 <ul class="list-group small" id="list-breakfast-beverage-XFH"></ul>
             </div>
-
             {{-- Remarks --}}
             <div class="col-md-12">
                 <label class="form-label small">General Remarks</label>
                 <textarea class="form-control" name="session[breakfast][remarks]">{{ old('session.breakfast.remarks', $bf->remarks ?? '') }}</textarea>
             </div>
-
-            {{-- Staff On Duty (XFH) --}}
+            {{-- Staff --}}
             <div class="col-md-12 mt-3">
                 <label class="form-label small fw-bold">Staff on Duty</label>
-                @php
-                    $bfStaffVal = old('session.breakfast.staff_on_duty', $bf->staff_on_duty ?? []);
-                    $bfStaffJson = is_array($bfStaffVal) ? json_encode($bfStaffVal) : $bfStaffVal;
-                @endphp
+                @php $bfStaffVal = old('session.breakfast.staff_on_duty', $bf->staff_on_duty ?? []); @endphp
                 <input type="hidden" id="input-staff-breakfast-XFH" name="session[breakfast][staff_on_duty]"
-                    value="{{ $bfStaffJson }}">
-
+                    value="{{ is_array($bfStaffVal) ? json_encode($bfStaffVal) : $bfStaffVal }}">
                 <div class="input-group mb-2">
                     <select class="form-select form-select-sm" id="select-staff-breakfast-XFH">
                         <option value="" selected>Select Staff...</option>
@@ -264,30 +276,24 @@
 
         <hr>
 
-        {{-- 6. COMPETITOR --}}
-        <h6 class="fw-bold text-muted mt-3">6. Competitor Comparison</h6>
+        {{-- 7. COMPETITOR --}}
+        <h6 class="fw-bold text-muted mt-3">7. Competitor Comparison</h6>
         <div class="row g-3">
-            <div class="col-md-4">
-                <label class="form-label small">Shangri-La</label>
-                <input type="number" class="form-control"
+            <div class="col-md-4"><label class="small">Shangri-La</label><input type="number" class="form-control"
                     name="session[breakfast][competitor_data][shangrila_cover]"
                     value="{{ old('session.breakfast.competitor_data.shangrila_cover', $bf->competitor_data['shangrila_cover'] ?? '') }}">
             </div>
-            <div class="col-md-4">
-                <label class="form-label small">JW Marriott</label>
-                <input type="number" class="form-control"
-                    name="session[breakfast][competitor_data][jw_marriott_cover]"
+            <div class="col-md-4"><label class="small">JW Marriott</label><input type="number"
+                    class="form-control" name="session[breakfast][competitor_data][jw_marriott_cover]"
                     value="{{ old('session.breakfast.competitor_data.jw_marriott_cover', $bf->competitor_data['jw_marriott_cover'] ?? '') }}">
             </div>
-            <div class="col-md-4">
-                <label class="form-label small">Sheraton</label>
-                <input type="number" class="form-control" name="session[breakfast][competitor_data][sheraton_cover]"
+            <div class="col-md-4"><label class="small">Sheraton</label><input type="number" class="form-control"
+                    name="session[breakfast][competitor_data][sheraton_cover]"
                     value="{{ old('session.breakfast.competitor_data.sheraton_cover', $bf->competitor_data['sheraton_cover'] ?? '') }}">
             </div>
         </div>
     </div>
 </div>
-
 {{-- ============================================================ --}}
 {{-- SESSION: LUNCH --}}
 {{-- ============================================================ --}}
@@ -310,7 +316,6 @@
                     value="{{ old('session.lunch.cover_data.in_house_child', $lc->cover_data['in_house_child'] ?? '') }}"
                     placeholder="0">
             </div>
-
             <div class="col-md-4"><label class="form-label small">Walk-In (Adult)</label><input type="number"
                     class="form-control" name="session[lunch][cover_data][walk_in_adult]"
                     value="{{ old('session.lunch.cover_data.walk_in_adult', $lc->cover_data['walk_in_adult'] ?? '') }}"
@@ -321,7 +326,6 @@
                     value="{{ old('session.lunch.cover_data.walk_in_child', $lc->cover_data['walk_in_child'] ?? '') }}"
                     placeholder="0">
             </div>
-
             <div class="col-md-4"><label class="form-label small">Event (Adult)</label><input type="number"
                     class="form-control" name="session[lunch][cover_data][event_adult]"
                     value="{{ old('session.lunch.cover_data.event_adult', $lc->cover_data['event_adult'] ?? '') }}"
@@ -336,6 +340,7 @@
 
         <hr>
 
+        {{-- 2. OCCASION / EVENT TYPE (Dynamic Repeater) --}}
         <h6 class="fw-bold text-muted mt-3">2. Occasion / Event Type</h6>
         <div class="row g-3">
             <div class="col-md-12">
@@ -346,6 +351,7 @@
                         <option value="Wedding Party">Wedding Party</option>
                         <option value="Birthday Party">Birthday Party</option>
                         <option value="Social Event">Social Event</option>
+                        <option value="Corporate Event">Corporate Event</option>
                     </select>
                     <input type="text" class="form-control form-control-sm" id="occasion-name-lunch-XFH"
                         placeholder="Name (e.g. Mr. Budi)">
@@ -363,6 +369,7 @@
 
         <hr>
 
+        {{-- 3. PROMO (Dynamic Repeater) --}}
         <h6 class="fw-bold text-muted mt-3">3. Promo</h6>
         <div class="row g-3">
             <div class="col-md-12">
@@ -388,7 +395,36 @@
 
         <hr>
 
-        <h6 class="fw-bold text-muted mt-3">4. Revenue Report (IDR)</h6>
+        <h6 class="fw-bold text-muted mt-3">4. Set Menu &amp; AYCE</h6>
+        <div class="row g-3">
+            <div class="col-md-12">
+                <input type="hidden" id="input-setmenu-lunch-XFH" name="session[lunch][additional_data][setmenu_items]" value="{{ $lcSetMenuValue ?? '[]' }}">
+                <div class="input-group mb-2">
+                    <select class="form-select form-select-sm" id="setmenu-type-lunch-XFH" >
+                        <option value="" selected>Select Set Menu / AYCE...</option>
+                        <option value="Set Menu Family 8000">Set Menu Family 8000</option>
+                        <option value="Set Menu Family 5000">Set Menu Family 5000</option>
+                        <option value="Set Menu Family 6000">Set Menu Family 6000</option>
+                        <option value="AYCE Dimsum">AYCE Dimsum</option>
+                        <option value="SET MENU 788">SET MENU 788</option>
+                        <option value="SET MENU 988">SET MENU 988</option>
+                        <option value="SET MENU 1188">SET MENU 1188</option>
+                    </select>
+                    <input type="number" class="form-control form-control-sm" id="setmenu-pax-lunch-XFH"
+                        placeholder="Pax" style="max-width: 80px;">
+                    <input type="text" class="form-control form-control-sm rupiah" id="setmenu-revenue-lunch-XFH"
+                        placeholder="Revenue" style="max-width: 120px;" autocomplete="off">
+                    <button class="btn btn-sm btn-dark" type="button" onclick="addSetMenuItem('lunch', 'XFH')">
+                        <i class="ti ti-plus"></i> Add
+                    </button>
+                </div>
+                <ul class="list-group small" id="list-setmenu-lunch-XFH"></ul>
+            </div>
+        </div>
+
+        <hr>
+
+        <h6 class="fw-bold text-muted mt-3">5. Revenue Report (IDR)</h6>
         <div class="row g-3">
             <div class="col-md-3"><label class="small">Food</label><input type="text"
                     class="form-control rupiah" name="session[lunch][revenue_food]"
@@ -414,8 +450,8 @@
 
         <hr>
 
-        {{-- 5. UPSELLING & REMARKS --}}
-        <h6 class="fw-bold text-muted mt-3">5. Upselling & Remarks</h6>
+        {{-- 6. UPSELLING & REMARKS --}}
+        <h6 class="fw-bold text-muted mt-3">6. Upselling & Remarks</h6>
         <div class="row g-3">
             {{-- Food --}}
             <div class="col-md-6">
@@ -424,12 +460,7 @@
                 <input type="hidden" id="input-lunch-food-XFH" name="session[lunch][upselling_data][food]"
                     value="{{ is_array($lcFoodVal) ? json_encode($lcFoodVal) : $lcFoodVal }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-lunch-food-XFH">
-                        <option value="" selected>Select Food...</option>
-                        @foreach ($foods as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                        @endforeach
-                    </select>
+                    <input type="text" class="form-control form-control-sm" id="select-lunch-food-XFH" placeholder="Enter food name...">
                     <input type="number" class="form-control form-control-sm" id="pax-lunch-food-XFH"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"
@@ -484,7 +515,8 @@
 
         <hr>
 
-        <h6 class="fw-bold text-muted mt-3">6. Competitor Comparison</h6>
+        {{-- 7. COMPETITOR --}}
+        <h6 class="fw-bold text-muted mt-3">7. Competitor Comparison</h6>
         <div class="row g-3">
             <div class="col-md-4"><label class="small">Shangri-La</label><input type="number" class="form-control"
                     name="session[lunch][competitor_data][shangrila_cover]"
@@ -557,6 +589,7 @@
                         <option value="Wedding Party">Wedding Party</option>
                         <option value="Birthday Party">Birthday Party</option>
                         <option value="Social Event">Social Event</option>
+                        <option value="Corporate Event">Corporate Event</option>
                     </select>
                     <input type="text" class="form-control form-control-sm" id="occasion-name-dinner-XFH"
                         placeholder="Name (e.g. Mr. Budi)">
@@ -599,7 +632,36 @@
 
         <hr>
 
-        <h6 class="fw-bold text-muted mt-3">4. Revenue Report (IDR)</h6>
+        <h6 class="fw-bold text-muted mt-3">4. Set Menu &amp; AYCE</h6>
+        <div class="row g-3">
+            <div class="col-md-12">
+                <input type="hidden" id="input-setmenu-dinner-XFH" name="session[dinner][additional_data][setmenu_items]" value="{{ $dnSetMenuValue ?? '[]' }}">
+                <div class="input-group mb-2">
+                    <select class="form-select form-select-sm" id="setmenu-type-dinner-XFH" >
+                        <option value="" selected>Select Set Menu / AYCE...</option>
+                        <option value="Set Menu Family 8000">Set Menu Family 8000</option>
+                        <option value="Set Menu Family 5000">Set Menu Family 5000</option>
+                        <option value="Set Menu Family 6000">Set Menu Family 6000</option>
+                        <option value="AYCE Dimsum">AYCE Dimsum</option>
+                        <option value="SET MENU 788">SET MENU 788</option>
+                        <option value="SET MENU 988">SET MENU 988</option>
+                        <option value="SET MENU 1188">SET MENU 1188</option>
+                    </select>
+                    <input type="number" class="form-control form-control-sm" id="setmenu-pax-dinner-XFH"
+                        placeholder="Pax" style="max-width: 80px;">
+                    <input type="text" class="form-control form-control-sm rupiah" id="setmenu-revenue-dinner-XFH"
+                        placeholder="Revenue" style="max-width: 120px;" autocomplete="off">
+                    <button class="btn btn-sm btn-dark" type="button" onclick="addSetMenuItem('dinner', 'XFH')">
+                        <i class="ti ti-plus"></i> Add
+                    </button>
+                </div>
+                <ul class="list-group small" id="list-setmenu-dinner-XFH"></ul>
+            </div>
+        </div>
+
+        <hr>
+
+        <h6 class="fw-bold text-muted mt-3">5. Revenue Report (IDR)</h6>
         <div class="row g-3">
             <div class="col-md-3"><label class="small">Food</label><input type="text"
                     class="form-control rupiah" name="session[dinner][revenue_food]"
@@ -625,7 +687,7 @@
 
         <hr>
 
-        <h6 class="fw-bold text-muted mt-3">5. Upselling & Remarks</h6>
+        <h6 class="fw-bold text-muted mt-3">6. Upselling & Remarks</h6>
         <div class="row g-3">
             {{-- Food --}}
             <div class="col-md-6">
@@ -634,12 +696,7 @@
                 <input type="hidden" id="input-dinner-food-XFH" name="session[dinner][upselling_data][food]"
                     value="{{ is_array($dnFoodVal) ? json_encode($dnFoodVal) : $dnFoodVal }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-dinner-food-XFH">
-                        <option value="" selected>Select Food...</option>
-                        @foreach ($foods as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                        @endforeach
-                    </select>
+                    <input type="text" class="form-control form-control-sm" id="select-dinner-food-XFH" placeholder="Enter food name...">
                     <input type="number" class="form-control form-control-sm" id="pax-dinner-food-XFH"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"
@@ -695,7 +752,7 @@
 
         <hr>
 
-        <h6 class="fw-bold text-muted mt-3">6. Competitor Comparison</h6>
+        <h6 class="fw-bold text-muted mt-3">7. Competitor Comparison</h6>
         <div class="row g-3">
             <div class="col-md-4"><label class="small">Shangri-La</label><input type="number" class="form-control"
                     name="session[dinner][competitor_data][shangrila_cover]"
@@ -717,6 +774,76 @@
 {{-- SCRIPT INITIALIZATION --}}
 {{-- ============================================================ --}}
 <script>
+    var setmenuState = window.setmenuState || {};
+
+    window.initSetMenuItems = function(session, initialData, code) {
+        const key = session + '_' + code;
+        let safeData = [];
+        if (initialData) {
+            if (Array.isArray(initialData)) safeData = initialData;
+            else if (typeof initialData === 'object') safeData = Object.values(initialData);
+            else if (typeof initialData === 'string') try { safeData = JSON.parse(initialData); } catch (e) {}
+        }
+        setmenuState[key] = safeData;
+        const hiddenInput = document.getElementById('input-setmenu-' + session + '-' + code);
+        if (hiddenInput) hiddenInput.value = JSON.stringify(safeData);
+        renderSetMenuList(document.getElementById('list-setmenu-' + session + '-' + code), safeData, session, code);
+    };
+
+    window.addSetMenuItem = function(session, code) {
+        const typeEl = document.getElementById('setmenu-type-' + session + '-' + code);
+        const paxEl = document.getElementById('setmenu-pax-' + session + '-' + code);
+        const revEl = document.getElementById('setmenu-revenue-' + session + '-' + code);
+        const type = typeEl.value;
+        const pax = paxEl.value.trim();
+        let revenue = revEl.value.replace(/\./g, '').trim();
+
+        if (!type) { alert('Please select a set menu / AYCE type.'); return; }
+        if (!pax || parseInt(pax) <= 0) { alert('Please enter valid pax.'); return; }
+
+        const key = session + '_' + code;
+        if (!setmenuState[key]) setmenuState[key] = [];
+        setmenuState[key].push({
+            type: type,
+            pax: parseInt(pax),
+            revenue: revenue ? parseInt(revenue) : 0
+        });
+
+        typeEl.value = '';
+        paxEl.value = '';
+        revEl.value = '';
+        typeEl.focus();
+
+        const hiddenInput = document.getElementById('input-setmenu-' + session + '-' + code);
+        if (hiddenInput) hiddenInput.value = JSON.stringify(setmenuState[key]);
+        renderSetMenuList(document.getElementById('list-setmenu-' + session + '-' + code), setmenuState[key], session, code);
+    };
+
+    window.removeSetMenuItem = function(session, code, index) {
+        const key = session + '_' + code;
+        setmenuState[key].splice(index, 1);
+        const hiddenInput = document.getElementById('input-setmenu-' + session + '-' + code);
+        if (hiddenInput) hiddenInput.value = JSON.stringify(setmenuState[key]);
+        renderSetMenuList(document.getElementById('list-setmenu-' + session + '-' + code), setmenuState[key], session, code);
+    };
+
+    function renderSetMenuList(listEl, items, session, code) {
+        if (!listEl) return;
+        if (!items || items.length === 0) { listEl.innerHTML = ''; return; }
+        let html = '';
+        items.forEach(function(item, index) {
+            const rev = item.revenue ? 'Rp ' + Number(item.revenue).toLocaleString('id-ID') : '';
+            html += '<li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">' +
+                '<span class="small"><span class="badge bg-secondary me-1">' + escapeHtml(item.type || '') + '</span>' +
+                ' <span class="badge bg-primary ms-1">' + (item.pax || 0) + ' pax</span>' +
+                (rev ? ' <span class="badge bg-success ms-1">' + rev + '</span>' : '') +
+                '</span>' +
+                '<button class="btn btn-sm btn-link text-danger p-0" onclick="removeSetMenuItem(\'' + session + '\', \'' + code + '\', ' + index + ')" title="Remove"><i class="ti ti-x"></i></button>' +
+                '</li>';
+        });
+        listEl.innerHTML = html;
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
 
         // --- BREAKFAST INIT ---
@@ -730,6 +857,8 @@
         initOccasion('breakfast', bfOccasion, 'XFH');
         let bfPromo = {!! json_encode(old('session.breakfast.additional_data.promo_items', $bf->additional_data['promo_items'] ?? [])) !!};
         initPromoItems('breakfast', bfPromo, 'XFH');
+        let bfSetMenu = {!! json_encode(old('session.breakfast.additional_data.setmenu_items', $bf->additional_data['setmenu_items'] ?? [])) !!};
+        initSetMenuItems('breakfast', bfSetMenu, 'XFH');
 
         // --- LUNCH INIT ---
         let lcFood = {!! json_encode(old('session.lunch.upselling_data.food', $lc->upselling_data['food'] ?? [])) !!};
@@ -742,6 +871,8 @@
         initOccasion('lunch', lcOccasion, 'XFH');
         let lcPromo = {!! json_encode(old('session.lunch.additional_data.promo_items', $lc->additional_data['promo_items'] ?? [])) !!};
         initPromoItems('lunch', lcPromo, 'XFH');
+        let lcSetMenu = {!! json_encode(old('session.lunch.additional_data.setmenu_items', $lc->additional_data['setmenu_items'] ?? [])) !!};
+        initSetMenuItems('lunch', lcSetMenu, 'XFH');
 
         // --- DINNER INIT ---
         let dnFood = {!! json_encode(old('session.dinner.upselling_data.food', $dn->upselling_data['food'] ?? [])) !!};
@@ -754,6 +885,8 @@
         initOccasion('dinner', dnOccasion, 'XFH');
         let dnPromo = {!! json_encode(old('session.dinner.additional_data.promo_items', $dn->additional_data['promo_items'] ?? [])) !!};
         initPromoItems('dinner', dnPromo, 'XFH');
+        let dnSetMenu = {!! json_encode(old('session.dinner.additional_data.setmenu_items', $dn->additional_data['setmenu_items'] ?? [])) !!};
+        initSetMenuItems('dinner', dnSetMenu, 'XFH');
 
     });
 </script>

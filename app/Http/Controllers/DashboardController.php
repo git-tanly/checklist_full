@@ -471,7 +471,10 @@ class DashboardController extends Controller
         $occOthersAgg = [];   // others_occasion aggregated (legacy)
         $promoOthersAgg = []; // others_promo aggregated
         $groupAgg = [];       // group_data aggregated
-
+        $setMenuMatrix = []; // setmenu_items aggregated (pax)
+        $setMenuRevenueMatrix = []; // setmenu_items aggregated (revenue)
+        $upsellingFoodMatrix = []; // upselling_data['food'] aggregated (pax)
+        $upsellingBeverageMatrix = []; // upselling_data['beverage'] aggregated (pax)
         // Inisialisasi untuk Nagano Revenue
         $naganoRevenueMatrix = [
             'Teppan (Lt 5)' => array_fill_keys($sessions, 0),
@@ -602,6 +605,86 @@ class DashboardController extends Controller
                         }
                     }
 
+                    // H. Agregasi Set Menu
+                    $setMenuItems = $addData['setmenu_items'] ?? [];
+                    if (is_string($setMenuItems)) $setMenuItems = json_decode($setMenuItems, true) ?? [];
+                    if (is_array($setMenuItems)) {
+                        foreach ($setMenuItems as $item) {
+                            $type = $item['type'] ?? 'Unknown Set Menu';
+                            $pax = $item['pax'] ?? 0;
+                            $rev = $item['revenue'] ?? 0;
+                            if ($pax > 0) {
+                                if (!isset($setMenuMatrix[$type])) {
+                                    $setMenuMatrix[$type] = array_fill_keys($sessions, 0);
+                                }
+                                $setMenuMatrix[$type][$sess] += $pax;
+                            }
+                            if ($rev > 0) {
+                                if (!isset($setMenuRevenueMatrix[$type])) {
+                                    $setMenuRevenueMatrix[$type] = array_fill_keys($sessions, 0);
+                                }
+                                $setMenuRevenueMatrix[$type][$sess] += $rev;
+                            }
+                        }
+                    }
+
+                    // Legacy set menu fields
+                    $legacySetMenuFields = [
+                        'set_menu_family_8000' => 'Family 8000',
+                        'set_menu_family_5000' => 'Family 5000',
+                        'set_menu_family_6000' => 'Family 6000',
+                        'set_menu_ayce_dimsum' => 'AYCE Dimsum',
+                        'set_menu_788' => 'Set Menu 788',
+                        'set_menu_988' => 'Set Menu 988',
+                        'set_menu_1188' => 'Set Menu 1188',
+                    ];
+                    foreach ($legacySetMenuFields as $field => $label) {
+                        $val = $addData[$field] ?? 0;
+                        if ($val > 0) {
+                            if (!isset($setMenuMatrix[$label])) {
+                                $setMenuMatrix[$label] = array_fill_keys($sessions, 0);
+                            }
+                            $setMenuMatrix[$label][$sess] += $val;
+                        }
+                    }
+
+                    // I. Agregasi Upselling Food & Beverage
+                    $upsellingData = $detail->upselling_data ?? [];
+                    if (is_string($upsellingData)) $upsellingData = json_decode($upsellingData, true) ?? [];
+                    if (is_array($upsellingData)) {
+                        // Food
+                        $foodData = $upsellingData['food'] ?? [];
+                        if (is_string($foodData)) $foodData = json_decode($foodData, true) ?? [];
+                        if (is_array($foodData)) {
+                            foreach ($foodData as $item) {
+                                $name = $item['name'] ?? 'Unknown Food';
+                                $pax = $item['pax'] ?? 0;
+                                if ($pax > 0) {
+                                    if (!isset($upsellingFoodMatrix[$name])) {
+                                        $upsellingFoodMatrix[$name] = array_fill_keys($sessions, 0);
+                                    }
+                                    $upsellingFoodMatrix[$name][$sess] += $pax;
+                                }
+                            }
+                        }
+
+                        // Beverage
+                        $bevData = $upsellingData['beverage'] ?? [];
+                        if (is_string($bevData)) $bevData = json_decode($bevData, true) ?? [];
+                        if (is_array($bevData)) {
+                            foreach ($bevData as $item) {
+                                $name = $item['name'] ?? 'Unknown Beverage';
+                                $pax = $item['pax'] ?? 0;
+                                if ($pax > 0) {
+                                    if (!isset($upsellingBeverageMatrix[$name])) {
+                                        $upsellingBeverageMatrix[$name] = array_fill_keys($sessions, 0);
+                                    }
+                                    $upsellingBeverageMatrix[$name][$sess] += $pax;
+                                }
+                            }
+                        }
+                    }
+
                     // Old promo fields (legacy)
                     $promoFields = ['mandiri_card', 'bca_card', 'membership'];
                     foreach ($promoFields as $field) {
@@ -720,6 +803,10 @@ class DashboardController extends Controller
             'groupAgg',
             'occasionRevenueMatrix',
             'naganoRevenueMatrix',
+            'setMenuMatrix',
+            'setMenuRevenueMatrix',
+            'upsellingFoodMatrix',
+            'upsellingBeverageMatrix',
         ));
     }
 }

@@ -264,11 +264,11 @@
             }
 
             const itemId = selectEl.value;
-            const itemName = selectEl.options[selectEl.selectedIndex].text;
-            const pax = parseInt(paxEl.value);
+            const itemName = selectEl.tagName === 'SELECT' ? selectEl.options[selectEl.selectedIndex].text : selectEl.value;
+            const pax = parseInt(paxEl.value, 10);
 
             if (!itemId) {
-                alert("Please select a menu item.");
+                alert("Please " + (selectEl.tagName === 'SELECT' ? "select" : "enter") + " a menu item.");
                 return;
             }
             if (isNaN(pax) || pax < 0) {

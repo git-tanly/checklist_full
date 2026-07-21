@@ -88,6 +88,7 @@
                         <option value="Wedding Party">Wedding Party</option>
                         <option value="Birthday Party">Birthday Party</option>
                         <option value="Social Event">Social Event</option>
+                        <option value="Corporate Event">Corporate Event</option>
                     </select>
                     <input type="text" class="form-control form-control-sm" id="occasion-name-lunch-CHA"
                         placeholder="Name (e.g. Mr. Budi)">
@@ -337,6 +338,7 @@
                         <option value="Wedding Party">Wedding Party</option>
                         <option value="Birthday Party">Birthday Party</option>
                         <option value="Social Event">Social Event</option>
+                        <option value="Corporate Event">Corporate Event</option>
                     </select>
                     <input type="text" class="form-control form-control-sm" id="occasion-name-dinner-CHA"
                         placeholder="Name (e.g. Mr. Budi)">
