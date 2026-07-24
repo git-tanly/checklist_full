@@ -61,13 +61,35 @@ class DashboardController extends Controller
         }
 
         $chartData = collect();
+        $chartBudgets = collect();
+        $chartForecasts = collect();
         $start = \Carbon\Carbon::parse($startDate);
         $end = \Carbon\Carbon::parse($endDate);
         $daysDiff = $start->diffInDays($end);
 
+        $restaurantIdsForTarget = $user->hasRole('Super Admin')
+            ? null
+            : $user->restaurants->pluck('id')->toArray();
+
         for ($i = 0; $i <= $daysDiff; $i++) {
             $date = $start->copy()->addDays($i)->format('Y-m-d');
             $chartData->put($date, 0);
+
+            $dailyForecast = $this->calculateProratedTarget(
+                $date, $date, 
+                $restaurantIdsForTarget,
+                $restaurantFilter,
+                'amount'
+            );
+            $dailyBudget = $this->calculateProratedTarget(
+                $date, $date, 
+                $restaurantIdsForTarget,
+                $restaurantFilter,
+                'budget_amount'
+            );
+            
+            $chartForecasts->put($date, $dailyForecast);
+            $chartBudgets->put($date, $dailyBudget);
         }
 
         // 2. Ambil Data dari Database (Otomatis terfilter Scope User/Resto)
@@ -101,6 +123,8 @@ class DashboardController extends Controller
         // Format tanggal dipercantik jadi "21 Nov"
         $chartLabels = $chartData->keys()->map(fn($d) => \Carbon\Carbon::parse($d)->format('d M'))->values();
         $chartValues = $chartData->values();
+        $chartForecastValues = $chartForecasts->values();
+        $chartBudgetValues = $chartBudgets->values();
 
         // 1. Siapkan Kerangka Array untuk 4 Series
         $compData = [
@@ -173,15 +197,19 @@ class DashboardController extends Controller
 
         // 2. Target Periode = prorata harian dari revenue_targets per
         //    bulan yang bersinggungan dengan rentang tanggal.
-        $restaurantIdsForTarget = $user->hasRole('Super Admin')
-            ? null
-            : $user->restaurants->pluck('id')->toArray();
-
         $monthlyTarget = $this->calculateProratedTarget(
             $startDate,
             $endDate,
             $restaurantIdsForTarget,
             $restaurantFilter
+        );
+
+        $monthlyBudget = $this->calculateProratedTarget(
+            $startDate,
+            $endDate,
+            $restaurantIdsForTarget,
+            $restaurantFilter,
+            'budget_amount'
         );
 
         // 3. Hitung Persentase (Cegah division by zero)
@@ -223,9 +251,11 @@ class DashboardController extends Controller
 
             // B. Hitung Target Periode (prorata harian) untuk Resto ini
             $target = $this->calculateProratedTarget($startDate, $endDate, [$resto->id]);
+            $budget = $this->calculateProratedTarget($startDate, $endDate, [$resto->id], null, 'budget_amount');
 
             // C. Hitung Persentase
             $percentage = $target > 0 ? ($actual / $target) * 100 : 0;
+            $budgetPercentage = $budget > 0 ? ($actual / $budget) * 100 : 0;
 
             // D. Masukkan ke Array
             $breakdownPerformance[] = [
@@ -233,8 +263,10 @@ class DashboardController extends Controller
                 'name' => $resto->name,
                 'code' => $resto->code,
                 'target' => $target,
+                'budget' => $budget,
                 'actual' => $actual,
-                'percentage' => $percentage
+                'percentage' => $percentage,
+                'budget_percentage' => $budgetPercentage
             ];
         }
 
@@ -285,7 +317,16 @@ class DashboardController extends Controller
             $restaurantFilter
         );
 
+        $totalMtdBudget = $this->calculateProratedTarget(
+            $mtdStart,
+            $mtdEnd,
+            $user->hasRole('Super Admin') ? null : $user->restaurants->pluck('id')->toArray(),
+            $restaurantFilter,
+            'budget_amount'
+        );
+
         $mtdBalance = $totalMtdRevenue - $totalMtdTarget;
+        $mtdBudgetBalance = $totalMtdRevenue - $totalMtdBudget;
 
         // ---------------------------------------------------------
         // 2. TABEL RINGKASAN (5 Laporan Terakhir)
@@ -315,9 +356,12 @@ class DashboardController extends Controller
             'recentReports',
             'chartLabels',
             'chartValues',
+            'chartForecastValues',
+            'chartBudgetValues',
             'compSeries',
             'mtdRevenue',
             'monthlyTarget',
+            'monthlyBudget',
             'achievementPercent',
             'periodLabel',
             'breakdownPerformance',
@@ -332,7 +376,9 @@ class DashboardController extends Controller
             'mtdAverageBeverage',
             'totalMtdRevenue',
             'totalMtdTarget',
-            'mtdBalance'
+            'mtdBalance',
+            'totalMtdBudget',
+            'mtdBudgetBalance'
         ));
     }
 
@@ -354,7 +400,8 @@ class DashboardController extends Controller
         string $startDate,
         string $endDate,
         ?array $allowedRestaurants = null,
-        $restaurantFilter = null
+        $restaurantFilter = null,
+        string $column = 'amount'
     ): float {
         $start = \Carbon\Carbon::parse($startDate)->startOfDay();
         $end = \Carbon\Carbon::parse($endDate)->endOfDay();
@@ -375,7 +422,7 @@ class DashboardController extends Controller
             // Irisan rentang dengan bulan ini
             $sliceStart = $start->greaterThan($monthStart) ? $start : $monthStart;
             $sliceEnd = $end->lessThan($monthEnd) ? $end : $monthEnd;
-            $daysInSlice = $sliceStart->copy()->startOfDay()->diffInDays($sliceEnd->copy()->endOfDay()) + 1;
+            $daysInSlice = (int) $sliceStart->copy()->startOfDay()->diffInDays($sliceEnd->copy()->startOfDay()) + 1;
 
             // Ambil semua target untuk bulan ini
             $targetQuery = \App\Models\RevenueTarget::where('year', $cursor->year)
@@ -389,7 +436,7 @@ class DashboardController extends Controller
                 $targetQuery->where('restaurant_id', $restaurantFilter);
             }
 
-            $monthAmount = (float) $targetQuery->sum('amount');
+            $monthAmount = (float) $targetQuery->sum($column);
 
             if ($monthAmount > 0 && $daysInMonth > 0) {
                 $total += ($monthAmount / $daysInMonth) * $daysInSlice;
@@ -765,11 +812,14 @@ class DashboardController extends Controller
         // 8. Siapkan Data Day Trend (untuk Tab Cover by Day)
         $daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         $dayTrendMatrix = [];
+        $setMenuDayTrendMatrix = [];
         foreach ($sessions as $sess) {
             $dayTrendMatrix[$sess] = array_fill_keys($daysOfWeek, 0);
         }
         foreach ($reports as $report) {
             $dayName = $report->date->format('D');
+            if (!in_array($dayName, $daysOfWeek)) continue;
+
             foreach ($report->details as $detail) {
                 $sess = $detail->session_type;
                 $pax = 0;
@@ -778,11 +828,49 @@ class DashboardController extends Controller
                         if (is_numeric($val)) $pax += $val;
                     }
                 }
-                if (in_array($dayName, $daysOfWeek)) {
-                    $dayTrendMatrix[$sess][$dayName] += $pax;
+                $dayTrendMatrix[$sess][$dayName] += $pax;
+
+                // Set Menu Trend
+                $addData = $detail->additional_data ?? [];
+                if (is_string($addData)) $addData = json_decode($addData, true) ?? [];
+                if (is_array($addData)) {
+                    $setMenuItems = $addData['setmenu_items'] ?? [];
+                    if (is_string($setMenuItems)) $setMenuItems = json_decode($setMenuItems, true) ?? [];
+                    if (is_array($setMenuItems)) {
+                        foreach ($setMenuItems as $item) {
+                            $type = $item['type'] ?? 'Unknown Set Menu';
+                            $spax = $item['pax'] ?? 0;
+                            if ($spax > 0) {
+                                if (!isset($setMenuDayTrendMatrix[$type])) {
+                                    $setMenuDayTrendMatrix[$type] = array_fill_keys($daysOfWeek, 0);
+                                }
+                                $setMenuDayTrendMatrix[$type][$dayName] += $spax;
+                            }
+                        }
+                    }
+
+                    $legacySetMenuFields = [
+                        'set_menu_family_8000' => 'Family 8000',
+                        'set_menu_family_5000' => 'Family 5000',
+                        'set_menu_family_6000' => 'Family 6000',
+                        'set_menu_ayce_dimsum' => 'AYCE Dimsum',
+                        'set_menu_788' => 'Set Menu 788',
+                        'set_menu_988' => 'Set Menu 988',
+                        'set_menu_1188' => 'Set Menu 1188',
+                    ];
+                    foreach ($legacySetMenuFields as $field => $label) {
+                        $sval = $addData[$field] ?? 0;
+                        if ($sval > 0) {
+                            if (!isset($setMenuDayTrendMatrix[$label])) {
+                                $setMenuDayTrendMatrix[$label] = array_fill_keys($daysOfWeek, 0);
+                            }
+                            $setMenuDayTrendMatrix[$label][$dayName] += $sval;
+                        }
+                    }
                 }
             }
         }
+
 
         // 9. Return Partial View
         return view('analytics_modal', compact(
@@ -807,6 +895,7 @@ class DashboardController extends Controller
             'setMenuRevenueMatrix',
             'upsellingFoodMatrix',
             'upsellingBeverageMatrix',
+            'setMenuDayTrendMatrix'
         ));
     }
 }

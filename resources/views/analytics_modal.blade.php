@@ -34,7 +34,30 @@
     </div>
 
     {{-- NAV TABS (Agar tidak terlalu panjang ke bawah) --}}
-    <ul class="nav nav-tabs mb-3" id="analyticsTab" role="tablist">
+    <style>
+        .nav-tabs-scroll {
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            overflow-y: hidden;
+            white-space: nowrap;
+            padding-bottom: 5px;
+        }
+        .nav-tabs-scroll::-webkit-scrollbar {
+            height: 6px;
+        }
+        .nav-tabs-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        .nav-tabs-scroll::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+        .nav-tabs-scroll::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    </style>
+    <ul class="nav nav-tabs mb-3 nav-tabs-scroll" id="analyticsTab" role="tablist">
         <li class="nav-item">
             <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-cover" type="button">1. Cover
                 Report</button>
@@ -52,7 +75,10 @@
                 Day</button>
         </li>
         <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-occasion" type="button">5. Occasion, Promo & Extras</button>
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-occasion" type="button">5. Occasion</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-promo-extras" type="button">6. Promo & Extras</button>
         </li>
     </ul>
 
@@ -332,16 +358,66 @@
                     </tfoot>
                 </table>
             </div>
+            @if(!empty($setMenuDayTrendMatrix))
+                <h6 class="text-muted text-uppercase small fw-bold mb-3 mt-4">Set Menu by Day</h6>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm table-hover text-center align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-start">Set Menu</th>
+                                @foreach ($daysOfWeek as $day)
+                                    <th>{{ $day }}</th>
+                                @endforeach
+                                <th class="bg-light-secondary text-dark">TOTAL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @php
+                                $setMenuDayColTotals = array_fill_keys($daysOfWeek, 0);
+                                $setMenuDayGrandTotal = 0;
+                            @endphp
+
+                            @foreach ($setMenuDayTrendMatrix as $item => $data)
+                                <tr>
+                                    <td class="text-start fw-bold text-muted">{{ $item }}</td>
+                                    @php $rowTotal = 0; @endphp
+
+                                    @foreach ($daysOfWeek as $day)
+                                        @php
+                                            $val = $data[$day];
+                                            $rowTotal += $val;
+                                            $setMenuDayColTotals[$day] += $val;
+                                        @endphp
+                                        <td>{{ $val > 0 ? number_format($val) : '-' }}</td>
+                                    @endforeach
+
+                                    @php $setMenuDayGrandTotal += $rowTotal; @endphp
+                                    <td class="fw-bold bg-light-secondary text-dark">{{ number_format($rowTotal) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                        <tfoot class="table-light fw-bold">
+                            <tr>
+                                <td class="text-start">GRAND TOTAL PAX</td>
+                                @foreach ($daysOfWeek as $day)
+                                    <td>{{ number_format($setMenuDayColTotals[$day]) }}</td>
+                                @endforeach
+                                <td class="bg-secondary text-white">{{ number_format($setMenuDayGrandTotal) }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            @endif
+
             <div class="mt-3 small text-muted">
                 <i class="ti ti-info-circle me-1"></i> Data shows accumulated pax count per day of the week.
             </div>
         </div>
 
-        {{-- TAB 5: OCCASION / PROMO --}}
+        {{-- TAB 5: OCCASION --}}
         <div class="tab-pane fade" id="tab-occasion">
             @php
                 $hasOccasion = !empty($occasionMatrix) || !empty($occOthersAgg);
-                $hasPromo = !empty($promoMatrix) || !empty($promoOthersAgg);
             @endphp
 
             @if ($hasOccasion)
@@ -459,6 +535,20 @@
                     </div>
                 @endif
             @endif
+
+            @if (!$hasOccasion)
+                <div class="text-center py-5 text-muted">
+                    <i class="ti ti-info-circle fs-1 mb-3 d-block"></i>
+                    <p>No Occasion data found for this period.</p>
+                </div>
+            @endif
+        </div>
+
+        {{-- TAB 6: PROMO & EXTRAS --}}
+        <div class="tab-pane fade" id="tab-promo-extras">
+            @php
+                $hasPromo = !empty($promoMatrix) || !empty($promoOthersAgg);
+            @endphp
 
             @if ($hasPromo)
                 <h6 class="text-muted text-uppercase small fw-bold mb-3 mt-4">Promo</h6>
@@ -803,10 +893,10 @@
                 </div>
             @endif
 
-            @if (!$hasOccasion && !$hasPromo && !$hasSetMenu && !$hasUpsellingFood && !$hasUpsellingBeverage)
+            @if (!$hasPromo && !$hasSetMenu && !$hasUpsellingFood && !$hasUpsellingBeverage)
                 <div class="text-center py-5 text-muted">
                     <i class="ti ti-info-circle fs-1 mb-3 d-block"></i>
-                    <p>No Occasion, Promo, Set Menu, or Upselling data found for this period.</p>
+                    <p>No Promo, Set Menu, or Upselling data found for this period.</p>
                 </div>
             @endif
         </div>

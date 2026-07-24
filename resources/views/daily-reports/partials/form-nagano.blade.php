@@ -44,53 +44,53 @@
         <div class="p-3 border rounded mb-3 bg-white">
             <span class="badge bg-dark mb-2">TEPPANYAKI</span>
             <div class="row g-2">
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <label class="small text-muted">In-House (Adult)</label>
                     <input type="number" class="form-control form-control-sm"
                         name="session[lunch][cover_data][teppanyaki_inhouse]"
                         value="{{ old('session.lunch.cover_data.teppanyaki_inhouse', $lc->cover_data['teppanyaki_inhouse'] ?? '') }}"
                         placeholder="0">
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <label class="small text-muted">Walk-In (Adult)</label>
                     <input type="number" class="form-control form-control-sm"
                         name="session[lunch][cover_data][teppanyaki_walkin]"
                         value="{{ old('session.lunch.cover_data.teppanyaki_walkin', $lc->cover_data['teppanyaki_walkin'] ?? '') }}"
                         placeholder="0">
                 </div>
-                <div class="col-md-4">
+                <!-- <div class="col-md-4">
                     <label class="small text-muted">Event (Adult)</label>
                     <input type="number" class="form-control form-control-sm"
                         name="session[lunch][cover_data][teppanyaki_event]"
                         value="{{ old('session.lunch.cover_data.teppanyaki_event', $lc->cover_data['teppanyaki_event'] ?? '') }}"
                         placeholder="0">
-                </div>
+                </div> -->
             </div>
         </div>
         <div class="p-3 border rounded mb-3 bg-white">
             <span class="badge bg-danger mb-2">YAKINIKU</span>
             <div class="row g-2">
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <label class="small text-muted">In-House (Adult)</label>
                     <input type="number" class="form-control form-control-sm"
                         name="session[lunch][cover_data][yakiniku_inhouse]"
                         value="{{ old('session.lunch.cover_data.yakiniku_inhouse', $lc->cover_data['yakiniku_inhouse'] ?? '') }}"
                         placeholder="0">
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <label class="small text-muted">Walk-In (Adult)</label>
                     <input type="number" class="form-control form-control-sm"
                         name="session[lunch][cover_data][yakiniku_walkin]"
                         value="{{ old('session.lunch.cover_data.yakiniku_walkin', $lc->cover_data['yakiniku_walkin'] ?? '') }}"
                         placeholder="0">
                 </div>
-                <div class="col-md-4">
+                <!-- <div class="col-md-4">
                     <label class="small text-muted">Event (Adult)</label>
                     <input type="number" class="form-control form-control-sm"
                         name="session[lunch][cover_data][yakiniku_event]"
                         value="{{ old('session.lunch.cover_data.yakiniku_event', $lc->cover_data['yakiniku_event'] ?? '') }}"
                         placeholder="0">
-                </div>
+                </div> -->
             </div>
         </div>
 
@@ -102,13 +102,15 @@
             <div class="col-md-12">
                 <input type="hidden" id="input-occasion-lunch-NJR" name="session[lunch][additional_data][occasion_items]" value="{{ $lcOccasionValue ?? '[]' }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="occasion-type-lunch-NJR">
+                    <select class="form-select form-select-sm" id="occasion-type-lunch-NJR" onchange="toggleOccasionOther('lunch', 'NJR')">
                         <option value="" selected>Select Occasion...</option>
                         <option value="Wedding Party">Wedding Party</option>
                         <option value="Birthday Party">Birthday Party</option>
                         <option value="Social Event">Social Event</option>
                         <option value="Corporate Event">Corporate Event</option>
+                        <option value="Other">Other</option>
                     </select>
+                    <input type="text" class="form-control form-control-sm d-none" id="occasion-other-lunch-NJR" placeholder="Occasion Type" style="max-width: 150px;">
                     <input type="text" class="form-control form-control-sm" id="occasion-name-lunch-NJR"
                         placeholder="Name (e.g. Mr. Budi)">
                     <input type="number" class="form-control form-control-sm" id="occasion-pax-lunch-NJR"
@@ -131,12 +133,14 @@
             <div class="col-md-12">
                 <input type="hidden" id="input-promo-lunch-NJR" name="session[lunch][additional_data][promo_items]" value="{{ $lcPromoValue ?? '[]' }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="promo-type-lunch-NJR">
+                    <select class="form-select form-select-sm" id="promo-type-lunch-NJR" onchange="togglePromoOther('lunch', 'NJR')">
                         <option value="" selected>Select Promo...</option>
                         <option value="Mandiri Card">Mandiri Card</option>
                         <option value="BCA Card">BCA Card</option>
                         <option value="Membership">Membership</option>
+                        <option value="Other">Other</option>
                     </select>
+                    <input type="text" class="form-control form-control-sm d-none" id="promo-other-lunch-NJR" placeholder="Promo Name" style="max-width: 150px;">
                     <input type="number" class="form-control form-control-sm" id="promo-pax-lunch-NJR"
                         placeholder="Pax" style="max-width: 80px;">
                     <input type="text" class="form-control form-control-sm rupiah" id="promo-revenue-lunch-NJR"
@@ -348,53 +352,53 @@
         <div class="p-3 border rounded mb-3 bg-white">
             <span class="badge bg-dark mb-2">TEPPANYAKI</span>
             <div class="row g-2">
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <label class="small text-muted">In-House (Adult)</label>
                     <input type="number" class="form-control form-control-sm"
                         name="session[dinner][cover_data][teppanyaki_inhouse]"
                         value="{{ old('session.dinner.cover_data.teppanyaki_inhouse', $dn->cover_data['teppanyaki_inhouse'] ?? '') }}"
                         placeholder="0">
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <label class="small text-muted">Walk-In (Adult)</label>
                     <input type="number" class="form-control form-control-sm"
                         name="session[dinner][cover_data][teppanyaki_walkin]"
                         value="{{ old('session.dinner.cover_data.teppanyaki_walkin', $dn->cover_data['teppanyaki_walkin'] ?? '') }}"
                         placeholder="0">
                 </div>
-                <div class="col-md-4">
+                <!-- <div class="col-md-4">
                     <label class="small text-muted">Event (Adult)</label>
                     <input type="number" class="form-control form-control-sm"
                         name="session[dinner][cover_data][teppanyaki_event]"
                         value="{{ old('session.dinner.cover_data.teppanyaki_event', $dn->cover_data['teppanyaki_event'] ?? '') }}"
                         placeholder="0">
-                </div>
+                </div> -->
             </div>
         </div>
         <div class="p-3 border rounded mb-3 bg-white">
             <span class="badge bg-danger mb-2">YAKINIKU</span>
             <div class="row g-2">
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <label class="small text-muted">In-House (Adult)</label>
                     <input type="number" class="form-control form-control-sm"
                         name="session[dinner][cover_data][yakiniku_inhouse]"
                         value="{{ old('session.dinner.cover_data.yakiniku_inhouse', $dn->cover_data['yakiniku_inhouse'] ?? '') }}"
                         placeholder="0">
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <label class="small text-muted">Walk-In (Adult)</label>
                     <input type="number" class="form-control form-control-sm"
                         name="session[dinner][cover_data][yakiniku_walkin]"
                         value="{{ old('session.dinner.cover_data.yakiniku_walkin', $dn->cover_data['yakiniku_walkin'] ?? '') }}"
                         placeholder="0">
                 </div>
-                <div class="col-md-4">
+                <!-- <div class="col-md-4">
                     <label class="small text-muted">Event (Adult)</label>
                     <input type="number" class="form-control form-control-sm"
                         name="session[dinner][cover_data][yakiniku_event]"
                         value="{{ old('session.dinner.cover_data.yakiniku_event', $dn->cover_data['yakiniku_event'] ?? '') }}"
                         placeholder="0">
-                </div>
+                </div> -->
             </div>
         </div>
 
@@ -406,13 +410,15 @@
             <div class="col-md-12">
                 <input type="hidden" id="input-occasion-dinner-NJR" name="session[dinner][additional_data][occasion_items]" value="{{ $dnOccasionValue ?? '[]' }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="occasion-type-dinner-NJR">
+                    <select class="form-select form-select-sm" id="occasion-type-dinner-NJR" onchange="toggleOccasionOther('dinner', 'NJR')">
                         <option value="" selected>Select Occasion...</option>
                         <option value="Wedding Party">Wedding Party</option>
                         <option value="Birthday Party">Birthday Party</option>
                         <option value="Social Event">Social Event</option>
                         <option value="Corporate Event">Corporate Event</option>
+                        <option value="Other">Other</option>
                     </select>
+                    <input type="text" class="form-control form-control-sm d-none" id="occasion-other-dinner-NJR" placeholder="Occasion Type" style="max-width: 150px;">
                     <input type="text" class="form-control form-control-sm" id="occasion-name-dinner-NJR"
                         placeholder="Name (e.g. Mr. Budi)">
                     <input type="number" class="form-control form-control-sm" id="occasion-pax-dinner-NJR"
@@ -435,12 +441,14 @@
             <div class="col-md-12">
                 <input type="hidden" id="input-promo-dinner-NJR" name="session[dinner][additional_data][promo_items]" value="{{ $dnPromoValue ?? '[]' }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="promo-type-dinner-NJR">
+                    <select class="form-select form-select-sm" id="promo-type-dinner-NJR" onchange="togglePromoOther('dinner', 'NJR')">
                         <option value="" selected>Select Promo...</option>
                         <option value="Mandiri Card">Mandiri Card</option>
                         <option value="BCA Card">BCA Card</option>
                         <option value="Membership">Membership</option>
+                        <option value="Other">Other</option>
                     </select>
+                    <input type="text" class="form-control form-control-sm d-none" id="promo-other-dinner-NJR" placeholder="Promo Name" style="max-width: 150px;">
                     <input type="number" class="form-control form-control-sm" id="promo-pax-dinner-NJR"
                         placeholder="Pax" style="max-width: 80px;">
                     <input type="text" class="form-control form-control-sm rupiah" id="promo-revenue-dinner-NJR"

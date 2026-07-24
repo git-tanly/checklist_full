@@ -84,7 +84,7 @@
             {{-- <div class="col-md-3 border-start"></div> Spacer --}}
 
             {{-- Event --}}
-            <div class="col-md-4">
+            <!-- <div class="col-md-4">
                 <label class="form-label small">Event (Adult)</label>
                 <input type="number" class="form-control" name="session[breakfast][cover_data][event_adult]"
                     value="{{ old('session.breakfast.cover_data.event_adult', $bf->cover_data['event_adult'] ?? '') }}"
@@ -95,7 +95,7 @@
                 <input type="number" class="form-control" name="session[breakfast][cover_data][event_child]"
                     value="{{ old('session.breakfast.cover_data.event_child', $bf->cover_data['event_child'] ?? '') }}"
                     placeholder="0">
-            </div>
+            </div> -->
         </div>
 
         <hr>
@@ -106,13 +106,15 @@
             <div class="col-md-12">
                 <input type="hidden" id="input-occasion-breakfast-XFH" name="session[breakfast][additional_data][occasion_items]" value="{{ $bfOccasionValue ?? '[]' }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="occasion-type-breakfast-XFH">
+                    <select class="form-select form-select-sm" id="occasion-type-breakfast-XFH" onchange="toggleOccasionOther('breakfast', 'XFH')">
                         <option value="" selected>Select Occasion...</option>
                         <option value="Wedding Party">Wedding Party</option>
                         <option value="Birthday Party">Birthday Party</option>
                         <option value="Social Event">Social Event</option>
                         <option value="Corporate Event">Corporate Event</option>
+                        <option value="Other">Other</option>
                     </select>
+                    <input type="text" class="form-control form-control-sm d-none" id="occasion-other-breakfast-XFH" placeholder="Occasion Type" style="max-width: 150px;">
                     <input type="text" class="form-control form-control-sm" id="occasion-name-breakfast-XFH"
                         placeholder="Name (e.g. Mr. Budi)">
                     <input type="number" class="form-control form-control-sm" id="occasion-pax-breakfast-XFH"
@@ -135,12 +137,14 @@
             <div class="col-md-12">
                 <input type="hidden" id="input-promo-breakfast-XFH" name="session[breakfast][additional_data][promo_items]" value="{{ $bfPromoValue ?? '[]' }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="promo-type-breakfast-XFH">
+                    <select class="form-select form-select-sm" id="promo-type-breakfast-XFH" onchange="togglePromoOther('breakfast', 'XFH')">
                         <option value="" selected>Select Promo...</option>
                         <option value="Mandiri Card">Mandiri Card</option>
                         <option value="BCA Card">BCA Card</option>
                         <option value="Membership">Membership</option>
+                        <option value="Other">Other</option>
                     </select>
+                    <input type="text" class="form-control form-control-sm d-none" id="promo-other-breakfast-XFH" placeholder="Promo Name" style="max-width: 150px;">
                     <input type="number" class="form-control form-control-sm" id="promo-pax-breakfast-XFH"
                         placeholder="Pax" style="max-width: 80px;">
                     <input type="text" class="form-control form-control-sm rupiah" id="promo-revenue-breakfast-XFH"
@@ -326,7 +330,7 @@
                     value="{{ old('session.lunch.cover_data.walk_in_child', $lc->cover_data['walk_in_child'] ?? '') }}"
                     placeholder="0">
             </div>
-            <div class="col-md-4"><label class="form-label small">Event (Adult)</label><input type="number"
+            <!-- <div class="col-md-4"><label class="form-label small">Event (Adult)</label><input type="number"
                     class="form-control" name="session[lunch][cover_data][event_adult]"
                     value="{{ old('session.lunch.cover_data.event_adult', $lc->cover_data['event_adult'] ?? '') }}"
                     placeholder="0">
@@ -335,7 +339,7 @@
                     class="form-control" name="session[lunch][cover_data][event_child]"
                     value="{{ old('session.lunch.cover_data.event_child', $lc->cover_data['event_child'] ?? '') }}"
                     placeholder="0">
-            </div>
+            </div> -->
         </div>
 
         <hr>
@@ -346,13 +350,15 @@
             <div class="col-md-12">
                 <input type="hidden" id="input-occasion-lunch-XFH" name="session[lunch][additional_data][occasion_items]" value="{{ $lcOccasionValue ?? '[]' }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="occasion-type-lunch-XFH">
+                    <select class="form-select form-select-sm" id="occasion-type-lunch-XFH" onchange="toggleOccasionOther('lunch', 'XFH')">
                         <option value="" selected>Select Occasion...</option>
                         <option value="Wedding Party">Wedding Party</option>
                         <option value="Birthday Party">Birthday Party</option>
                         <option value="Social Event">Social Event</option>
                         <option value="Corporate Event">Corporate Event</option>
+                        <option value="Other">Other</option>
                     </select>
+                    <input type="text" class="form-control form-control-sm d-none" id="occasion-other-lunch-XFH" placeholder="Occasion Type" style="max-width: 150px;">
                     <input type="text" class="form-control form-control-sm" id="occasion-name-lunch-XFH"
                         placeholder="Name (e.g. Mr. Budi)">
                     <input type="number" class="form-control form-control-sm" id="occasion-pax-lunch-XFH"
@@ -375,12 +381,14 @@
             <div class="col-md-12">
                 <input type="hidden" id="input-promo-lunch-XFH" name="session[lunch][additional_data][promo_items]" value="{{ $lcPromoValue ?? '[]' }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="promo-type-lunch-XFH">
+                    <select class="form-select form-select-sm" id="promo-type-lunch-XFH" onchange="togglePromoOther('lunch', 'XFH')">
                         <option value="" selected>Select Promo...</option>
                         <option value="Mandiri Card">Mandiri Card</option>
                         <option value="BCA Card">BCA Card</option>
                         <option value="Membership">Membership</option>
+                        <option value="Other">Other</option>
                     </select>
+                    <input type="text" class="form-control form-control-sm d-none" id="promo-other-lunch-XFH" placeholder="Promo Name" style="max-width: 150px;">
                     <input type="number" class="form-control form-control-sm" id="promo-pax-lunch-XFH"
                         placeholder="Pax" style="max-width: 80px;">
                     <input type="text" class="form-control form-control-sm rupiah" id="promo-revenue-lunch-XFH"
@@ -565,7 +573,7 @@
                     value="{{ old('session.dinner.cover_data.walk_in_child', $dn->cover_data['walk_in_child'] ?? '') }}"
                     placeholder="0">
             </div>
-            <div class="col-md-4"><label class="form-label small">Event (Adult)</label><input type="number"
+            <!-- <div class="col-md-4"><label class="form-label small">Event (Adult)</label><input type="number"
                     class="form-control" name="session[dinner][cover_data][event_adult]"
                     value="{{ old('session.dinner.cover_data.event_adult', $dn->cover_data['event_adult'] ?? '') }}"
                     placeholder="0">
@@ -574,7 +582,7 @@
                     class="form-control" name="session[dinner][cover_data][event_child]"
                     value="{{ old('session.dinner.cover_data.event_child', $dn->cover_data['event_child'] ?? '') }}"
                     placeholder="0">
-            </div>
+            </div> -->
         </div>
 
         <hr>
@@ -584,13 +592,15 @@
             <div class="col-md-12">
                 <input type="hidden" id="input-occasion-dinner-XFH" name="session[dinner][additional_data][occasion_items]" value="{{ $dnOccasionValue ?? '[]' }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="occasion-type-dinner-XFH">
+                    <select class="form-select form-select-sm" id="occasion-type-dinner-XFH" onchange="toggleOccasionOther('dinner', 'XFH')">
                         <option value="" selected>Select Occasion...</option>
                         <option value="Wedding Party">Wedding Party</option>
                         <option value="Birthday Party">Birthday Party</option>
                         <option value="Social Event">Social Event</option>
                         <option value="Corporate Event">Corporate Event</option>
+                        <option value="Other">Other</option>
                     </select>
+                    <input type="text" class="form-control form-control-sm d-none" id="occasion-other-dinner-XFH" placeholder="Occasion Type" style="max-width: 150px;">
                     <input type="text" class="form-control form-control-sm" id="occasion-name-dinner-XFH"
                         placeholder="Name (e.g. Mr. Budi)">
                     <input type="number" class="form-control form-control-sm" id="occasion-pax-dinner-XFH"
@@ -612,12 +622,14 @@
             <div class="col-md-12">
                 <input type="hidden" id="input-promo-dinner-XFH" name="session[dinner][additional_data][promo_items]" value="{{ $dnPromoValue ?? '[]' }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="promo-type-dinner-XFH">
+                    <select class="form-select form-select-sm" id="promo-type-dinner-XFH" onchange="togglePromoOther('dinner', 'XFH')">
                         <option value="" selected>Select Promo...</option>
                         <option value="Mandiri Card">Mandiri Card</option>
                         <option value="BCA Card">BCA Card</option>
                         <option value="Membership">Membership</option>
+                        <option value="Other">Other</option>
                     </select>
+                    <input type="text" class="form-control form-control-sm d-none" id="promo-other-dinner-XFH" placeholder="Promo Name" style="max-width: 150px;">
                     <input type="number" class="form-control form-control-sm" id="promo-pax-dinner-XFH"
                         placeholder="Pax" style="max-width: 80px;">
                     <input type="text" class="form-control form-control-sm rupiah" id="promo-revenue-dinner-XFH"

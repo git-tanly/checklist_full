@@ -137,7 +137,238 @@
                 </tr>
             </table>
 
-            {{-- 3. REMARKS & STAFF --}}
+            {{-- 3. ADDITIONAL DATA (Occasion, Promo, Set Menu) --}}
+            @php
+                // OCCASION
+                $occasionItems = $detail->additional_data['occasion_items'] ?? [];
+                if (is_string($occasionItems)) $occasionItems = json_decode($occasionItems, true) ?? [];
+            @endphp
+            @if (!empty($occasionItems) && is_array($occasionItems) && count($occasionItems) > 0)
+                <div style="font-weight: bold; font-size: 11px; margin-top: 15px;">Occasion</div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Name</th>
+                            <th class="text-end" width="15%">Pax</th>
+                            <th class="text-end" width="25%">Revenue (IDR)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($occasionItems as $item)
+                            <tr>
+                                <td>{{ $item['type'] ?? '-' }}</td>
+                                <td>{{ $item['name'] ?? '-' }}</td>
+                                <td class="text-end">{{ number_format($item['pax'] ?? 0) }}</td>
+                                <td class="text-end">{{ number_format($item['revenue'] ?? 0, 0, ',', '.') }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @endif
+
+            @php
+                // PROMO
+                $promoItems = $detail->additional_data['promo_items'] ?? [];
+                if (is_string($promoItems)) $promoItems = json_decode($promoItems, true) ?? [];
+                
+                $allPromos = [];
+                foreach ($promoItems as $item) {
+                    $allPromos[] = [
+                        'type' => $item['type'] ?? '-',
+                        'name' => '-',
+                        'pax' => $item['pax'] ?? 0,
+                        'revenue' => $item['revenue'] ?? 0
+                    ];
+                }
+                if (isset($detail->additional_data['mandiri_card'])) $allPromos[] = ['type' => 'Mandiri Card', 'name' => '-', 'pax' => $detail->additional_data['mandiri_card'], 'revenue' => 0];
+                if (isset($detail->additional_data['bca_card'])) $allPromos[] = ['type' => 'BCA Card', 'name' => '-', 'pax' => $detail->additional_data['bca_card'], 'revenue' => 0];
+                if (isset($detail->additional_data['membership'])) $allPromos[] = ['type' => 'Membership', 'name' => '-', 'pax' => $detail->additional_data['membership'], 'revenue' => 0];
+                
+                $promoOthers = $detail->additional_data['others_promo'] ?? [];
+                if (is_string($promoOthers)) $promoOthers = json_decode($promoOthers, true) ?? [];
+                if (!empty($promoOthers) && is_array($promoOthers)) {
+                    foreach ($promoOthers as $item) {
+                        $allPromos[] = ['type' => 'Other', 'name' => $item['name'] ?? 'Other', 'pax' => $item['qty'] ?? 0, 'revenue' => 0];
+                    }
+                }
+            @endphp
+            @if (count($allPromos) > 0)
+                <div style="font-weight: bold; font-size: 11px; margin-top: 15px;">Promo</div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Name</th>
+                            <th class="text-end" width="15%">Pax</th>
+                            <th class="text-end" width="25%">Revenue (IDR)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($allPromos as $item)
+                            <tr>
+                                <td>{{ $item['type'] }}</td>
+                                <td>{{ $item['name'] }}</td>
+                                <td class="text-end">{{ number_format($item['pax']) }}</td>
+                                <td class="text-end">{{ number_format($item['revenue'], 0, ',', '.') }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @endif
+
+            @php
+                // SET MENU
+                $setMenuItems = $detail->additional_data['setmenu_items'] ?? [];
+                if (is_string($setMenuItems)) $setMenuItems = json_decode($setMenuItems, true) ?? [];
+                
+                $allSetMenus = [];
+                foreach ($setMenuItems as $item) {
+                    $allSetMenus[] = [
+                        'type' => $item['type'] ?? '-',
+                        'pax' => $item['pax'] ?? 0,
+                        'revenue' => $item['revenue'] ?? 0
+                    ];
+                }
+                $setMenuFields = [
+                    'set_menu_family_8000' => 'Family 8000',
+                    'set_menu_family_5000' => 'Family 5000',
+                    'set_menu_family_6000' => 'Family 6000',
+                    'set_menu_ayce_dimsum' => 'AYCE Dimsum',
+                    'set_menu_788' => 'Set Menu 788',
+                    'set_menu_988' => 'Set Menu 988',
+                    'set_menu_1188' => 'Set Menu 1188',
+                ];
+                foreach ($setMenuFields as $key => $label) {
+                    if (!empty($detail->additional_data[$key])) {
+                        $allSetMenus[] = ['type' => $label, 'pax' => $detail->additional_data[$key], 'revenue' => 0];
+                    }
+                }
+            @endphp
+            @if (count($allSetMenus) > 0)
+                <div style="font-weight: bold; font-size: 11px; margin-top: 15px;">Set Menu</div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th class="text-end" width="15%">Pax</th>
+                            <th class="text-end" width="25%">Revenue (IDR)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($allSetMenus as $item)
+                            <tr>
+                                <td>{{ $item['type'] }}</td>
+                                <td class="text-end">{{ number_format($item['pax']) }}</td>
+                                <td class="text-end">{{ number_format($item['revenue'], 0, ',', '.') }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @endif
+
+            @php
+                // NAGANO REVENUE BREAKDOWN
+                $teppanItems = $detail->additional_data['revenue_teppan_items'] ?? [];
+                if (is_string($teppanItems)) $teppanItems = json_decode($teppanItems, true) ?? [];
+                $revYakiniku = $detail->additional_data['revenue_yakiniku'] ?? 0;
+                $revAlaCarte = $detail->additional_data['revenue_ala_carte'] ?? 0;
+                $hasNaganoRevenue = (!empty($teppanItems) && is_array($teppanItems)) || $revYakiniku > 0 || $revAlaCarte > 0;
+            @endphp
+            @if ($hasNaganoRevenue)
+                <div style="font-weight: bold; font-size: 11px; margin-top: 15px;">Revenue Breakdown (Nagano)</div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th class="text-end">Revenue (IDR)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!empty($teppanItems) && is_array($teppanItems))
+                            @foreach ($teppanItems as $item)
+                                <tr>
+                                    <td>Teppan ({{ $item['floor'] ?? '-' }})</td>
+                                    <td class="text-end">{{ number_format($item['revenue'] ?? 0, 0, ',', '.') }}</td>
+                                </tr>
+                            @endforeach
+                        @endif
+                        @if ($revYakiniku > 0)
+                            <tr>
+                                <td>Yakiniku</td>
+                                <td class="text-end">{{ number_format($revYakiniku, 0, ',', '.') }}</td>
+                            </tr>
+                        @endif
+                        @if ($revAlaCarte > 0)
+                            <tr>
+                                <td>Ala Carte</td>
+                                <td class="text-end">{{ number_format($revAlaCarte, 0, ',', '.') }}</td>
+                            </tr>
+                        @endif
+                    </tbody>
+                </table>
+            @endif
+
+            {{-- 4. UPSELLING PERFORMANCE --}}
+            @php
+                $foodUpselling = $detail->upselling_data['food'] ?? [];
+                if (is_string($foodUpselling)) $foodUpselling = json_decode($foodUpselling, true) ?? [];
+                
+                $bevUpselling = $detail->upselling_data['beverage'] ?? [];
+                if (is_string($bevUpselling)) $bevUpselling = json_decode($bevUpselling, true) ?? [];
+            @endphp
+            @if (count($foodUpselling) > 0 || count($bevUpselling) > 0)
+                <div style="font-weight: bold; font-size: 11px; margin-top: 15px;">Upselling Performance</div>
+                <table style="width: 100%; margin-top: 5px;">
+                    <tr>
+                        <td width="50%" valign="top">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th colspan="2">Food Items</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (count($foodUpselling) > 0)
+                                        @foreach ($foodUpselling as $item)
+                                            <tr>
+                                                <td>{{ $item['name'] ?? '-' }}</td>
+                                                <td class="text-end" width="15%">{{ $item['pax'] ?? 0 }}</td>
+                                            </tr>
+                                        @endforeach
+                                    @else
+                                        <tr><td colspan="2" class="text-center text-muted">No food upselling</td></tr>
+                                    @endif
+                                </tbody>
+                            </table>
+                        </td>
+                        <td width="5%" valign="top"></td> {{-- Spacer --}}
+                        <td width="45%" valign="top">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th colspan="2">Beverage Items</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (count($bevUpselling) > 0)
+                                        @foreach ($bevUpselling as $item)
+                                            <tr>
+                                                <td>{{ $item['name'] ?? '-' }}</td>
+                                                <td class="text-end" width="15%">{{ $item['pax'] ?? 0 }}</td>
+                                            </tr>
+                                        @endforeach
+                                    @else
+                                        <tr><td colspan="2" class="text-center text-muted">No beverage upselling</td></tr>
+                                    @endif
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            @endif
+
+            {{-- 5. REMARKS & STAFF --}}
             <div style="margin-top: 10px; font-size: 11px;">
                 <strong>General Remarks:</strong> {{ $detail->remarks ?? '-' }} <br>
                 <strong>Staff On Duty:</strong>

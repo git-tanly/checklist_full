@@ -67,14 +67,14 @@
                         <label>Daily Report</label>
                         <i class="ti ti-file-text"></i>
                     </li>
-                    @if (Auth::user()->restaurants->isEmpty())
+                    {{-- @if (Auth::user()->restaurants->isEmpty())
                         <li class="pc-item">
                             <a href="#" class="pc-link">
                                 <span class="pc-micon"><i class="ti ti-building"></i></span>
                                 <span class="pc-mtext">Hotels</span>
                             </a>
                         </li>
-                    @endif
+                    @endif --}}
                     <li class="pc-item">
                         <a href="{{ route('daily-reports.index') }}" class="pc-link">
                             <span class="pc-micon"><i class="ti ti-tools-kitchen-2"></i></span>
@@ -97,7 +97,7 @@
                         <li class="pc-item">
                             <a href="{{ route('revenue-targets.index') }}" class="pc-link">
                                 <span class="pc-micon"><i class="ti ti-target"></i></span>
-                                <span class="pc-mtext">Revenue Targets</span>
+                                <span class="pc-mtext">Budget & Forecast</span>
                             </a>
                         </li>
                     @endhasanyrole

@@ -40,6 +40,7 @@ class RevenueTargetController extends Controller
         $request->validate([
             'restaurant_id' => 'required|exists:restaurants,id',
             'year' => 'required|integer',
+            'budget_amount' => 'required',
             'amount' => 'required',
             // Bulan wajib diisi JIKA checkbox full year TIDAK dicentang
             'month' => 'required_without:is_full_year',
@@ -54,6 +55,7 @@ class RevenueTargetController extends Controller
         }
 
         // 3. Sanitasi Rupiah
+        $budget_amount = str_replace('.', '', $request->budget_amount);
         $amount = str_replace('.', '', $request->amount);
 
         // 4. Logika Simpan (Single vs Full Year)
@@ -68,6 +70,7 @@ class RevenueTargetController extends Controller
                         'month' => $month, // Gunakan index loop
                     ],
                     [
+                        'budget_amount' => $budget_amount,
                         'amount' => $amount
                     ]
                 );
@@ -82,6 +85,7 @@ class RevenueTargetController extends Controller
                     'month' => $request->month, // Gunakan input user
                 ],
                 [
+                    'budget_amount' => $budget_amount,
                     'amount' => $amount
                 ]
             );

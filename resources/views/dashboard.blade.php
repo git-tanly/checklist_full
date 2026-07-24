@@ -95,28 +95,49 @@
                         {{-- KONTEN TAB 1: OVERVIEW --}}
                         <div class="tab-pane fade show active" id="overview" role="tabpanel"
                             aria-labelledby="overview-tab">
-                            <div class="row align-items-center bg-light-primary rounded p-4 border border-primary-subtle">
-                                <div class="col-md-8">
-                                    <h5 class="text-primary mb-2">
-                                        Performance ({{ $periodLabel }})
-                                    </h5>
-                                    <div class="d-flex align-items-baseline gap-2 mb-2">
-                                        <h2 class="mb-0 fw-bold">Rp {{ number_format($mtdRevenue, 0, ',', '.') }}</h2>
-                                        <span class="text-muted">/ Target: Rp
-                                            {{ number_format($monthlyTarget, 0, ',', '.') }}</span>
+                            @php
+                                $overallBudgetPercentage = $monthlyBudget > 0 ? ($mtdRevenue / $monthlyBudget) * 100 : 0;
+                            @endphp
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="bg-light-primary rounded p-4 border border-primary-subtle h-100">
+                                        <h5 class="text-primary mb-3">Performance vs Budget ({{ $periodLabel }})</h5>
+                                        <div class="d-flex justify-content-between align-items-end mb-2">
+                                            <div>
+                                                <h3 class="mb-0 fw-bold text-dark">Rp {{ number_format($mtdRevenue, 0, ',', '.') }}</h3>
+                                                <span class="text-muted small">/ Budget: Rp {{ number_format($monthlyBudget, 0, ',', '.') }}</span>
+                                            </div>
+                                            <div class="text-end">
+                                                <h4 class="mb-0 {{ $overallBudgetPercentage >= 100 ? 'text-success' : ($overallBudgetPercentage >= 80 ? 'text-warning' : 'text-danger') }}">
+                                                    {{ number_format($overallBudgetPercentage, 1) }}%
+                                                </h4>
+                                            </div>
+                                        </div>
+                                        <div class="progress" style="height: 12px;">
+                                            <div class="progress-bar {{ $overallBudgetPercentage >= 100 ? 'bg-success' : ($overallBudgetPercentage >= 80 ? 'bg-warning' : 'bg-danger') }}"
+                                                role="progressbar" style="width: {{ min($overallBudgetPercentage, 100) }}%">
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="col-md-4 text-md-end">
-                                    <h2
-                                        class="mb-0 {{ $achievementPercent >= 100 ? 'text-success' : ($achievementPercent >= 80 ? 'text-warning' : 'text-danger') }}">
-                                        {{ number_format($achievementPercent, 1) }}%
-                                    </h2>
-                                    <span class="small text-muted">Achievement</span>
-                                </div>
-                                <div class="col-12 mt-3">
-                                    <div class="progress" style="height: 20px;">
-                                        <div class="progress-bar {{ $achievementPercent >= 100 ? 'bg-success' : ($achievementPercent >= 80 ? 'bg-warning' : 'bg-danger') }} progress-bar-striped progress-bar-animated"
-                                            role="progressbar" style="width: {{ min($achievementPercent, 100) }}%">
+                                <div class="col-md-6">
+                                    <div class="bg-light-info rounded p-4 border border-info-subtle h-100">
+                                        <h5 class="text-info mb-3">Performance vs Forecast ({{ $periodLabel }})</h5>
+                                        <div class="d-flex justify-content-between align-items-end mb-2">
+                                            <div>
+                                                <h3 class="mb-0 fw-bold text-dark">Rp {{ number_format($mtdRevenue, 0, ',', '.') }}</h3>
+                                                <span class="text-muted small">/ Forecast: Rp {{ number_format($monthlyTarget, 0, ',', '.') }}</span>
+                                            </div>
+                                            <div class="text-end">
+                                                <h4 class="mb-0 {{ $achievementPercent >= 100 ? 'text-success' : ($achievementPercent >= 80 ? 'text-warning' : 'text-danger') }}">
+                                                    {{ number_format($achievementPercent, 1) }}%
+                                                </h4>
+                                            </div>
+                                        </div>
+                                        <div class="progress" style="height: 12px;">
+                                            <div class="progress-bar {{ $achievementPercent >= 100 ? 'bg-success' : ($achievementPercent >= 80 ? 'bg-warning' : 'bg-danger') }}"
+                                                role="progressbar" style="width: {{ min($achievementPercent, 100) }}%">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -125,55 +146,78 @@
                             {{-- MTD STATS SECTION --}}
                             <div class="mt-4 pt-3 border-top">
                                 <h6 class="fw-bold mb-3 text-muted"><i class="ti ti-calendar-stats text-primary me-1"></i> Month-to-Date (MTD) Analytics</h6>
+                                
+                                {{-- COVER, FOOD, BEVERAGE --}}
+                                <div class="row g-3 mb-3">
+                                    <div class="col-12 col-md-4">
+                                        <div class="p-3 bg-light rounded border h-100 d-flex flex-column justify-content-center align-items-center text-center">
+                                            <i class="ti ti-users fs-2 text-muted mb-2"></i>
+                                            <span class="small text-muted d-block mb-1 fw-bold text-uppercase">Total Cover</span>
+                                            <h5 class="fw-bold mb-0">{{ number_format($mtdCoverReport, 0, ',', '.') }} <small class="text-muted fs-6">Pax</small></h5>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-4">
+                                        <div class="p-3 bg-light rounded border h-100 d-flex flex-column justify-content-between text-center">
+                                            <div>
+                                                <i class="ti ti-soup fs-2 text-muted mb-2"></i>
+                                                <span class="small text-muted d-block mb-1 fw-bold text-uppercase">Food Revenue</span>
+                                                <h6 class="fw-bold mb-3">Rp {{ number_format($mtdFoodRevenue, 0, ',', '.') }}</h6>
+                                            </div>
+                                            <div class="pt-2 border-top">
+                                                <span class="small text-muted d-block">Average / Pax</span>
+                                                <span class="fw-bold text-dark">Rp {{ number_format($mtdAverageFood, 0, ',', '.') }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-4">
+                                        <div class="p-3 bg-light rounded border h-100 d-flex flex-column justify-content-between text-center">
+                                            <div>
+                                                <i class="ti ti-glass-full fs-2 text-muted mb-2"></i>
+                                                <span class="small text-muted d-block mb-1 fw-bold text-uppercase">Beverage Revenue</span>
+                                                <h6 class="fw-bold mb-3">Rp {{ number_format($mtdBeverageRevenue, 0, ',', '.') }}</h6>
+                                            </div>
+                                            <div class="pt-2 border-top">
+                                                <span class="small text-muted d-block">Average / Pax</span>
+                                                <span class="fw-bold text-dark">Rp {{ number_format($mtdAverageBeverage, 0, ',', '.') }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- REVENUE VS TARGETS --}}
                                 <div class="row g-3">
-                                    <div class="col-6 col-md-3">
-                                        <div class="p-3 bg-light rounded text-center border">
-                                            <span class="small text-muted d-block mb-1">Total MTD</span>
-                                            <h6 class="fw-bold mb-0">Rp {{ number_format($totalMtdRevenue, 0, ',', '.') }}</h6>
+                                    <div class="col-12 col-md-4">
+                                        <div class="p-3 bg-light-primary border border-primary-subtle rounded h-100 d-flex flex-column justify-content-center align-items-center text-center">
+                                            <span class="small text-primary fw-bold text-uppercase mb-1">Total MTD Revenue</span>
+                                            <h4 class="fw-bolder text-primary mb-0">Rp {{ number_format($totalMtdRevenue, 0, ',', '.') }}</h4>
                                         </div>
                                     </div>
-                                    <div class="col-6 col-md-3">
-                                        <div class="p-3 bg-light rounded text-center border">
-                                            <span class="small text-muted d-block mb-1">MTD Target</span>
-                                            <h6 class="fw-bold mb-0">Rp {{ number_format($totalMtdTarget, 0, ',', '.') }}</h6>
+                                    <div class="col-6 col-md-4">
+                                        <div class="p-3 bg-light rounded border h-100 d-flex flex-column justify-content-between">
+                                            <div>
+                                                <span class="small text-muted d-block text-center text-uppercase fw-bold mb-1">MTD Budget</span>
+                                                <h5 class="fw-bold text-center mb-3">Rp {{ number_format($totalMtdBudget, 0, ',', '.') }}</h5>
+                                            </div>
+                                            <div class="p-2 rounded text-center {{ $mtdBudgetBalance >= 0 ? 'bg-light-success border border-success-subtle' : 'bg-light-danger border border-danger-subtle' }}">
+                                                <span class="small {{ $mtdBudgetBalance >= 0 ? 'text-success' : 'text-danger' }} d-block fw-bold">Budget Variance</span>
+                                                <span class="fw-bold {{ $mtdBudgetBalance >= 0 ? 'text-success' : 'text-danger' }}">
+                                                    {{ $mtdBudgetBalance >= 0 ? '+' : '' }}Rp {{ number_format($mtdBudgetBalance, 0, ',', '.') }}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-6 col-md-3">
-                                        <div class="p-3 rounded text-center border {{ $mtdBalance >= 0 ? 'border-success-subtle bg-light-success' : 'border-danger-subtle bg-light-danger' }}">
-                                            <span class="small {{ $mtdBalance >= 0 ? 'text-success' : 'text-danger' }} d-block mb-1">Balance</span>
-                                            <h6 class="fw-bold mb-0 {{ $mtdBalance >= 0 ? 'text-success' : 'text-danger' }}">
-                                                {{ $mtdBalance >= 0 ? '+' : '' }}Rp {{ number_format($mtdBalance, 0, ',', '.') }}
-                                            </h6>
-                                        </div>
-                                    </div>
-                                    <div class="col-6 col-md-3">
-                                        <div class="p-3 bg-light rounded text-center border">
-                                            <span class="small text-muted d-block mb-1">MTD Cover</span>
-                                            <h6 class="fw-bold mb-0">{{ number_format($mtdCoverReport, 0, ',', '.') }} Pax</h6>
-                                        </div>
-                                    </div>
-                                    <div class="col-6 col-md-3">
-                                        <div class="p-3 bg-light rounded text-center border">
-                                            <span class="small text-muted d-block mb-1">MTD Food</span>
-                                            <h6 class="fw-bold mb-0 text-dark">Rp {{ number_format($mtdFoodRevenue, 0, ',', '.') }}</h6>
-                                        </div>
-                                    </div>
-                                    <div class="col-6 col-md-3">
-                                        <div class="p-3 bg-light rounded text-center border">
-                                            <span class="small text-muted d-block mb-1">MTD Average Food</span>
-                                            <h6 class="fw-bold mb-0">Rp {{ number_format($mtdAverageFood, 0, ',', '.') }}</h6>
-                                        </div>
-                                    </div>
-                                    <div class="col-6 col-md-3">
-                                        <div class="p-3 bg-light rounded text-center border">
-                                            <span class="small text-muted d-block mb-1">MTD Beverage</span>
-                                            <h6 class="fw-bold mb-0 text-dark">Rp {{ number_format($mtdBeverageRevenue, 0, ',', '.') }}</h6>
-                                        </div>
-                                    </div>
-                                    <div class="col-6 col-md-3">
-                                        <div class="p-3 bg-light rounded text-center border">
-                                            <span class="small text-muted d-block mb-1">MTD Average Bev.</span>
-                                            <h6 class="fw-bold mb-0">Rp {{ number_format($mtdAverageBeverage, 0, ',', '.') }}</h6>
+                                    <div class="col-6 col-md-4">
+                                        <div class="p-3 bg-light rounded border h-100 d-flex flex-column justify-content-between">
+                                            <div>
+                                                <span class="small text-muted d-block text-center text-uppercase fw-bold mb-1">MTD Forecast</span>
+                                                <h5 class="fw-bold text-center mb-3">Rp {{ number_format($totalMtdTarget, 0, ',', '.') }}</h5>
+                                            </div>
+                                            <div class="p-2 rounded text-center {{ $mtdBalance >= 0 ? 'bg-light-success border border-success-subtle' : 'bg-light-danger border border-danger-subtle' }}">
+                                                <span class="small {{ $mtdBalance >= 0 ? 'text-success' : 'text-danger' }} d-block fw-bold">Forecast Variance</span>
+                                                <span class="fw-bold {{ $mtdBalance >= 0 ? 'text-success' : 'text-danger' }}">
+                                                    {{ $mtdBalance >= 0 ? '+' : '' }}Rp {{ number_format($mtdBalance, 0, ',', '.') }}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -199,22 +243,28 @@
                                                             </a>
                                                         </h6>
                                                         <small class="text-muted">
-                                                            <span class="text-dark fw-bold">Rp
-                                                                {{ number_format($data['actual'], 0, ',', '.') }}</span>
-                                                            / Target: Rp {{ number_format($data['target'], 0, ',', '.') }}
+                                                            <span class="text-dark fw-bold">Rp {{ number_format($data['actual'], 0, ',', '.') }}</span><br>
+                                                            <span class="me-2">/ Budget: Rp {{ number_format($data['budget'], 0, ',', '.') }}</span>
+                                                            <span>/ Forecast: Rp {{ number_format($data['target'], 0, ',', '.') }}</span>
                                                         </small>
                                                     </div>
-                                                    <div class="text-end">
-                                                        <span
-                                                            class="badge {{ $data['percentage'] >= 100 ? 'bg-light-success text-success' : ($data['percentage'] >= 80 ? 'bg-light-warning text-warning' : 'bg-light-danger text-danger') }} f-12">
-                                                            {{ number_format($data['percentage'], 1) }}%
+                                                    <div class="text-end d-flex flex-column align-items-end gap-1">
+                                                        <span title="Budget Achievement" class="badge {{ $data['budget_percentage'] >= 100 ? 'bg-light-success text-success' : ($data['budget_percentage'] >= 80 ? 'bg-light-warning text-warning' : 'bg-light-danger text-danger') }} f-12">
+                                                            B: {{ number_format($data['budget_percentage'], 1) }}%
+                                                        </span>
+                                                        <span title="Forecast Achievement" class="badge {{ $data['percentage'] >= 100 ? 'bg-light-info text-info' : ($data['percentage'] >= 80 ? 'bg-light-warning text-warning' : 'bg-light-danger text-danger') }} f-12">
+                                                            F: {{ number_format($data['percentage'], 1) }}%
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <div class="progress" style="height: 6px;">
-                                                    <div class="progress-bar {{ $data['percentage'] >= 100 ? 'bg-success' : ($data['percentage'] >= 80 ? 'bg-warning' : 'bg-danger') }}"
-                                                        role="progressbar"
-                                                        style="width: {{ min($data['percentage'], 100) }}%">
+                                                <div class="progress mt-1" style="height: 4px;" title="Budget Progress">
+                                                    <div class="progress-bar {{ $data['budget_percentage'] >= 100 ? 'bg-success' : ($data['budget_percentage'] >= 80 ? 'bg-warning' : 'bg-danger') }}"
+                                                        role="progressbar" style="width: {{ min($data['budget_percentage'], 100) }}%">
+                                                    </div>
+                                                </div>
+                                                <div class="progress mt-1" style="height: 4px;" title="Forecast Progress">
+                                                    <div class="progress-bar {{ $data['percentage'] >= 100 ? 'bg-info' : ($data['percentage'] >= 80 ? 'bg-warning' : 'bg-danger') }}"
+                                                        role="progressbar" style="width: {{ min($data['percentage'], 100) }}%">
                                                     </div>
                                                 </div>
                                             </li>
@@ -427,16 +477,34 @@
             });
 
             var options = {
-                series: [{
-                    name: 'Total Revenue',
-                    data: @json($chartValues) // Data dari Controller
-                }],
+                series: [
+                    {
+                        name: 'Revenue',
+                        type: 'column',
+                        data: @json($chartValues)
+                    },
+                    {
+                        name: 'Budget',
+                        type: 'line',
+                        data: @json($chartBudgetValues)
+                    },
+                    {
+                        name: 'Forecast',
+                        type: 'line',
+                        data: @json($chartForecastValues)
+                    }
+                ],
                 chart: {
                     height: 350,
-                    type: 'bar', // Bisa ganti 'area' atau 'line' jika mau
+                    type: 'line',
                     toolbar: {
                         show: false
                     }
+                },
+                stroke: {
+                    width: [0, 3, 3],
+                    curve: 'smooth',
+                    dashArray: [0, 0, 5]
                 },
                 plotOptions: {
                     bar: {
@@ -444,14 +512,12 @@
                         columnWidth: '45%',
                     }
                 },
+                colors: ['#4680ff', '#ffba57', '#2ca87f'],
                 dataLabels: {
                     enabled: false
                 },
-                stroke: {
-                    width: 0
-                },
                 xaxis: {
-                    categories: @json($chartLabels), // Label Tanggal dari Controller
+                    categories: @json($chartLabels),
                     axisBorder: {
                         show: false
                     },
@@ -462,19 +528,15 @@
                 yaxis: {
                     labels: {
                         formatter: function(value) {
-                            // Formatter Rupiah Sederhana (Ribuan K)
                             return "Rp " + (value / 1000).toLocaleString() + "k";
                         }
                     }
                 },
-                fill: {
-                    opacity: 1,
-                    colors: ['#4680ff'] // Warna Biru Mantis
-                },
                 tooltip: {
+                    shared: true,
+                    intersect: false,
                     y: {
                         formatter: function(val) {
-                            // Formatter Rupiah Lengkap di Tooltip
                             return "Rp " + val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
                         }
                     }

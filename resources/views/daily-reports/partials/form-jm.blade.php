@@ -73,13 +73,15 @@
             <div class="col-md-12">
                 <input type="hidden" id="input-occasion-breakfast-JM" name="session[breakfast][additional_data][occasion_items]" value="{{ $bfOccasionValue ?? '[]' }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="occasion-type-breakfast-JM">
+                    <select class="form-select form-select-sm" id="occasion-type-breakfast-JM" onchange="toggleOccasionOther('breakfast', 'JM')">
                         <option value="" selected>Select Occasion...</option>
                         <option value="Wedding Party">Wedding Party</option>
                         <option value="Birthday Party">Birthday Party</option>
                         <option value="Social Event">Social Event</option>
                         <option value="Corporate Event">Corporate Event</option>
+                        <option value="Other">Other</option>
                     </select>
+                    <input type="text" class="form-control form-control-sm d-none" id="occasion-other-breakfast-JM" placeholder="Occasion Type" style="max-width: 150px;">
                     <input type="text" class="form-control form-control-sm" id="occasion-name-breakfast-JM"
                         placeholder="Name (e.g. Mr. Budi)">
                     <input type="number" class="form-control form-control-sm" id="occasion-pax-breakfast-JM"
@@ -102,12 +104,14 @@
             <div class="col-md-12">
                 <input type="hidden" id="input-promo-breakfast-JM" name="session[breakfast][additional_data][promo_items]" value="{{ $bfPromoValue ?? '[]' }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="promo-type-breakfast-JM">
+                    <select class="form-select form-select-sm" id="promo-type-breakfast-JM" onchange="togglePromoOther('breakfast', 'JM')">
                         <option value="" selected>Select Promo...</option>
                         <option value="Mandiri Card">Mandiri Card</option>
                         <option value="BCA Card">BCA Card</option>
                         <option value="Membership">Membership</option>
+                        <option value="Other">Other</option>
                     </select>
+                    <input type="text" class="form-control form-control-sm d-none" id="promo-other-breakfast-JM" placeholder="Promo Name" style="max-width: 150px;">
                     <input type="number" class="form-control form-control-sm" id="promo-pax-breakfast-JM"
                         placeholder="Pax" style="max-width: 80px;">
                     <input type="text" class="form-control form-control-sm rupiah" id="promo-revenue-breakfast-JM"
@@ -283,13 +287,15 @@
             <div class="col-md-12">
                 <input type="hidden" id="input-occasion-lunch-JM" name="session[lunch][additional_data][occasion_items]" value="{{ $lcOccasionValue ?? '[]' }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="occasion-type-lunch-JM">
+                    <select class="form-select form-select-sm" id="occasion-type-lunch-JM" onchange="toggleOccasionOther('lunch', 'JM')">
                         <option value="" selected>Select Occasion...</option>
                         <option value="Wedding Party">Wedding Party</option>
                         <option value="Birthday Party">Birthday Party</option>
                         <option value="Social Event">Social Event</option>
                         <option value="Corporate Event">Corporate Event</option>
+                        <option value="Other">Other</option>
                     </select>
+                    <input type="text" class="form-control form-control-sm d-none" id="occasion-other-lunch-JM" placeholder="Occasion Type" style="max-width: 150px;">
                     <input type="text" class="form-control form-control-sm" id="occasion-name-lunch-JM"
                         placeholder="Name (e.g. Mr. Budi)">
                     <input type="number" class="form-control form-control-sm" id="occasion-pax-lunch-JM"
@@ -309,12 +315,14 @@
             <div class="col-md-12">
                 <input type="hidden" id="input-promo-lunch-JM" name="session[lunch][additional_data][promo_items]" value="{{ $lcPromoValue ?? '[]' }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="promo-type-lunch-JM">
+                    <select class="form-select form-select-sm" id="promo-type-lunch-JM" onchange="togglePromoOther('lunch', 'JM')">
                         <option value="" selected>Select Promo...</option>
                         <option value="Mandiri Card">Mandiri Card</option>
                         <option value="BCA Card">BCA Card</option>
                         <option value="Membership">Membership</option>
+                        <option value="Other">Other</option>
                     </select>
+                    <input type="text" class="form-control form-control-sm d-none" id="promo-other-lunch-JM" placeholder="Promo Name" style="max-width: 150px;">
                     <input type="number" class="form-control form-control-sm" id="promo-pax-lunch-JM"
                         placeholder="Pax" style="max-width: 80px;">
                     <input type="text" class="form-control form-control-sm rupiah" id="promo-revenue-lunch-JM"
@@ -478,13 +486,15 @@
             <div class="col-md-12">
                 <input type="hidden" id="input-occasion-dinner-JM" name="session[dinner][additional_data][occasion_items]" value="{{ $dnOccasionValue ?? '[]' }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="occasion-type-dinner-JM">
+                    <select class="form-select form-select-sm" id="occasion-type-dinner-JM" onchange="toggleOccasionOther('dinner', 'JM')">
                         <option value="" selected>Select Occasion...</option>
                         <option value="Wedding Party">Wedding Party</option>
                         <option value="Birthday Party">Birthday Party</option>
                         <option value="Social Event">Social Event</option>
                         <option value="Corporate Event">Corporate Event</option>
+                        <option value="Other">Other</option>
                     </select>
+                    <input type="text" class="form-control form-control-sm d-none" id="occasion-other-dinner-JM" placeholder="Occasion Type" style="max-width: 150px;">
                     <input type="text" class="form-control form-control-sm" id="occasion-name-dinner-JM"
                         placeholder="Name (e.g. Mr. Budi)">
                     <input type="number" class="form-control form-control-sm" id="occasion-pax-dinner-JM"
@@ -504,12 +514,14 @@
             <div class="col-md-12">
                 <input type="hidden" id="input-promo-dinner-JM" name="session[dinner][additional_data][promo_items]" value="{{ $dnPromoValue ?? '[]' }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="promo-type-dinner-JM">
+                    <select class="form-select form-select-sm" id="promo-type-dinner-JM" onchange="togglePromoOther('dinner', 'JM')">
                         <option value="" selected>Select Promo...</option>
                         <option value="Mandiri Card">Mandiri Card</option>
                         <option value="BCA Card">BCA Card</option>
                         <option value="Membership">Membership</option>
+                        <option value="Other">Other</option>
                     </select>
+                    <input type="text" class="form-control form-control-sm d-none" id="promo-other-dinner-JM" placeholder="Promo Name" style="max-width: 150px;">
                     <input type="number" class="form-control form-control-sm" id="promo-pax-dinner-JM"
                         placeholder="Pax" style="max-width: 80px;">
                     <input type="text" class="form-control form-control-sm rupiah" id="promo-revenue-dinner-JM"

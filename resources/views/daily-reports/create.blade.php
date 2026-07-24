@@ -714,13 +714,32 @@
             renderOccasionList(document.getElementById('list-occasion-' + session + '-' + code), safeData, session, code);
         };
 
+        window.toggleOccasionOther = function(session, code) {
+            const typeEl = document.getElementById('occasion-type-' + session + '-' + code);
+            const otherEl = document.getElementById('occasion-other-' + session + '-' + code);
+            if (otherEl) {
+                if (typeEl.value === 'Other') {
+                    otherEl.classList.remove('d-none');
+                } else {
+                    otherEl.classList.add('d-none');
+                    otherEl.value = '';
+                }
+            }
+        };
+
         window.addOccasionItem = function(session, code) {
             const typeEl = document.getElementById('occasion-type-' + session + '-' + code);
+            const otherEl = document.getElementById('occasion-other-' + session + '-' + code);
             const nameEl = document.getElementById('occasion-name-' + session + '-' + code);
             const paxEl = document.getElementById('occasion-pax-' + session + '-' + code);
             const revEl = document.getElementById('occasion-revenue-' + session + '-' + code);
 
-            const type = typeEl.value;
+            let type = typeEl.value;
+            if (type === 'Other' && otherEl) {
+                type = otherEl.value.trim();
+                if (!type) { alert('Please enter occasion type.'); return; }
+            }
+
             const name = nameEl.value.trim();
             const pax = paxEl.value.trim();
             let revenue = revEl.value.replace(/\./g, '').trim();
@@ -739,6 +758,10 @@
             });
 
             typeEl.value = '';
+            if (otherEl) {
+                otherEl.value = '';
+                otherEl.classList.add('d-none');
+            }
             nameEl.value = '';
             paxEl.value = '';
             revEl.value = '';
@@ -792,12 +815,31 @@
             renderPromoItemList(document.getElementById('list-promo-' + session + '-' + code), safeData, session, code);
         };
 
+        window.togglePromoOther = function(session, code) {
+            const typeEl = document.getElementById('promo-type-' + session + '-' + code);
+            const otherEl = document.getElementById('promo-other-' + session + '-' + code);
+            if (otherEl) {
+                if (typeEl.value === 'Other') {
+                    otherEl.classList.remove('d-none');
+                } else {
+                    otherEl.classList.add('d-none');
+                    otherEl.value = '';
+                }
+            }
+        };
+
         window.addPromoItem = function(session, code) {
             const typeEl = document.getElementById('promo-type-' + session + '-' + code);
+            const otherEl = document.getElementById('promo-other-' + session + '-' + code);
             const paxEl = document.getElementById('promo-pax-' + session + '-' + code);
             const revEl = document.getElementById('promo-revenue-' + session + '-' + code);
 
-            const type = typeEl.value;
+            let type = typeEl.value;
+            if (type === 'Other' && otherEl) {
+                type = otherEl.value.trim();
+                if (!type) { alert('Please enter promo name.'); return; }
+            }
+
             const pax = paxEl.value.trim();
             let revenue = revEl.value.replace(/\./g, '').trim();
 
@@ -813,6 +855,10 @@
             });
 
             typeEl.value = '';
+            if (otherEl) {
+                otherEl.value = '';
+                otherEl.classList.add('d-none');
+            }
             paxEl.value = '';
             revEl.value = '';
             typeEl.focus();

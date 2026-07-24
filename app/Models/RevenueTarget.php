@@ -11,10 +11,12 @@ class RevenueTarget extends Model
         'restaurant_id',
         'year',
         'month',
+        'budget_amount',
         'amount',
     ];
 
     protected $casts = [
+        'budget_amount' => 'decimal:2',
         'amount' => 'decimal:2',
     ];
 
