@@ -78,7 +78,7 @@ class DailyReportController extends Controller
         $inputSessions = $this->sanitizeSessionData($rawSessions);
         $request->merge(['session' => $inputSessions]);
 
-        $this->validateSubmission($request);
+        $this->validateSubmission($request, $request->restaurant_id);
 
         try {
             DB::beginTransaction();
@@ -179,7 +179,7 @@ class DailyReportController extends Controller
         $inputSessions = $this->sanitizeSessionData($rawSessions);
         $request->merge(['session' => $inputSessions]);
 
-        $this->validateSubmission($request);
+        $this->validateSubmission($request, $dailyReport->restaurant_id);
 
         try {
             DB::beginTransaction();
@@ -314,23 +314,38 @@ class DailyReportController extends Controller
         return $pdf->download($filename);
     }
 
-    private function validateSubmission(Request $request)
+    private function validateSubmission(Request $request, $restaurantId = null)
     {
         if ($request->input('action') === 'draft') {
             return;
         }
 
+        $isBqt = false;
+        if ($restaurantId) {
+            $restaurant = \App\Models\Restaurant::find($restaurantId);
+            if ($restaurant && $restaurant->code === 'BQT') {
+                $isBqt = true;
+            }
+        }
+
         $rules = [
             'session' => 'required|array',
             'session.*.cover_data' => 'required|array',
-            'session.*.revenue_food' => 'required|numeric|min:0',
-            'session.*.revenue_beverage' => 'required|numeric|min:0',
-            'session.*.revenue_others' => 'required|numeric|min:0',
             'session.*.revenue_event' => 'required|numeric|min:0',
             'session.*.remarks' => 'required|string',
             'session.*.staff_on_duty' => 'required|array|min:1',
             'session.*.competitor_data' => 'required|array',
         ];
+
+        if (!$isBqt) {
+            $rules['session.*.revenue_food'] = 'required|numeric|min:0';
+            $rules['session.*.revenue_beverage'] = 'required|numeric|min:0';
+            $rules['session.*.revenue_others'] = 'required|numeric|min:0';
+        } else {
+            $rules['session.*.revenue_food'] = 'nullable|numeric|min:0';
+            $rules['session.*.revenue_beverage'] = 'nullable|numeric|min:0';
+            $rules['session.*.revenue_others'] = 'nullable|numeric|min:0';
+        }
 
         $messages = [
             'session.*.cover_data.required' => 'Cover Report details wajib diisi.',
