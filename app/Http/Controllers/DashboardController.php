@@ -76,25 +76,26 @@ class DashboardController extends Controller
             $chartData->put($date, 0);
 
             $dailyForecast = $this->calculateProratedTarget(
-                $date, $date, 
+                $date,
+                $date,
                 $restaurantIdsForTarget,
                 $restaurantFilter,
                 'amount'
             );
             $dailyBudget = $this->calculateProratedTarget(
-                $date, $date, 
+                $date,
+                $date,
                 $restaurantIdsForTarget,
                 $restaurantFilter,
                 'budget_amount'
             );
-            
+
             $chartForecasts->put($date, $dailyForecast);
             $chartBudgets->put($date, $dailyBudget);
         }
 
         // 2. Ambil Data dari Database (Otomatis terfilter Scope User/Resto)
-        $weeklyReportsQuery = DailyReport::whereBetween('date', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
-            ->where('status', 'approved');
+        $weeklyReportsQuery = DailyReport::whereBetween('date', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
         if ($restaurantFilter) {
             $weeklyReportsQuery->where('restaurant_id', $restaurantFilter);
         }
