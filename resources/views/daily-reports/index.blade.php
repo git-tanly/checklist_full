@@ -141,6 +141,52 @@
                 </div>
             @endif
 
+            {{-- Filter Form --}}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <form action="{{ route('daily-reports.index') }}" method="GET" class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label for="filter_start_date" class="form-label small fw-bold">
+                                <i class="ti ti-calendar"></i> Start Date
+                            </label>
+                            <input type="date" class="form-control" id="filter_start_date" name="start_date" 
+                                   value="{{ request('start_date') }}" placeholder="Start Date">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="filter_end_date" class="form-label small fw-bold">
+                                <i class="ti ti-calendar"></i> End Date
+                            </label>
+                            <input type="date" class="form-control" id="filter_end_date" name="end_date" 
+                                   value="{{ request('end_date') }}" placeholder="End Date">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="filter_restaurant" class="form-label small fw-bold">
+                                <i class="ti ti-building-store"></i> Restaurant
+                            </label>
+                            <select class="form-select" id="filter_restaurant" name="restaurant_id">
+                                <option value="">All Restaurants</option>
+                                @foreach($restaurants as $restaurant)
+                                    <option value="{{ $restaurant->id }}" 
+                                        {{ request('restaurant_id') == $restaurant->id ? 'selected' : '' }}>
+                                        {{ $restaurant->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="ti ti-filter"></i> Filter
+                            </button>
+                            @if(request()->hasAny(['start_date', 'end_date', 'restaurant_id']))
+                                <a href="{{ route('daily-reports.index') }}" class="btn btn-secondary w-100 mt-2">
+                                    <i class="ti ti-x"></i> Clear
+                                </a>
+                            @endif
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5>Recent Reports</h5>
@@ -202,8 +248,8 @@
                                                 <i class="ti ti-eye"></i>
                                             </a>
 
-                                            {{-- Tombol Edit (Hanya Draft) --}}
-                                            @if ($report->status == 'draft')
+                                            {{-- Tombol Edit (Draft, atau Approved khusus Super Admin) --}}
+                                            @if ($report->status == 'draft' || ($report->status == 'approved' && auth()->user()->hasRole('Super Admin')))
                                                 <a href="{{ route('daily-reports.edit', $report->id) }}"
                                                     class="btn btn-icon btn-link-warning">
                                                     <i class="ti ti-pencil"></i>

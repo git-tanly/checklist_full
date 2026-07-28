@@ -32,7 +32,7 @@
                         <div class="row align-items-end">
                             <div class="col-md-4">
                                 <label class="form-label">Date Range</label>
-                                <input type="text" class="form-control" id="dateRangePicker" 
+                                <input type="text" class="form-control" id="dateRangePicker"
                                     placeholder="Select date range" readonly>
                                 <input type="hidden" name="start_date" id="start_date" value="{{ $startDate }}">
                                 <input type="hidden" name="end_date" id="end_date" value="{{ $endDate }}">
@@ -43,7 +43,7 @@
                                 <select class="form-select" name="restaurant_id" id="restaurant_id">
                                     <option value="">All Restaurants</option>
                                     @foreach($allRestaurants as $resto)
-                                        <option value="{{ $resto->id }}" 
+                                        <option value="{{ $resto->id }}"
                                             {{ $restaurantFilter == $resto->id ? 'selected' : '' }}>
                                             {{ $resto->name }}
                                         </option>
@@ -95,28 +95,129 @@
                         {{-- KONTEN TAB 1: OVERVIEW --}}
                         <div class="tab-pane fade show active" id="overview" role="tabpanel"
                             aria-labelledby="overview-tab">
-                            <div class="row align-items-center bg-light-primary rounded p-4 border border-primary-subtle">
-                                <div class="col-md-8">
-                                    <h5 class="text-primary mb-2">
-                                        Performance ({{ $periodLabel }})
-                                    </h5>
-                                    <div class="d-flex align-items-baseline gap-2 mb-2">
-                                        <h2 class="mb-0 fw-bold">Rp {{ number_format($mtdRevenue, 0, ',', '.') }}</h2>
-                                        <span class="text-muted">/ Target: Rp
-                                            {{ number_format($monthlyTarget, 0, ',', '.') }}</span>
+                            @php
+                                $overallBudgetPercentage = $monthlyBudget > 0 ? ($mtdRevenue / $monthlyBudget) * 100 : 0;
+                            @endphp
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="bg-light-primary rounded p-4 border border-primary-subtle h-100">
+                                        <h5 class="text-primary mb-3">Performance vs Budget ({{ $periodLabel }})</h5>
+                                        <div class="d-flex justify-content-between align-items-end mb-2">
+                                            <div>
+                                                <h3 class="mb-0 fw-bold text-dark">Rp {{ number_format($mtdRevenue, 0, ',', '.') }}</h3>
+                                                <span class="text-muted small">/ Budget: Rp {{ number_format($monthlyBudget, 0, ',', '.') }}</span>
+                                            </div>
+                                            <div class="text-end">
+                                                <h4 class="mb-0 {{ $overallBudgetPercentage >= 100 ? 'text-success' : ($overallBudgetPercentage >= 80 ? 'text-warning' : 'text-danger') }}">
+                                                    {{ number_format($overallBudgetPercentage, 1) }}%
+                                                </h4>
+                                            </div>
+                                        </div>
+                                        <div class="progress" style="height: 12px;">
+                                            <div class="progress-bar {{ $overallBudgetPercentage >= 100 ? 'bg-success' : ($overallBudgetPercentage >= 80 ? 'bg-warning' : 'bg-danger') }}"
+                                                role="progressbar" style="width: {{ min($overallBudgetPercentage, 100) }}%">
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="col-md-4 text-md-end">
-                                    <h2
-                                        class="mb-0 {{ $achievementPercent >= 100 ? 'text-success' : ($achievementPercent >= 80 ? 'text-warning' : 'text-danger') }}">
-                                        {{ number_format($achievementPercent, 1) }}%
-                                    </h2>
-                                    <span class="small text-muted">Achievement</span>
+                                <div class="col-md-6">
+                                    <div class="bg-light-info rounded p-4 border border-info-subtle h-100">
+                                        <h5 class="text-info mb-3">Performance vs Forecast ({{ $periodLabel }})</h5>
+                                        <div class="d-flex justify-content-between align-items-end mb-2">
+                                            <div>
+                                                <h3 class="mb-0 fw-bold text-dark">Rp {{ number_format($mtdRevenue, 0, ',', '.') }}</h3>
+                                                <span class="text-muted small">/ Forecast: Rp {{ number_format($monthlyTarget, 0, ',', '.') }}</span>
+                                            </div>
+                                            <div class="text-end">
+                                                <h4 class="mb-0 {{ $achievementPercent >= 100 ? 'text-success' : ($achievementPercent >= 80 ? 'text-warning' : 'text-danger') }}">
+                                                    {{ number_format($achievementPercent, 1) }}%
+                                                </h4>
+                                            </div>
+                                        </div>
+                                        <div class="progress" style="height: 12px;">
+                                            <div class="progress-bar {{ $achievementPercent >= 100 ? 'bg-success' : ($achievementPercent >= 80 ? 'bg-warning' : 'bg-danger') }}"
+                                                role="progressbar" style="width: {{ min($achievementPercent, 100) }}%">
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col-12 mt-3">
-                                    <div class="progress" style="height: 20px;">
-                                        <div class="progress-bar {{ $achievementPercent >= 100 ? 'bg-success' : ($achievementPercent >= 80 ? 'bg-warning' : 'bg-danger') }} progress-bar-striped progress-bar-animated"
-                                            role="progressbar" style="width: {{ min($achievementPercent, 100) }}%">
+                            </div>
+
+                            {{-- MTD STATS SECTION --}}
+                            <div class="mt-4 pt-3 border-top">
+                                <h6 class="fw-bold mb-3 text-muted"><i class="ti ti-calendar-stats text-primary me-1"></i> Month-to-Date (MTD) Analytics</h6>
+                                
+                                {{-- COVER, FOOD, BEVERAGE --}}
+                                <div class="row g-3 mb-3">
+                                    <div class="col-12 col-md-4">
+                                        <div class="p-3 bg-light rounded border h-100 d-flex flex-column justify-content-center align-items-center text-center">
+                                            <i class="ti ti-users fs-2 text-muted mb-2"></i>
+                                            <span class="small text-muted d-block mb-1 fw-bold text-uppercase">Total Cover</span>
+                                            <h5 class="fw-bold mb-0">{{ number_format($mtdCoverReport, 0, ',', '.') }} <small class="text-muted fs-6">Pax</small></h5>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-4">
+                                        <div class="p-3 bg-light rounded border h-100 d-flex flex-column justify-content-between text-center">
+                                            <div>
+                                                <i class="ti ti-soup fs-2 text-muted mb-2"></i>
+                                                <span class="small text-muted d-block mb-1 fw-bold text-uppercase">Food Revenue</span>
+                                                <h6 class="fw-bold mb-3">Rp {{ number_format($mtdFoodRevenue, 0, ',', '.') }}</h6>
+                                            </div>
+                                            <div class="pt-2 border-top">
+                                                <span class="small text-muted d-block">Average / Pax</span>
+                                                <span class="fw-bold text-dark">Rp {{ number_format($mtdAverageFood, 0, ',', '.') }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-4">
+                                        <div class="p-3 bg-light rounded border h-100 d-flex flex-column justify-content-between text-center">
+                                            <div>
+                                                <i class="ti ti-glass-full fs-2 text-muted mb-2"></i>
+                                                <span class="small text-muted d-block mb-1 fw-bold text-uppercase">Beverage Revenue</span>
+                                                <h6 class="fw-bold mb-3">Rp {{ number_format($mtdBeverageRevenue, 0, ',', '.') }}</h6>
+                                            </div>
+                                            <div class="pt-2 border-top">
+                                                <span class="small text-muted d-block">Average / Pax</span>
+                                                <span class="fw-bold text-dark">Rp {{ number_format($mtdAverageBeverage, 0, ',', '.') }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- REVENUE VS TARGETS --}}
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-4">
+                                        <div class="p-3 bg-light-primary border border-primary-subtle rounded h-100 d-flex flex-column justify-content-center align-items-center text-center">
+                                            <span class="small text-primary fw-bold text-uppercase mb-1">Total MTD Revenue</span>
+                                            <h4 class="fw-bolder text-primary mb-0">Rp {{ number_format($totalMtdRevenue, 0, ',', '.') }}</h4>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-4">
+                                        <div class="p-3 bg-light rounded border h-100 d-flex flex-column justify-content-between">
+                                            <div>
+                                                <span class="small text-muted d-block text-center text-uppercase fw-bold mb-1">MTD Budget</span>
+                                                <h5 class="fw-bold text-center mb-3">Rp {{ number_format($totalMtdBudget, 0, ',', '.') }}</h5>
+                                            </div>
+                                            <div class="p-2 rounded text-center {{ $mtdBudgetBalance >= 0 ? 'bg-light-success border border-success-subtle' : 'bg-light-danger border border-danger-subtle' }}">
+                                                <span class="small {{ $mtdBudgetBalance >= 0 ? 'text-success' : 'text-danger' }} d-block fw-bold">Budget Variance</span>
+                                                <span class="fw-bold {{ $mtdBudgetBalance >= 0 ? 'text-success' : 'text-danger' }}">
+                                                    {{ $mtdBudgetBalance >= 0 ? '+' : '' }}Rp {{ number_format($mtdBudgetBalance, 0, ',', '.') }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-4">
+                                        <div class="p-3 bg-light rounded border h-100 d-flex flex-column justify-content-between">
+                                            <div>
+                                                <span class="small text-muted d-block text-center text-uppercase fw-bold mb-1">MTD Forecast</span>
+                                                <h5 class="fw-bold text-center mb-3">Rp {{ number_format($totalMtdTarget, 0, ',', '.') }}</h5>
+                                            </div>
+                                            <div class="p-2 rounded text-center {{ $mtdBalance >= 0 ? 'bg-light-success border border-success-subtle' : 'bg-light-danger border border-danger-subtle' }}">
+                                                <span class="small {{ $mtdBalance >= 0 ? 'text-success' : 'text-danger' }} d-block fw-bold">Forecast Variance</span>
+                                                <span class="fw-bold {{ $mtdBalance >= 0 ? 'text-success' : 'text-danger' }}">
+                                                    {{ $mtdBalance >= 0 ? '+' : '' }}Rp {{ number_format($mtdBalance, 0, ',', '.') }}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -142,22 +243,28 @@
                                                             </a>
                                                         </h6>
                                                         <small class="text-muted">
-                                                            <span class="text-dark fw-bold">Rp
-                                                                {{ number_format($data['actual'], 0, ',', '.') }}</span>
-                                                            / Target: Rp {{ number_format($data['target'], 0, ',', '.') }}
+                                                            <span class="text-dark fw-bold">Rp {{ number_format($data['actual'], 0, ',', '.') }}</span><br>
+                                                            <span class="me-2">/ Budget: Rp {{ number_format($data['budget'], 0, ',', '.') }}</span>
+                                                            <span>/ Forecast: Rp {{ number_format($data['target'], 0, ',', '.') }}</span>
                                                         </small>
                                                     </div>
-                                                    <div class="text-end">
-                                                        <span
-                                                            class="badge {{ $data['percentage'] >= 100 ? 'bg-light-success text-success' : ($data['percentage'] >= 80 ? 'bg-light-warning text-warning' : 'bg-light-danger text-danger') }} f-12">
-                                                            {{ number_format($data['percentage'], 1) }}%
+                                                    <div class="text-end d-flex flex-column align-items-end gap-1">
+                                                        <span title="Budget Achievement" class="badge {{ $data['budget_percentage'] >= 100 ? 'bg-light-success text-success' : ($data['budget_percentage'] >= 80 ? 'bg-light-warning text-warning' : 'bg-light-danger text-danger') }} f-12">
+                                                            B: {{ number_format($data['budget_percentage'], 1) }}%
+                                                        </span>
+                                                        <span title="Forecast Achievement" class="badge {{ $data['percentage'] >= 100 ? 'bg-light-info text-info' : ($data['percentage'] >= 80 ? 'bg-light-warning text-warning' : 'bg-light-danger text-danger') }} f-12">
+                                                            F: {{ number_format($data['percentage'], 1) }}%
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <div class="progress" style="height: 6px;">
-                                                    <div class="progress-bar {{ $data['percentage'] >= 100 ? 'bg-success' : ($data['percentage'] >= 80 ? 'bg-warning' : 'bg-danger') }}"
-                                                        role="progressbar"
-                                                        style="width: {{ min($data['percentage'], 100) }}%">
+                                                <div class="progress mt-1" style="height: 4px;" title="Budget Progress">
+                                                    <div class="progress-bar {{ $data['budget_percentage'] >= 100 ? 'bg-success' : ($data['budget_percentage'] >= 80 ? 'bg-warning' : 'bg-danger') }}"
+                                                        role="progressbar" style="width: {{ min($data['budget_percentage'], 100) }}%">
+                                                    </div>
+                                                </div>
+                                                <div class="progress mt-1" style="height: 4px;" title="Forecast Progress">
+                                                    <div class="progress-bar {{ $data['percentage'] >= 100 ? 'bg-info' : ($data['percentage'] >= 80 ? 'bg-warning' : 'bg-danger') }}"
+                                                        role="progressbar" style="width: {{ min($data['percentage'], 100) }}%">
                                                     </div>
                                                 </div>
                                             </li>
@@ -171,14 +278,14 @@
                 </div>
             </div>
         </div>
+
         {{-- WIDGET 1: WAITING APPROVAL --}}
-        <div class="col-md-4">
+        {{-- <div class="col-md-4">
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
                             <div class="avtar avtar-s bg-light-warning text-warning">
-                                {{-- Menggunakan icon Jam standar --}}
                                 <i class="ti ti-clock f-24"></i>
                             </div>
                         </div>
@@ -194,10 +301,10 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> --}}
 
         {{-- WIDGET 2: TODAY'S REVENUE --}}
-        <div class="col-md-4">
+        {{-- <div class="col-md-4">
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
@@ -216,16 +323,15 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> --}}
 
         {{-- WIDGET 3: MY DRAFTS --}}
-        <div class="col-md-4">
+        {{-- <div class="col-md-4">
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
                             <div class="avtar avtar-s bg-light-secondary text-secondary">
-                                {{-- Menggunakan icon Edit standar --}}
                                 <i class="ti ti-edit f-24"></i>
                             </div>
                         </div>
@@ -241,7 +347,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> --}}
 
         {{-- CHART SECTION --}}
         <div class="col-md-12">
@@ -369,18 +475,36 @@
                     }
                 }
             });
-            
+
             var options = {
-                series: [{
-                    name: 'Total Revenue',
-                    data: @json($chartValues) // Data dari Controller
-                }],
+                series: [
+                    {
+                        name: 'Revenue',
+                        type: 'column',
+                        data: @json($chartValues)
+                    },
+                    {
+                        name: 'Budget',
+                        type: 'line',
+                        data: @json($chartBudgetValues)
+                    },
+                    {
+                        name: 'Forecast',
+                        type: 'line',
+                        data: @json($chartForecastValues)
+                    }
+                ],
                 chart: {
                     height: 350,
-                    type: 'bar', // Bisa ganti 'area' atau 'line' jika mau
+                    type: 'line',
                     toolbar: {
                         show: false
                     }
+                },
+                stroke: {
+                    width: [0, 3, 3],
+                    curve: 'smooth',
+                    dashArray: [0, 0, 5]
                 },
                 plotOptions: {
                     bar: {
@@ -388,14 +512,12 @@
                         columnWidth: '45%',
                     }
                 },
+                colors: ['#4680ff', '#ffba57', '#2ca87f'],
                 dataLabels: {
                     enabled: false
                 },
-                stroke: {
-                    width: 0
-                },
                 xaxis: {
-                    categories: @json($chartLabels), // Label Tanggal dari Controller
+                    categories: @json($chartLabels),
                     axisBorder: {
                         show: false
                     },
@@ -406,19 +528,15 @@
                 yaxis: {
                     labels: {
                         formatter: function(value) {
-                            // Formatter Rupiah Sederhana (Ribuan K)
                             return "Rp " + (value / 1000).toLocaleString() + "k";
                         }
                     }
                 },
-                fill: {
-                    opacity: 1,
-                    colors: ['#4680ff'] // Warna Biru Mantis
-                },
                 tooltip: {
+                    shared: true,
+                    intersect: false,
                     y: {
                         formatter: function(val) {
-                            // Formatter Rupiah Lengkap di Tooltip
                             return "Rp " + val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
                         }
                     }
@@ -520,68 +638,11 @@
 
             // Fetch Data dari Server
             fetch(url)
-                .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    return response.text();
-                })
-                .then(html => {
-                    // Masukkan HTML Partial View ke dalam Modal
-                    contentDiv.innerHTML = html;
-                    contentDiv.style.opacity = '1';
-                    contentDiv.style.pointerEvents = 'auto';
-                })
-                .catch(error => {
-                    contentDiv.innerHTML = `
-                    <div class="modal-header"><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-                    <div class="modal-body text-center text-danger p-5">
-                        <i class="ti ti-alert-triangle fs-1 mb-3"></i>
-                        <p>Failed to load data. Please try again.</p>
-                    </div>
-                `;
-                });
-        }
-        // Variabel Global untuk menyimpan object Chart
-        let coverChartInstance = null;
-        let revenueChartInstance = null;
-        let competitorChartInstance = null;
-        let dayTrendChartInstance = null;
-
-        function openAnalyticsModal(restaurantId) {
-            var myModal = new bootstrap.Modal(document.getElementById('analyticsModal'));
-            myModal.show();
-            loadAnalyticsData(restaurantId);
-        }
-
-        function loadAnalyticsData(restaurantId) {
-            const contentDiv = document.getElementById('analyticsModalContent');
-
-            // ... (Kode Ambil Input Filter Tanggal - SAMA SEPERTI SEBELUMNYA) ...
-            const startDateInput = document.getElementById('filter-start-date');
-            const endDateInput = document.getElementById('filter-end-date');
-            let url = `{{ url('/dashboard/analytics') }}/${restaurantId}`;
-
-            if (startDateInput && endDateInput) {
-                url += `?start_date=${startDateInput.value}&end_date=${endDateInput.value}`;
-                contentDiv.style.opacity = '0.5';
-                contentDiv.style.pointerEvents = 'none';
-            } else {
-                // ... (Kode Loading Spinner - SAMA SEPERTI SEBELUMNYA) ...
-                contentDiv.innerHTML =
-                    `<div class="modal-body text-center p-5"><div class="spinner-border text-primary"></div></div>`;
-            }
-
-            fetch(url)
                 .then(response => response.text())
                 .then(html => {
                     contentDiv.innerHTML = html;
                     contentDiv.style.opacity = '1';
                     contentDiv.style.pointerEvents = 'auto';
-
-                    // === TAMBAHAN BARU: RENDER CHART SETELAH HTML MUNCUL ===
-                    renderCoverChart();
-                    renderRevenueChart();
-                    renderCompetitorChart();
-                    renderDayTrendChart();
                 })
                 .catch(error => {
                     console.error(error);
@@ -589,276 +650,6 @@
                 });
         }
 
-        // --- FUNGSI BARU UNTUK RENDER CHART ---
-        function renderCoverChart() {
-            // 1. Ambil Data dari Textarea Tersembunyi
-            const catElement = document.getElementById('chart-categories-data');
-            const serElement = document.getElementById('chart-series-data');
-
-            if (!catElement || !serElement) return; // Stop jika elemen tidak ada
-
-            const categories = JSON.parse(catElement.value);
-            const series = JSON.parse(serElement.value);
-
-            // 2. Hapus Chart Lama (Jika ada) agar tidak error tumpang tindih
-            if (coverChartInstance) {
-                coverChartInstance.destroy();
-            }
-
-            // 3. Konfigurasi ApexCharts (Stacked Column)
-            var options = {
-                series: series,
-                chart: {
-                    type: 'bar',
-                    height: 350,
-                    stacked: true, // Mode Bertumpuk
-                    toolbar: {
-                        show: false
-                    },
-                    fontFamily: 'inherit' // Ikuti font website
-                },
-                plotOptions: {
-                    bar: {
-                        horizontal: false, // Ubah true jika label item terlalu panjang
-                        columnWidth: '50%',
-                        borderRadius: 4
-                    },
-                },
-                dataLabels: {
-                    enabled: false // Matikan angka di dalam bar agar bersih
-                },
-                stroke: {
-                    width: 1,
-                    colors: ['#fff']
-                },
-                xaxis: {
-                    categories: categories, // Item Cover (In House, Walk In, dll)
-                },
-                yaxis: {
-                    title: {
-                        text: 'Total Pax'
-                    }
-                },
-                fill: {
-                    opacity: 1
-                },
-                legend: {
-                    position: 'top',
-                    horizontalAlign: 'left'
-                },
-                colors: ['#ffc107', '#0d6efd', '#212529',
-                    '#6610f2'
-                ] // Warna: Kuning, Biru, Hitam, Ungu (Sesuai tema sesi)
-            };
-
-            // 4. Render Chart
-            coverChartInstance = new ApexCharts(document.querySelector("#coverReportChart"), options);
-            coverChartInstance.render();
-        }
-
-        function renderRevenueChart() {
-            // 1. Ambil Data
-            const catElement = document.getElementById('chart-rev-categories-data');
-            const serElement = document.getElementById('chart-rev-series-data');
-
-            if (!catElement || !serElement) return;
-
-            const categories = JSON.parse(catElement.value);
-            const series = JSON.parse(serElement.value);
-
-            // 2. Destroy Old Chart
-            if (revenueChartInstance) {
-                revenueChartInstance.destroy();
-            }
-
-            // 3. Config (Mirip Cover, tapi ada Yaxis formatter)
-            var options = {
-                series: series,
-                chart: {
-                    type: 'bar',
-                    height: 350,
-                    stacked: true,
-                    toolbar: {
-                        show: false
-                    },
-                    fontFamily: 'inherit'
-                },
-                plotOptions: {
-                    bar: {
-                        horizontal: false,
-                        columnWidth: '50%',
-                        borderRadius: 4
-                    },
-                },
-                dataLabels: {
-                    enabled: false
-                },
-                stroke: {
-                    width: 1,
-                    colors: ['#fff']
-                },
-                xaxis: {
-                    categories: categories,
-                },
-                yaxis: {
-                    title: {
-                        text: 'Revenue (IDR)'
-                    },
-                    labels: {
-                        // FORMATTER RUPIAH DI SUMBU Y
-                        formatter: function(value) {
-                            return value.toLocaleString('id-ID'); // Contoh: 1.000.000
-                        }
-                    }
-                },
-                tooltip: {
-                    y: {
-                        // FORMATTER RUPIAH DI TOOLTIP (Saat mouse hover)
-                        formatter: function(val) {
-                            return "Rp " + val.toLocaleString('id-ID');
-                        }
-                    }
-                },
-                fill: {
-                    opacity: 1
-                },
-                legend: {
-                    position: 'top',
-                    horizontalAlign: 'left'
-                },
-                colors: ['#ffc107', '#0d6efd', '#212529', '#6610f2'] // Kuning, Biru, Hitam, Ungu
-            };
-
-            // 4. Render
-            revenueChartInstance = new ApexCharts(document.querySelector("#revenueReportChart"), options);
-            revenueChartInstance.render();
-        }
-
-        function renderCompetitorChart() {
-            // 1. Ambil Data
-            const catElement = document.getElementById('chart-comp-categories-data');
-            const serElement = document.getElementById('chart-comp-series-data');
-
-            if (!catElement || !serElement) return;
-
-            const categories = JSON.parse(catElement.value);
-            const series = JSON.parse(serElement.value);
-
-            // 2. Destroy Old Chart
-            if (competitorChartInstance) {
-                competitorChartInstance.destroy();
-            }
-
-            // 3. Config
-            var options = {
-                series: series,
-                chart: {
-                    type: 'bar',
-                    height: 350,
-                    stacked: true,
-                    toolbar: {
-                        show: false
-                    },
-                    fontFamily: 'inherit'
-                },
-                plotOptions: {
-                    bar: {
-                        horizontal: false,
-                        columnWidth: '50%',
-                        borderRadius: 4
-                    },
-                },
-                dataLabels: {
-                    enabled: false
-                },
-                stroke: {
-                    width: 1,
-                    colors: ['#fff']
-                },
-                xaxis: {
-                    categories: categories, // Nama Hotel
-                },
-                yaxis: {
-                    title: {
-                        text: 'Total Pax'
-                    }
-                },
-                tooltip: {
-                    y: {
-                        formatter: function(val) {
-                            return val + " Pax";
-                        }
-                    }
-                },
-                fill: {
-                    opacity: 1
-                },
-                legend: {
-                    position: 'top',
-                    horizontalAlign: 'left'
-                },
-                colors: ['#ffc107', '#0d6efd', '#212529', '#6610f2'] // Tetap konsisten (Kuning, Biru, Hitam, Ungu)
-            };
-
-            // 4. Render
-            competitorChartInstance = new ApexCharts(document.querySelector("#competitorReportChart"), options);
-            competitorChartInstance.render();
-        }
-
-        function renderDayTrendChart() {
-            const catElement = document.getElementById('chart-day-categories-data');
-            const serElement = document.getElementById('chart-day-series-data');
-
-            if (!catElement || !serElement) return;
-
-            const categories = JSON.parse(catElement.value);
-            const series = JSON.parse(serElement.value);
-
-            if (dayTrendChartInstance) {
-                dayTrendChartInstance.destroy();
-            }
-
-            var options = {
-                series: series,
-                chart: {
-                    type: 'line', // Ganti jadi 'line' untuk melihat tren
-                    height: 350,
-                    toolbar: {
-                        show: false
-                    },
-                    fontFamily: 'inherit'
-                },
-                stroke: {
-                    curve: 'smooth', // Garis melengkung halus
-                    width: 3
-                },
-                dataLabels: {
-                    enabled: false
-                },
-                xaxis: {
-                    categories: categories, // Mon, Tue, Wed...
-                },
-                yaxis: {
-                    title: {
-                        text: 'Accumulated Pax'
-                    }
-                },
-                tooltip: {
-                    y: {
-                        formatter: function(val) {
-                            return val + " Pax";
-                        }
-                    }
-                },
-                legend: {
-                    position: 'top',
-                    horizontalAlign: 'left'
-                },
-                colors: ['#ffc107', '#0d6efd', '#212529', '#6610f2'] // Kuning, Biru, Hitam, Ungu
-            };
-
-            dayTrendChartInstance = new ApexCharts(document.querySelector("#dayTrendChart"), options);
-            dayTrendChartInstance.render();
-        }
+        // Variabel Global untuk menyimpan object Chart
     </script>
 @endpush

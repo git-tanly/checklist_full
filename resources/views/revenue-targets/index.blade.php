@@ -6,12 +6,12 @@
             <div class="row align-items-center">
                 <div class="col-md-12">
                     <div class="page-header-title">
-                        <h5 class="m-b-10">Revenue Targets</h5>
+                        <h5 class="m-b-10">Budget & Forecast</h5>
                     </div>
                     <ul class="breadcrumb">
                         <li class="breadcrumb-item"><a href="{{ route('daily-reports.index') }}">Dashboard</a></li>
                         <li class="breadcrumb-item">Settings</li>
-                        <li class="breadcrumb-item" aria-current="page">Targets</li>
+                        <li class="breadcrumb-item" aria-current="page">Budget & Forecast</li>
                     </ul>
                 </div>
             </div>
@@ -26,7 +26,7 @@
         <div class="col-md-4">
             <div class="card">
                 <div class="card-header">
-                    <h5>Set Target</h5>
+                    <h5>Set Budget & Forecast</h5>
                 </div>
                 <div class="card-body">
                     @if (session('success'))
@@ -46,13 +46,13 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-12 mb-2">
+                            {{-- <div class="col-12 mb-2">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" name="is_full_year" id="is_full_year"
                                         value="1">
                                     <label class="form-check-label" for="is_full_year">Set for Full Year (Jan - Dec)</label>
                                 </div>
-                            </div>
+                            </div> --}}
 
                             <div class="col-6">
                                 <div class="form-group mb-3">
@@ -79,13 +79,18 @@
                             </div>
                         </div>
 
+                        <div class="form-group mb-3">
+                            <label class="form-label">Budget Amount (IDR)</label>
+                            <input type="text" name="budget_amount" class="form-control rupiah" placeholder="0" required>
+                        </div>
+
                         <div class="form-group mb-4">
-                            <label class="form-label">Target Amount (IDR)</label>
+                            <label class="form-label">Forecast Amount (IDR)</label>
                             <input type="text" name="amount" class="form-control rupiah" placeholder="0" required>
                         </div>
 
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">Save Target</button>
+                            <button type="submit" class="btn btn-primary">Save Budget & Forecast</button>
                         </div>
                     </form>
                 </div>
@@ -96,7 +101,7 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5>Target List ({{ $year }})</h5>
+                    <h5>Budget & Forecast List ({{ $year }})</h5>
                     {{-- Filter Tahun --}}
                     <form action="{{ route('revenue-targets.index') }}" method="GET" class="d-flex align-items-center">
                         <select name="year" class="form-select form-select-sm" onchange="this.form.submit()">
@@ -114,7 +119,8 @@
                                 <tr>
                                     <th>Restaurant</th>
                                     <th>Month</th>
-                                    <th class="text-end">Amount</th>
+                                    <th class="text-end">Budget</th>
+                                    <th class="text-end">Forecast</th>
                                     <th>Last Updated</th>
                                 </tr>
                             </thead>
@@ -128,6 +134,9 @@
                                             <span class="badge bg-light-primary text-primary">
                                                 {{ DateTime::createFromFormat('!m', $target->month)->format('F') }}
                                             </span>
+                                        </td>
+                                        <td class="text-end fw-bold">
+                                            Rp {{ number_format($target->budget_amount, 0, ',', '.') }}
                                         </td>
                                         <td class="text-end fw-bold">
                                             Rp {{ number_format($target->amount, 0, ',', '.') }}

@@ -12,12 +12,12 @@
     $myStaffList = $resto209 ? $resto209->users : [];
 
     // Ambil data (bisa dari old input array, atau database array)
-    $bfVipData = old('session.breakfast.vip_remarks', $bf->vip_remarks ?? []);
-    $bfVipValue = is_array($bfVipData) ? json_encode($bfVipData) : $bfVipData; // Jika Array (karena validasi controller atau database), ubah jadi JSON String, Jika sudah String (jarang terjadi di logic baru kita), biarkan
-    $lcVipData = old('session.lunch.vip_remarks', $lc->vip_remarks ?? []);
-    $lcVipValue = is_array($lcVipData) ? json_encode($lcVipData) : $lcVipData;
-    $dnVipData = old('session.dinner.vip_remarks', $dn->vip_remarks ?? []);
-    $dnVipValue = is_array($dnVipData) ? json_encode($dnVipData) : $dnVipData;
+    $bfOccasionData = old('session.breakfast.additional_data.occasion_items', $bf->additional_data['occasion_items'] ?? []);
+    $bfOccasionValue = is_array($bfOccasionData) ? json_encode($bfOccasionData) : $bfOccasionData;
+    $lcOccasionData = old('session.lunch.additional_data.occasion_items', $lc->additional_data['occasion_items'] ?? []);
+    $lcOccasionValue = is_array($lcOccasionData) ? json_encode($lcOccasionData) : $lcOccasionData;
+    $dnOccasionData = old('session.dinner.additional_data.occasion_items', $dn->additional_data['occasion_items'] ?? []);
+    $dnOccasionValue = is_array($dnOccasionData) ? json_encode($dnOccasionData) : $dnOccasionData;
 
     $bfStaffData = old('session.breakfast.staff_on_duty', $bf->staff_on_duty ?? []);
     $bfStaffValue = is_array($bfStaffData) ? json_encode($bfStaffData) : $bfStaffData;
@@ -39,6 +39,14 @@
     $lcBevValue = is_array($lcBevData) ? json_encode($lcBevData) : $lcBevData;
     $dnBevData = old('session.dinner.upselling_data.beverage', $dn->upselling_data['beverage'] ?? []);
     $dnBevValue = is_array($dnBevData) ? json_encode($dnBevData) : $dnBevData;
+
+    // F. Promo Items (dynamic repeater)
+    $bfPromoData = old('session.breakfast.additional_data.promo_items', $bf->additional_data['promo_items'] ?? []);
+    $bfPromoValue = is_array($bfPromoData) ? json_encode($bfPromoData) : $bfPromoData;
+    $lcPromoData = old('session.lunch.additional_data.promo_items', $lc->additional_data['promo_items'] ?? []);
+    $lcPromoValue = is_array($lcPromoData) ? json_encode($lcPromoData) : $lcPromoData;
+    $dnPromoData = old('session.dinner.additional_data.promo_items', $dn->additional_data['promo_items'] ?? []);
+    $dnPromoValue = is_array($dnPromoData) ? json_encode($dnPromoData) : $dnPromoData;
 @endphp
 
 {{-- === SESSION: BREAKFAST === --}}
@@ -79,18 +87,7 @@
             </div>
 
             {{-- Event & BEO --}}
-            <div class="col-md-3">
-                <label class="form-label small">Event (Adult)</label>
-                <input type="number" class="form-control" name="session[breakfast][cover_data][event_adult]"
-                    value="{{ old('session.breakfast.cover_data.event_adult', $bf->cover_data['event_adult'] ?? '') }}"
-                    placeholder="0">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label small">Event (Child)</label>
-                <input type="number" class="form-control" name="session[breakfast][cover_data][event_child]"
-                    value="{{ old('session.breakfast.cover_data.event_child', $bf->cover_data['event_child'] ?? '') }}"
-                    placeholder="0">
-            </div>
+
             <div class="col-md-3">
                 <label class="form-label small text-danger">BEO (Total)</label>
                 <input type="number" class="form-control" name="session[breakfast][cover_data][beo_total]"
@@ -101,7 +98,64 @@
 
         <hr>
 
-        <h6 class="fw-bold text-muted mt-3">2. Revenue Report (IDR)</h6>
+        <h6 class="fw-bold text-muted mt-3">2. Occasion</h6>
+        <div class="row g-3">
+            <div class="col-md-12">
+                <input type="hidden" id="input-occasion-breakfast-209" name="session[breakfast][additional_data][occasion_items]" value="{{ $bfOccasionValue ?? '[]' }}">
+                <div class="input-group mb-2">
+                    <select class="form-select form-select-sm" id="occasion-type-breakfast-209" onchange="toggleOccasionOther('breakfast', '209')">
+                        <option value="" selected>Select Occasion...</option>
+                        <option value="Wedding Party">Wedding Party</option>
+                        <option value="Birthday Party">Birthday Party</option>
+                        <option value="Social Event">Social Event</option>
+                        <option value="Corporate Event">Corporate Event</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <input type="text" class="form-control form-control-sm d-none" id="occasion-other-breakfast-209" placeholder="Occasion Type" style="max-width: 150px;">
+                    <input type="text" class="form-control form-control-sm" id="occasion-name-breakfast-209"
+                        placeholder="Name (e.g. Mr. Budi)">
+                    <input type="number" class="form-control form-control-sm" id="occasion-pax-breakfast-209"
+                        placeholder="Pax" style="max-width: 80px;">
+                    <input type="text" class="form-control form-control-sm rupiah" id="occasion-revenue-breakfast-209"
+                        placeholder="Revenue" style="max-width: 120px;" autocomplete="off">
+                    <button class="btn btn-sm btn-dark" type="button" onclick="addOccasionItem('breakfast', '209')">
+                        <i class="ti ti-plus"></i> Add
+                    </button>
+                </div>
+                <ul class="list-group small" id="list-occasion-breakfast-209"></ul>
+            </div>
+        </div>
+
+        <hr>
+
+        <h6 class="fw-bold text-muted mt-3">3. Promo</h6>
+        <div class="row g-3">
+            <div class="col-md-12">
+                <input type="hidden" id="input-promo-breakfast-209" name="session[breakfast][additional_data][promo_items]" value="{{ $bfPromoValue ?? '[]' }}">
+                <div class="input-group mb-2">
+                    <select class="form-select form-select-sm" id="promo-type-breakfast-209" onchange="togglePromoOther('breakfast', '209')">
+                        <option value="" selected>Select Promo...</option>
+                        <option value="Mandiri Card">Mandiri Card</option>
+                        <option value="BCA Card">BCA Card</option>
+                        <option value="Membership">Membership</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <input type="text" class="form-control form-control-sm d-none" id="promo-other-breakfast-209" placeholder="Promo Name" style="max-width: 150px;">
+                    <input type="number" class="form-control form-control-sm" id="promo-pax-breakfast-209"
+                        placeholder="Pax" style="max-width: 80px;">
+                    <input type="text" class="form-control form-control-sm rupiah" id="promo-revenue-breakfast-209"
+                        placeholder="Revenue" style="max-width: 120px;" autocomplete="off">
+                    <button class="btn btn-sm btn-dark" type="button" onclick="addPromoItem('breakfast', '209')">
+                        <i class="ti ti-plus"></i> Add
+                    </button>
+                </div>
+                <ul class="list-group small" id="list-promo-breakfast-209"></ul>
+            </div>
+        </div>
+
+        <hr>
+
+        <h6 class="fw-bold text-muted mt-3">4. Revenue Report (IDR)</h6>
         <div class="row g-3">
             <div class="col-md-3">
                 <label class="form-label small">Food Revenue</label>
@@ -131,7 +185,7 @@
 
         <hr>
 
-        <h6 class="fw-bold text-muted mt-3">3. Upselling & Remarks</h6>
+        <h6 class="fw-bold text-muted mt-3">5. Upselling & Remarks</h6>
         <div class="row g-3">
             <div class="col-md-6">
                 <label class="form-label small fw-bold">Upselling Menu (Food)</label>
@@ -199,30 +253,7 @@
                 <label class="form-label small">Beverage Upselling</label>
                 <textarea class="form-control" rows="2" name="session[breakfast][upselling_data][beverage_items]">{{ old('session.breakfast.upselling_data.beverage_items', $bf->upselling_data['beverage_items'] ?? '') }}</textarea>
             </div> --}}
-            <div class="col-md-12 mt-3">
-                <label class="form-label small fw-bold">VIP 1 & 2 List</label>
 
-                {{-- 1. Hidden Input (Penyimpan Data JSON ke Database) --}}
-                {{-- Value logic: Prioritaskan old input, lalu data DB, lalu array kosong default --}}
-                <input type="hidden" id="input-vip-breakfast-209" name="session[breakfast][vip_remarks]"
-                    value="{{ $bfVipValue }}">
-
-                {{-- 2. Area Input (Nama & Jabatan) --}}
-                <div class="input-group mb-2">
-                    <input type="text" class="form-control form-control-sm" id="vip-name-breakfast-209"
-                        placeholder="Guest Name (e.g. Mr. Budi)">
-                    <input type="text" class="form-control form-control-sm" id="vip-pos-breakfast-209"
-                        placeholder="Position/Title (e.g. CEO)">
-                    <button class="btn btn-sm btn-dark" type="button" onclick="addVipItem('breakfast', '209')">
-                        <i class="ti ti-plus"></i> Add
-                    </button>
-                </div>
-
-                {{-- 3. List Tampilan --}}
-                <ul class="list-group small" id="list-vip-breakfast-209">
-                    {{-- Item akan muncul di sini lewat JS --}}
-                </ul>
-            </div>
             <div class="col-md-12">
                 <label class="form-label small">General Remarks</label>
                 <textarea class="form-control" name="session[breakfast][remarks]">{{ old('session.breakfast.remarks', $bf->remarks ?? '') }}</textarea>
@@ -257,7 +288,7 @@
 
         <hr>
 
-        <h6 class="fw-bold text-muted mt-3">4. Competitor Comparison (Cover)</h6>
+        <h6 class="fw-bold text-muted mt-3">6. Competitor Comparison (Cover)</h6>
         <div class="row g-3">
             <div class="col-md-4">
                 <label class="form-label small">Shangri-La</label>
@@ -332,18 +363,7 @@
             </div>
 
             {{-- Event & BEO --}}
-            <div class="col-md-3">
-                <label class="form-label small">Event (Adult)</label>
-                <input type="number" class="form-control" name="session[lunch][cover_data][event_adult]"
-                    value="{{ old('session.lunch.cover_data.event_adult', $lc->cover_data['event_adult'] ?? '') }}"
-                    placeholder="0">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label small">Event (Child)</label>
-                <input type="number" class="form-control" name="session[lunch][cover_data][event_child]"
-                    value="{{ old('session.lunch.cover_data.event_child', $lc->cover_data['event_child'] ?? '') }}"
-                    placeholder="0">
-            </div>
+
             <div class="col-md-3">
                 <label class="form-label small text-danger">BEO (Total)</label>
                 <input type="number" class="form-control" name="session[lunch][cover_data][beo_total]"
@@ -354,7 +374,64 @@
 
         <hr>
 
-        <h6 class="fw-bold text-muted mt-3">2. Revenue Report (IDR)</h6>
+        <h6 class="fw-bold text-muted mt-3">2. Occasion</h6>
+        <div class="row g-3">
+            <div class="col-md-12">
+                <input type="hidden" id="input-occasion-lunch-209" name="session[lunch][additional_data][occasion_items]" value="{{ $lcOccasionValue }}">
+                <div class="input-group mb-2">
+                    <select class="form-select form-select-sm" id="occasion-type-lunch-209" onchange="toggleOccasionOther('lunch', '209')">
+                        <option value="" selected>Select Occasion...</option>
+                        <option value="Wedding Party">Wedding Party</option>
+                        <option value="Birthday Party">Birthday Party</option>
+                        <option value="Social Event">Social Event</option>
+                        <option value="Corporate Event">Corporate Event</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <input type="text" class="form-control form-control-sm d-none" id="occasion-other-lunch-209" placeholder="Occasion Type" style="max-width: 150px;">
+                    <input type="text" class="form-control form-control-sm" id="occasion-name-lunch-209"
+                        placeholder="Name (e.g. Mr. Budi)">
+                    <input type="number" class="form-control form-control-sm" id="occasion-pax-lunch-209"
+                        placeholder="Pax" style="max-width: 80px;">
+                    <input type="text" class="form-control form-control-sm rupiah" id="occasion-revenue-lunch-209"
+                        placeholder="Revenue" style="max-width: 120px;" autocomplete="off">
+                    <button class="btn btn-sm btn-dark" type="button" onclick="addOccasionItem('lunch', '209')">
+                        <i class="ti ti-plus"></i> Add
+                    </button>
+                </div>
+                <ul class="list-group small" id="list-occasion-lunch-209"></ul>
+            </div>
+        </div>
+
+        <hr>
+
+        <h6 class="fw-bold text-muted mt-3">3. Promo</h6>
+        <div class="row g-3">
+            <div class="col-md-12">
+                <input type="hidden" id="input-promo-lunch-209" name="session[lunch][additional_data][promo_items]" value="{{ $lcPromoValue ?? '[]' }}">
+                <div class="input-group mb-2">
+                    <select class="form-select form-select-sm" id="promo-type-lunch-209" onchange="togglePromoOther('lunch', '209')">
+                        <option value="" selected>Select Promo...</option>
+                        <option value="Mandiri Card">Mandiri Card</option>
+                        <option value="BCA Card">BCA Card</option>
+                        <option value="Membership">Membership</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <input type="text" class="form-control form-control-sm d-none" id="promo-other-lunch-209" placeholder="Promo Name" style="max-width: 150px;">
+                    <input type="number" class="form-control form-control-sm" id="promo-pax-lunch-209"
+                        placeholder="Pax" style="max-width: 80px;">
+                    <input type="text" class="form-control form-control-sm rupiah" id="promo-revenue-lunch-209"
+                        placeholder="Revenue" style="max-width: 120px;" autocomplete="off">
+                    <button class="btn btn-sm btn-dark" type="button" onclick="addPromoItem('lunch', '209')">
+                        <i class="ti ti-plus"></i> Add
+                    </button>
+                </div>
+                <ul class="list-group small" id="list-promo-lunch-209"></ul>
+            </div>
+        </div>
+
+        <hr>
+
+        <h6 class="fw-bold text-muted mt-3">4. Revenue Report (IDR)</h6>
         <div class="row g-3">
             <div class="col-md-3">
                 <label class="form-label small">Food Revenue</label>
@@ -384,7 +461,7 @@
 
         <hr>
 
-        <h6 class="fw-bold text-muted mt-3">3. Upselling & Remarks</h6>
+        <h6 class="fw-bold text-muted mt-3">5. Upselling & Remarks</h6>
         <div class="row g-3">
             <div class="col-md-6">
                 <label class="form-label small fw-bold">Upselling Menu (Food)</label>
@@ -444,38 +521,6 @@
                     {{-- Item akan muncul di sini lewat JS --}}
                 </ul>
             </div>
-            {{-- <div class="col-md-6">
-                <label class="form-label small">Upselling Menu (Food)</label>
-                <textarea class="form-control" rows="2" name="session[lunch][upselling_data][food_items]">{{ old('session.lunch.upselling_data.food_items', $lc->upselling_data['food_items'] ?? '') }}</textarea>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label small">Beverage Upselling</label>
-                <textarea class="form-control" rows="2" name="session[lunch][upselling_data][beverage_items]">{{ old('session.lunch.upselling_data.beverage_items', $lc->upselling_data['beverage_items'] ?? '') }}</textarea>
-            </div> --}}
-            <div class="col-md-12 mt-3">
-                <label class="form-label small fw-bold">VIP 1 & 2 List</label>
-
-                {{-- 1. Hidden Input (Penyimpan Data JSON ke Database) --}}
-                {{-- Value logic: Prioritaskan old input, lalu data DB, lalu array kosong default --}}
-                <input type="hidden" id="input-vip-lunch-209" name="session[lunch][vip_remarks]"
-                    value="{{ $lcVipValue }}">
-
-                {{-- 2. Area Input (Nama & Jabatan) --}}
-                <div class="input-group mb-2">
-                    <input type="text" class="form-control form-control-sm" id="vip-name-lunch-209"
-                        placeholder="Guest Name (e.g. Mr. Budi)">
-                    <input type="text" class="form-control form-control-sm" id="vip-pos-lunch-209"
-                        placeholder="Position/Title (e.g. CEO)">
-                    <button class="btn btn-sm btn-dark" type="button" onclick="addVipItem('lunch', '209')">
-                        <i class="ti ti-plus"></i> Add
-                    </button>
-                </div>
-
-                {{-- 3. List Tampilan --}}
-                <ul class="list-group small" id="list-vip-lunch-209">
-                    {{-- Item akan muncul di sini lewat JS --}}
-                </ul>
-            </div>
             <div class="col-md-12">
                 <label class="form-label small">General Remarks</label>
                 <textarea class="form-control" name="session[lunch][remarks]">{{ old('session.lunch.remarks', $lc->remarks ?? '') }}</textarea>
@@ -510,7 +555,7 @@
 
         <hr>
 
-        <h6 class="fw-bold text-muted mt-3">4. Competitor Comparison (Cover)</h6>
+        <h6 class="fw-bold text-muted mt-3">6. Competitor Comparison (Cover)</h6>
         <div class="row g-3">
             <div class="col-md-4">
                 <label class="form-label small">Shangri-La</label>
@@ -583,18 +628,7 @@
             </div>
 
             {{-- Event & BEO --}}
-            <div class="col-md-3">
-                <label class="form-label small">Event (Adult)</label>
-                <input type="number" class="form-control" name="session[dinner][cover_data][event_adult]"
-                    value="{{ old('session.dinner.cover_data.event_adult', $dn->cover_data['event_adult'] ?? '') }}"
-                    placeholder="0">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label small">Event (Child)</label>
-                <input type="number" class="form-control" name="session[dinner][cover_data][event_child]"
-                    value="{{ old('session.dinner.cover_data.event_child', $dn->cover_data['event_child'] ?? '') }}"
-                    placeholder="0">
-            </div>
+
             <div class="col-md-3">
                 <label class="form-label small text-danger">BEO (Total)</label>
                 <input type="number" class="form-control" name="session[dinner][cover_data][beo_total]"
@@ -605,7 +639,64 @@
 
         <hr>
 
-        <h6 class="fw-bold text-muted mt-3">2. Revenue Report (IDR)</h6>
+        <h6 class="fw-bold text-muted mt-3">2. Occasion</h6>
+        <div class="row g-3">
+            <div class="col-md-12">
+                <input type="hidden" id="input-occasion-dinner-209" name="session[dinner][additional_data][occasion_items]" value="{{ $dnOccasionValue }}">
+                <div class="input-group mb-2">
+                    <select class="form-select form-select-sm" id="occasion-type-dinner-209" onchange="toggleOccasionOther('dinner', '209')">
+                        <option value="" selected>Select Occasion...</option>
+                        <option value="Wedding Party">Wedding Party</option>
+                        <option value="Birthday Party">Birthday Party</option>
+                        <option value="Social Event">Social Event</option>
+                        <option value="Corporate Event">Corporate Event</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <input type="text" class="form-control form-control-sm d-none" id="occasion-other-dinner-209" placeholder="Occasion Type" style="max-width: 150px;">
+                    <input type="text" class="form-control form-control-sm" id="occasion-name-dinner-209"
+                        placeholder="Name (e.g. Mr. Budi)">
+                    <input type="number" class="form-control form-control-sm" id="occasion-pax-dinner-209"
+                        placeholder="Pax" style="max-width: 80px;">
+                    <input type="text" class="form-control form-control-sm rupiah" id="occasion-revenue-dinner-209"
+                        placeholder="Revenue" style="max-width: 120px;" autocomplete="off">
+                    <button class="btn btn-sm btn-dark" type="button" onclick="addOccasionItem('dinner', '209')">
+                        <i class="ti ti-plus"></i> Add
+                    </button>
+                </div>
+                <ul class="list-group small" id="list-occasion-dinner-209"></ul>
+            </div>
+        </div>
+
+        <hr>
+
+        <h6 class="fw-bold text-muted mt-3">3. Promo</h6>
+        <div class="row g-3">
+            <div class="col-md-12">
+                <input type="hidden" id="input-promo-dinner-209" name="session[dinner][additional_data][promo_items]" value="{{ $dnPromoValue ?? '[]' }}">
+                <div class="input-group mb-2">
+                    <select class="form-select form-select-sm" id="promo-type-dinner-209" onchange="togglePromoOther('dinner', '209')">
+                        <option value="" selected>Select Promo...</option>
+                        <option value="Mandiri Card">Mandiri Card</option>
+                        <option value="BCA Card">BCA Card</option>
+                        <option value="Membership">Membership</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <input type="text" class="form-control form-control-sm d-none" id="promo-other-dinner-209" placeholder="Promo Name" style="max-width: 150px;">
+                    <input type="number" class="form-control form-control-sm" id="promo-pax-dinner-209"
+                        placeholder="Pax" style="max-width: 80px;">
+                    <input type="text" class="form-control form-control-sm rupiah" id="promo-revenue-dinner-209"
+                        placeholder="Revenue" style="max-width: 120px;" autocomplete="off">
+                    <button class="btn btn-sm btn-dark" type="button" onclick="addPromoItem('dinner', '209')">
+                        <i class="ti ti-plus"></i> Add
+                    </button>
+                </div>
+                <ul class="list-group small" id="list-promo-dinner-209"></ul>
+            </div>
+        </div>
+
+        <hr>
+
+        <h6 class="fw-bold text-muted mt-3">4. Revenue Report (IDR)</h6>
         <div class="row g-3">
             <div class="col-md-3">
                 <label class="form-label small">Food Revenue</label>
@@ -635,7 +726,7 @@
 
         <hr>
 
-        <h6 class="fw-bold text-muted mt-3">3. Upselling & Remarks</h6>
+        <h6 class="fw-bold text-muted mt-3">5. Upselling & Remarks</h6>
         <div class="row g-3">
             <div class="col-md-6">
                 <label class="form-label small fw-bold">Upselling Menu (Food)</label>
@@ -703,30 +794,6 @@
                 <label class="form-label small">Beverage Upselling</label>
                 <textarea class="form-control" rows="2" name="session[dinner][upselling_data][beverage_items]">{{ old('session.dinner.upselling_data.beverage_items', $dn->upselling_data['beverage_items'] ?? '') }}</textarea>
             </div> --}}
-            <div class="col-md-12 mt-3">
-                <label class="form-label small fw-bold">VIP 1 & 2 List</label>
-
-                {{-- 1. Hidden Input (Penyimpan Data JSON ke Database) --}}
-                {{-- Value logic: Prioritaskan old input, lalu data DB, lalu array kosong default --}}
-                <input type="hidden" id="input-vip-dinner-209" name="session[dinner][vip_remarks]"
-                    value="{{ $dnVipValue }}">
-
-                {{-- 2. Area Input (Nama & Jabatan) --}}
-                <div class="input-group mb-2">
-                    <input type="text" class="form-control form-control-sm" id="vip-name-dinner-209"
-                        placeholder="Guest Name (e.g. Mr. Budi)">
-                    <input type="text" class="form-control form-control-sm" id="vip-pos-dinner-209"
-                        placeholder="Position/Title (e.g. CEO)">
-                    <button class="btn btn-sm btn-dark" type="button" onclick="addVipItem('dinner', '209')">
-                        <i class="ti ti-plus"></i> Add
-                    </button>
-                </div>
-
-                {{-- 3. List Tampilan --}}
-                <ul class="list-group small" id="list-vip-dinner-209">
-                    {{-- Item akan muncul di sini lewat JS --}}
-                </ul>
-            </div>
             <div class="col-md-12">
                 <label class="form-label small">General Remarks</label>
                 <textarea class="form-control" name="session[dinner][remarks]">{{ old('session.dinner.remarks', $dn->remarks ?? '') }}</textarea>
@@ -761,7 +828,7 @@
 
         <hr>
 
-        <h6 class="fw-bold text-muted mt-3">4. Competitor Comparison (Cover)</h6>
+        <h6 class="fw-bold text-muted mt-3">6. Competitor Comparison (Cover)</h6>
         <div class="row g-3">
             <div class="col-md-4">
                 <label class="form-label small">Shangri-La</label>
@@ -813,21 +880,7 @@
 
 
         // ============================================================
-        // 2. VIP LIST INITIALIZATION
-        // ============================================================
-
-        let bfVip = {!! json_encode(old('session.breakfast.vip_remarks', $bf->vip_remarks ?? [])) !!};
-        initVip('breakfast', bfVip, '209');
-
-        let lcVip = {!! json_encode(old('session.lunch.vip_remarks', $lc->vip_remarks ?? [])) !!};
-        initVip('lunch', lcVip, '209');
-
-        let dnVip = {!! json_encode(old('session.dinner.vip_remarks', $dn->vip_remarks ?? [])) !!};
-        initVip('dinner', dnVip, '209');
-
-
-        // ============================================================
-        // 3. STAFF ON DUTY INITIALIZATION
+        // 2. STAFF ON DUTY INITIALIZATION
         // ============================================================
 
         let bfStaff = {!! json_encode(old('session.breakfast.staff_on_duty', $bf->staff_on_duty ?? [])) !!};
@@ -838,5 +891,247 @@
 
         let dnStaff = {!! json_encode(old('session.dinner.staff_on_duty', $dn->staff_on_duty ?? [])) !!};
         initStaff('dinner', dnStaff, '209');
+
+
+        // ============================================================
+        // 3. OCCASION INITIALIZATION
+        // ============================================================
+
+        let bfOccasion = {!! json_encode(old('session.breakfast.additional_data.occasion_items', $bf->additional_data['occasion_items'] ?? [])) !!};
+        initOccasion('breakfast', bfOccasion, '209');
+
+        let lcOccasion = {!! json_encode(old('session.lunch.additional_data.occasion_items', $lc->additional_data['occasion_items'] ?? [])) !!};
+        initOccasion('lunch', lcOccasion, '209');
+
+        let dnOccasion = {!! json_encode(old('session.dinner.additional_data.occasion_items', $dn->additional_data['occasion_items'] ?? [])) !!};
+        initOccasion('dinner', dnOccasion, '209');
+
+
+        // ============================================================
+        // 6. PROMO OTHERS INITIALIZATION
+        // ============================================================
+
+        let bfPromo = {!! json_encode(old('session.breakfast.additional_data.promo_items', $bf->additional_data['promo_items'] ?? [])) !!};
+        initPromoItems('breakfast', bfPromo, '209');
+
+        let lcPromo = {!! json_encode(old('session.lunch.additional_data.promo_items', $lc->additional_data['promo_items'] ?? [])) !!};
+        initPromoItems('lunch', lcPromo, '209');
+
+        let dnPromo = {!! json_encode(old('session.dinner.additional_data.promo_items', $dn->additional_data['promo_items'] ?? [])) !!};
+        initPromoItems('dinner', dnPromo, '209');
     });
+
+
+    // ============================================================
+    // GROUP FUNCTIONS
+    // ============================================================
+
+    function addGroupItem(session, kode) {
+        let nameInput = document.getElementById('group-name-' + session + '-' + kode);
+        let qtyInput = document.getElementById('group-qty-' + session + '-' + kode);
+        let hiddenInput = document.getElementById('input-group-' + session + '-' + kode);
+        let listEl = document.getElementById('list-group-' + session + '-' + kode);
+
+        let name = nameInput.value.trim();
+        let qty = qtyInput.value.trim();
+
+        if (!name) {
+            alert('Please enter group name.');
+            return;
+        }
+
+        if (!qty || parseInt(qty) <= 0) {
+            alert('Please enter a valid quantity.');
+            return;
+        }
+
+        let items = JSON.parse(hiddenInput.value || '[]');
+        items.push({ name: name, qty: parseInt(qty) });
+        hiddenInput.value = JSON.stringify(items);
+
+        renderGroupList(listEl, items, session, kode);
+
+        nameInput.value = '';
+        qtyInput.value = '';
+        nameInput.focus();
+    }
+
+    function initGroup(session, data, kode) {
+        let items = Array.isArray(data) ? data : [];
+        let hiddenInput = document.getElementById('input-group-' + session + '-' + kode);
+        let listEl = document.getElementById('list-group-' + session + '-' + kode);
+        hiddenInput.value = JSON.stringify(items);
+        renderGroupList(listEl, items, session, kode);
+    }
+
+    function removeGroupItem(session, kode, index) {
+        let hiddenInput = document.getElementById('input-group-' + session + '-' + kode);
+        let listEl = document.getElementById('list-group-' + session + '-' + kode);
+        let items = JSON.parse(hiddenInput.value || '[]');
+        items.splice(index, 1);
+        hiddenInput.value = JSON.stringify(items);
+        renderGroupList(listEl, items, session, kode);
+    }
+
+    function renderGroupList(listEl, items, session, kode) {
+        if (items.length === 0) {
+            listEl.innerHTML = '';
+            return;
+        }
+
+        let html = '';
+        items.forEach(function(item, index) {
+            html += '<li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">' +
+                '<span class="small"><strong>' + escapeHtml(item.name || '') + '</strong> <span class="badge bg-secondary ms-1">' + (item.qty || 0) + ' pax</span></span>' +
+                '<button class="btn btn-sm btn-link text-danger p-0" onclick="removeGroupItem(\'' + session + '\', \'' + kode + '\', ' + index + ')" title="Remove">' +
+                '<i class="ti ti-x"></i></button>' +
+                '</li>';
+        });
+        listEl.innerHTML = html;
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(text));
+        return div.innerHTML;
+    }
+
+
+    // ============================================================
+    // OCCASION OTHERS FUNCTIONS
+    // ============================================================
+
+    function addOccOthers(session, kode) {
+        let nameInput = document.getElementById('occothers-name-' + session + '-' + kode);
+        let paxInput = document.getElementById('occothers-pax-' + session + '-' + kode);
+        let hiddenInput = document.getElementById('input-occothers-' + session + '-' + kode);
+        let listEl = document.getElementById('list-occothers-' + session + '-' + kode);
+
+        let name = nameInput.value.trim();
+        let pax = paxInput.value.trim();
+
+        if (!name) {
+            alert('Please enter occasion name.');
+            return;
+        }
+
+        if (!pax || parseInt(pax) <= 0) {
+            alert('Please enter a valid pax number.');
+            return;
+        }
+
+        let items = JSON.parse(hiddenInput.value || '[]');
+        items.push({ name: name, pax: parseInt(pax) });
+        hiddenInput.value = JSON.stringify(items);
+
+        renderOccOthers(listEl, items, session, kode);
+
+        nameInput.value = '';
+        paxInput.value = '';
+        nameInput.focus();
+    }
+
+    function initOccOthers(session, data, kode) {
+        let items = Array.isArray(data) ? data : [];
+        let hiddenInput = document.getElementById('input-occothers-' + session + '-' + kode);
+        let listEl = document.getElementById('list-occothers-' + session + '-' + kode);
+        hiddenInput.value = JSON.stringify(items);
+        renderOccOthers(listEl, items, session, kode);
+    }
+
+    function removeOccOthers(session, kode, index) {
+        let hiddenInput = document.getElementById('input-occothers-' + session + '-' + kode);
+        let listEl = document.getElementById('list-occothers-' + session + '-' + kode);
+        let items = JSON.parse(hiddenInput.value || '[]');
+        items.splice(index, 1);
+        hiddenInput.value = JSON.stringify(items);
+        renderOccOthers(listEl, items, session, kode);
+    }
+
+    function renderOccOthers(listEl, items, session, kode) {
+        if (items.length === 0) {
+            listEl.innerHTML = '';
+            return;
+        }
+
+        let html = '';
+        items.forEach(function(item, index) {
+            html += '<li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">' +
+                '<span class="small"><strong>' + escapeHtml(item.name || '') + '</strong> <span class="badge bg-primary ms-1">' + (item.pax || 0) + ' pax</span></span>' +
+                '<button class="btn btn-sm btn-link text-danger p-0" onclick="removeOccOthers(\'' + session + '\', \'' + kode + '\', ' + index + ')" title="Remove">' +
+                '<i class="ti ti-x"></i></button>' +
+                '</li>';
+        });
+        listEl.innerHTML = html;
+    }
+
+
+    // ============================================================
+    // PROMO OTHERS FUNCTIONS
+    // ============================================================
+
+    function addPromoOthers(session, kode) {
+        let nameInput = document.getElementById('promoothers-name-' + session + '-' + kode);
+        let qtyInput = document.getElementById('promoothers-qty-' + session + '-' + kode);
+        let hiddenInput = document.getElementById('input-promoothers-' + session + '-' + kode);
+        let listEl = document.getElementById('list-promoothers-' + session + '-' + kode);
+
+        let name = nameInput.value.trim();
+        let qty = qtyInput.value.trim();
+
+        if (!name) {
+            alert('Please enter promo name.');
+            return;
+        }
+
+        if (!qty || parseInt(qty) <= 0) {
+            alert('Please enter a valid quantity.');
+            return;
+        }
+
+        let items = JSON.parse(hiddenInput.value || '[]');
+        items.push({ name: name, qty: parseInt(qty) });
+        hiddenInput.value = JSON.stringify(items);
+
+        renderPromoOthers(listEl, items, session, kode);
+
+        nameInput.value = '';
+        qtyInput.value = '';
+        nameInput.focus();
+    }
+
+    function initPromoOthers(session, data, kode) {
+        let items = Array.isArray(data) ? data : [];
+        let hiddenInput = document.getElementById('input-promoothers-' + session + '-' + kode);
+        let listEl = document.getElementById('list-promoothers-' + session + '-' + kode);
+        hiddenInput.value = JSON.stringify(items);
+        renderPromoOthers(listEl, items, session, kode);
+    }
+
+    function removePromoOthers(session, kode, index) {
+        let hiddenInput = document.getElementById('input-promoothers-' + session + '-' + kode);
+        let listEl = document.getElementById('list-promoothers-' + session + '-' + kode);
+        let items = JSON.parse(hiddenInput.value || '[]');
+        items.splice(index, 1);
+        hiddenInput.value = JSON.stringify(items);
+        renderPromoOthers(listEl, items, session, kode);
+    }
+
+    function renderPromoOthers(listEl, items, session, kode) {
+        if (items.length === 0) {
+            listEl.innerHTML = '';
+            return;
+        }
+
+        let html = '';
+        items.forEach(function(item, index) {
+            html += '<li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">' +
+                '<span class="small"><strong>' + escapeHtml(item.name || '') + '</strong> <span class="badge bg-success ms-1">' + (item.qty || 0) + ' pax</span></span>' +
+                '<button class="btn btn-sm btn-link text-danger p-0" onclick="removePromoOthers(\'' + session + '\', \'' + kode + '\', ' + index + ')" title="Remove">' +
+                '<i class="ti ti-x"></i></button>' +
+                '</li>';
+        });
+        listEl.innerHTML = html;
+    }
 </script>

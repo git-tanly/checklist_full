@@ -34,7 +34,30 @@
     </div>
 
     {{-- NAV TABS (Agar tidak terlalu panjang ke bawah) --}}
-    <ul class="nav nav-tabs mb-3" id="analyticsTab" role="tablist">
+    <style>
+        .nav-tabs-scroll {
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            overflow-y: hidden;
+            white-space: nowrap;
+            padding-bottom: 5px;
+        }
+        .nav-tabs-scroll::-webkit-scrollbar {
+            height: 6px;
+        }
+        .nav-tabs-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        .nav-tabs-scroll::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+        .nav-tabs-scroll::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    </style>
+    <ul class="nav nav-tabs mb-3 nav-tabs-scroll" id="analyticsTab" role="tablist">
         <li class="nav-item">
             <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-cover" type="button">1. Cover
                 Report</button>
@@ -50,6 +73,12 @@
         <li class="nav-item">
             <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-daytrend" type="button">4. Cover by
                 Day</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-occasion" type="button">5. Occasion</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-promo-extras" type="button">6. Promo & Extras</button>
         </li>
     </ul>
 
@@ -109,13 +138,6 @@
                     @endif
                 </table>
             </div>
-            <div class="card mt-3 border-0 bg-light">
-                <div class="card-body">
-                    <div id="coverReportChart"></div>
-                </div>
-            </div>
-            <textarea id="chart-categories-data" style="display:none;">{{ json_encode($chartCategories) }}</textarea>
-            <textarea id="chart-series-data" style="display:none;">{{ json_encode($chartSeries) }}</textarea>
         </div>
 
         {{-- TAB 2: REVENUE REPORT --}}
@@ -171,16 +193,81 @@
                     </tfoot>
                 </table>
             </div>
-            {{-- A. WADAH GRAFIK REVENUE --}}
-            <div class="card mt-3 border-0 bg-light">
-                <div class="card-body">
-                    <div id="revenueReportChart"></div>
-                </div>
-            </div>
 
-            {{-- B. DATA PAYLOAD REVENUE (Hidden) --}}
-            <textarea id="chart-rev-categories-data" style="display:none;">{{ json_encode($revChartCategories) }}</textarea>
-            <textarea id="chart-rev-series-data" style="display:none;">{{ json_encode($revChartSeries) }}</textarea>
+            @if (isset($restaurant) && $restaurant->code === 'NJR')
+                @php
+                    $hasNaganoRevenue = false;
+                    foreach ($naganoRevenueMatrix ?? [] as $data) {
+                        foreach ($sessions as $sess) {
+                            if (($data[$sess] ?? 0) > 0) { $hasNaganoRevenue = true; break 2; }
+                        }
+                    }
+                @endphp
+                @if ($hasNaganoRevenue)
+                    <h6 class="text-muted text-uppercase small fw-bold mb-3 mt-4">Nagano Revenue Breakdown</h6>
+                    <div class="table-responsive mb-4">
+                        <table class="table table-bordered table-sm table-hover text-center align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-start">Revenue Type</th>
+                                    @foreach ($sessions as $sess)
+                                        <th class="text-capitalize">{{ $sess }}</th>
+                                    @endforeach
+                                    <th class="bg-light-danger text-danger">TOTAL</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($naganoRevenueMatrix as $item => $data)
+                                    @php
+                                        $rowTotal = 0;
+                                        foreach ($sessions as $sess) { $rowTotal += $data[$sess] ?? 0; }
+                                    @endphp
+                                    @if ($rowTotal > 0)
+                                        <tr>
+                                            <td class="text-start fw-bold text-muted">{{ $item }}</td>
+                                            @foreach ($sessions as $sess)
+                                                @php $val = $data[$sess] ?? 0; @endphp
+                                                <td>
+                                                    @if ($val > 0)
+                                                        <small>Rp</small> {{ number_format($val, 0, ',', '.') }}
+                                                    @else
+                                                        -
+                                                    @endif
+                                                </td>
+                                            @endforeach
+                                            <td class="fw-bold bg-light-danger text-danger">
+                                                <small>Rp</small> {{ number_format($rowTotal, 0, ',', '.') }}
+                                            </td>
+                                        </tr>
+                                    @endif
+                                @endforeach
+                            </tbody>
+                            @php
+                                $naganoColTotals = array_fill_keys($sessions, 0);
+                                $naganoGrandTotal = 0;
+                                foreach ($naganoRevenueMatrix as $data) {
+                                    foreach ($sessions as $sess) {
+                                        $val = $data[$sess] ?? 0;
+                                        $naganoColTotals[$sess] += $val;
+                                        $naganoGrandTotal += $val;
+                                    }
+                                }
+                            @endphp
+                            @if ($naganoGrandTotal > 0)
+                                <tfoot class="table-light fw-bold">
+                                    <tr>
+                                        <td class="text-start">TOTAL NAGANO REVENUE</td>
+                                        @foreach ($sessions as $sess)
+                                            <td><small>Rp</small> {{ number_format($naganoColTotals[$sess], 0, ',', '.') }}</td>
+                                        @endforeach
+                                        <td class="bg-danger text-white"><small>Rp</small> {{ number_format($naganoGrandTotal, 0, ',', '.') }}</td>
+                                    </tr>
+                                </tfoot>
+                            @endif
+                        </table>
+                    </div>
+                @endif
+            @endif
         </div>
 
         {{-- TAB 3: COMPETITOR --}}
@@ -215,16 +302,6 @@
                     </tbody>
                 </table>
             </div>
-            {{-- A. WADAH GRAFIK COMPETITOR --}}
-            <div class="card mt-3 border-0 bg-light">
-                <div class="card-body">
-                    <div id="competitorReportChart"></div>
-                </div>
-            </div>
-
-            {{-- B. DATA PAYLOAD (Hidden) --}}
-            <textarea id="chart-comp-categories-data" style="display:none;">{{ json_encode($compChartCategories) }}</textarea>
-            <textarea id="chart-comp-series-data" style="display:none;">{{ json_encode($compChartSeries) }}</textarea>
             <div class="mt-3 small text-muted">
                 <i class="ti ti-info-circle me-1"></i> Data based on accumulated daily reports within the selected
                 period.
@@ -281,19 +358,547 @@
                     </tfoot>
                 </table>
             </div>
-            {{-- A. WADAH GRAFIK --}}
-            <div class="card mb-3 border-0 bg-light">
-                <div class="card-body">
-                    <div id="dayTrendChart"></div>
-                </div>
-            </div>
+            @if(!empty($setMenuDayTrendMatrix))
+                <h6 class="text-muted text-uppercase small fw-bold mb-3 mt-4">Set Menu by Day</h6>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm table-hover text-center align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-start">Set Menu</th>
+                                @foreach ($daysOfWeek as $day)
+                                    <th>{{ $day }}</th>
+                                @endforeach
+                                <th class="bg-light-secondary text-dark">TOTAL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @php
+                                $setMenuDayColTotals = array_fill_keys($daysOfWeek, 0);
+                                $setMenuDayGrandTotal = 0;
+                            @endphp
 
-            {{-- B. DATA PAYLOAD (Hidden) --}}
-            <textarea id="chart-day-categories-data" style="display:none;">{{ json_encode($daysOfWeek) }}</textarea>
-            <textarea id="chart-day-series-data" style="display:none;">{{ json_encode($dayChartSeries) }}</textarea>
+                            @foreach ($setMenuDayTrendMatrix as $item => $data)
+                                <tr>
+                                    <td class="text-start fw-bold text-muted">{{ $item }}</td>
+                                    @php $rowTotal = 0; @endphp
+
+                                    @foreach ($daysOfWeek as $day)
+                                        @php
+                                            $val = $data[$day];
+                                            $rowTotal += $val;
+                                            $setMenuDayColTotals[$day] += $val;
+                                        @endphp
+                                        <td>{{ $val > 0 ? number_format($val) : '-' }}</td>
+                                    @endforeach
+
+                                    @php $setMenuDayGrandTotal += $rowTotal; @endphp
+                                    <td class="fw-bold bg-light-secondary text-dark">{{ number_format($rowTotal) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                        <tfoot class="table-light fw-bold">
+                            <tr>
+                                <td class="text-start">GRAND TOTAL PAX</td>
+                                @foreach ($daysOfWeek as $day)
+                                    <td>{{ number_format($setMenuDayColTotals[$day]) }}</td>
+                                @endforeach
+                                <td class="bg-secondary text-white">{{ number_format($setMenuDayGrandTotal) }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            @endif
+
             <div class="mt-3 small text-muted">
                 <i class="ti ti-info-circle me-1"></i> Data shows accumulated pax count per day of the week.
             </div>
+        </div>
+
+        {{-- TAB 5: OCCASION --}}
+        <div class="tab-pane fade" id="tab-occasion">
+            @php
+                $hasOccasion = !empty($occasionMatrix) || !empty($occOthersAgg);
+            @endphp
+
+            @if ($hasOccasion)
+                <h6 class="text-muted text-uppercase small fw-bold mb-3 mt-2">Occasion / Event Type</h6>
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered table-sm table-hover text-center align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-start">Occasion</th>
+                                @foreach ($sessions as $sess)
+                                    <th class="text-capitalize">{{ $sess }}</th>
+                                @endforeach
+                                <th class="bg-light-primary text-primary">TOTAL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (array_merge($occasionMatrix ?? [], $occOthersAgg ?? []) as $item => $data)
+                                <tr>
+                                    <td class="text-start fw-bold text-muted">{{ $item }}</td>
+                                    @php $rowTotal = 0; @endphp
+                                    @foreach ($sessions as $sess)
+                                        @php
+                                            $val = $data[$sess] ?? 0;
+                                            $rowTotal += $val;
+                                        @endphp
+                                        <td>{{ $val > 0 ? number_format($val) : '-' }}</td>
+                                    @endforeach
+                                    <td class="fw-bold bg-light-primary text-primary">{{ number_format($rowTotal) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                        @php
+                            $occColTotals = array_fill_keys($sessions, 0);
+                            $occGrandTotal = 0;
+                            foreach (array_merge($occasionMatrix ?? [], $occOthersAgg ?? []) as $data) {
+                                foreach ($sessions as $sess) {
+                                    $val = $data[$sess] ?? 0;
+                                    $occColTotals[$sess] += $val;
+                                    $occGrandTotal += $val;
+                                }
+                            }
+                        @endphp
+                        <tfoot class="table-light fw-bold">
+                            <tr>
+                                <td class="text-start">GRAND TOTAL PAX</td>
+                                @foreach ($sessions as $sess)
+                                    <td>{{ number_format($occColTotals[$sess]) }}</td>
+                                @endforeach
+                                <td class="bg-primary text-white">{{ number_format($occGrandTotal) }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                @php
+                    $hasOccasionRevenue = !empty($occasionRevenueMatrix);
+                @endphp
+                @if ($hasOccasionRevenue)
+                    <h6 class="text-muted text-uppercase small fw-bold mb-3">Occasion Revenue</h6>
+                    <div class="table-responsive mb-4">
+                        <table class="table table-bordered table-sm table-hover text-center align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-start">Occasion</th>
+                                    @foreach ($sessions as $sess)
+                                        <th class="text-capitalize">{{ $sess }}</th>
+                                    @endforeach
+                                    <th class="bg-light-primary text-primary">TOTAL</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($occasionRevenueMatrix as $item => $data)
+                                    <tr>
+                                        <td class="text-start fw-bold text-muted">{{ $item }}</td>
+                                        @php $rowTotal = 0; @endphp
+                                        @foreach ($sessions as $sess)
+                                            @php
+                                                $val = $data[$sess] ?? 0;
+                                                $rowTotal += $val;
+                                            @endphp
+                                            <td>
+                                                @if ($val > 0)
+                                                    <small>Rp</small> {{ number_format($val, 0, ',', '.') }}
+                                                @else
+                                                    -
+                                                @endif
+                                            </td>
+                                        @endforeach
+                                        <td class="fw-bold bg-light-primary text-primary">
+                                            <small>Rp</small> {{ number_format($rowTotal, 0, ',', '.') }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                            @php
+                                $occRevColTotals = array_fill_keys($sessions, 0);
+                                $occRevGrandTotal = 0;
+                                foreach ($occasionRevenueMatrix as $data) {
+                                    foreach ($sessions as $sess) {
+                                        $val = $data[$sess] ?? 0;
+                                        $occRevColTotals[$sess] += $val;
+                                        $occRevGrandTotal += $val;
+                                    }
+                                }
+                            @endphp
+                            <tfoot class="table-light fw-bold">
+                                <tr>
+                                    <td class="text-start">TOTAL REVENUE</td>
+                                    @foreach ($sessions as $sess)
+                                        <td><small>Rp</small> {{ number_format($occRevColTotals[$sess], 0, ',', '.') }}</td>
+                                    @endforeach
+                                    <td class="bg-primary text-white"><small>Rp</small> {{ number_format($occRevGrandTotal, 0, ',', '.') }}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                @endif
+            @endif
+
+            @if (!$hasOccasion)
+                <div class="text-center py-5 text-muted">
+                    <i class="ti ti-info-circle fs-1 mb-3 d-block"></i>
+                    <p>No Occasion data found for this period.</p>
+                </div>
+            @endif
+        </div>
+
+        {{-- TAB 6: PROMO & EXTRAS --}}
+        <div class="tab-pane fade" id="tab-promo-extras">
+            @php
+                $hasPromo = !empty($promoMatrix) || !empty($promoOthersAgg);
+            @endphp
+
+            @if ($hasPromo)
+                <h6 class="text-muted text-uppercase small fw-bold mb-3 mt-4">Promo</h6>
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered table-sm table-hover text-center align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-start">Promo</th>
+                                @foreach ($sessions as $sess)
+                                    <th class="text-capitalize">{{ $sess }}</th>
+                                @endforeach
+                                <th class="bg-light-success text-success">TOTAL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (array_merge($promoMatrix ?? [], $promoOthersAgg ?? []) as $item => $data)
+                                <tr>
+                                    <td class="text-start fw-bold text-muted">{{ $item }}</td>
+                                    @php $rowTotal = 0; @endphp
+                                    @foreach ($sessions as $sess)
+                                        @php
+                                            $val = $data[$sess] ?? 0;
+                                            $rowTotal += $val;
+                                        @endphp
+                                        <td>{{ $val > 0 ? number_format($val) : '-' }}</td>
+                                    @endforeach
+                                    <td class="fw-bold bg-light-success text-success">{{ number_format($rowTotal) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                        @php
+                            $promoColTotals = array_fill_keys($sessions, 0);
+                            $promoGrandTotal = 0;
+                            foreach (array_merge($promoMatrix ?? [], $promoOthersAgg ?? []) as $data) {
+                                foreach ($sessions as $sess) {
+                                    $val = $data[$sess] ?? 0;
+                                    $promoColTotals[$sess] += $val;
+                                    $promoGrandTotal += $val;
+                                }
+                            }
+                        @endphp
+                        <tfoot class="table-light fw-bold">
+                            <tr>
+                                <td class="text-start">GRAND TOTAL PAX</td>
+                                @foreach ($sessions as $sess)
+                                    <td>{{ number_format($promoColTotals[$sess]) }}</td>
+                                @endforeach
+                                <td class="bg-success text-white">{{ number_format($promoGrandTotal) }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                @php
+                    $hasPromoRevenue = !empty($promoRevenueMatrix);
+                @endphp
+                @if ($hasPromoRevenue)
+                    <h6 class="text-muted text-uppercase small fw-bold mb-3">Promo Revenue</h6>
+                    <div class="table-responsive mb-4">
+                        <table class="table table-bordered table-sm table-hover text-center align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-start">Promo</th>
+                                    @foreach ($sessions as $sess)
+                                        <th class="text-capitalize">{{ $sess }}</th>
+                                    @endforeach
+                                    <th class="bg-light-success text-success">TOTAL</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($promoRevenueMatrix as $item => $data)
+                                    <tr>
+                                        <td class="text-start fw-bold text-muted">{{ $item }}</td>
+                                        @php $rowTotal = 0; @endphp
+                                        @foreach ($sessions as $sess)
+                                            @php
+                                                $val = $data[$sess] ?? 0;
+                                                $rowTotal += $val;
+                                            @endphp
+                                            <td>
+                                                @if ($val > 0)
+                                                    <small>Rp</small> {{ number_format($val, 0, ',', '.') }}
+                                                @else
+                                                    -
+                                                @endif
+                                            </td>
+                                        @endforeach
+                                        <td class="fw-bold bg-light-success text-success">
+                                            <small>Rp</small> {{ number_format($rowTotal, 0, ',', '.') }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                            @php
+                                $promoRevColTotals = array_fill_keys($sessions, 0);
+                                $promoRevGrandTotal = 0;
+                                foreach ($promoRevenueMatrix as $data) {
+                                    foreach ($sessions as $sess) {
+                                        $val = $data[$sess] ?? 0;
+                                        $promoRevColTotals[$sess] += $val;
+                                        $promoRevGrandTotal += $val;
+                                    }
+                                }
+                            @endphp
+                            <tfoot class="table-light fw-bold">
+                                <tr>
+                                    <td class="text-start">TOTAL REVENUE</td>
+                                    @foreach ($sessions as $sess)
+                                        <td><small>Rp</small> {{ number_format($promoRevColTotals[$sess], 0, ',', '.') }}</td>
+                                    @endforeach
+                                    <td class="bg-success text-white"><small>Rp</small> {{ number_format($promoRevGrandTotal, 0, ',', '.') }}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                @endif
+            @endif
+
+            @php
+                $hasSetMenu = !empty($setMenuMatrix);
+                $hasSetMenuRevenue = !empty($setMenuRevenueMatrix);
+            @endphp
+            @if ($hasSetMenu)
+                <h6 class="text-muted text-uppercase small fw-bold mb-3 mt-4">Set Menu</h6>
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered table-sm table-hover text-center align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-start">Set Menu</th>
+                                @foreach ($sessions as $sess)
+                                    <th class="text-capitalize">{{ $sess }}</th>
+                                @endforeach
+                                <th class="bg-light-secondary text-dark">TOTAL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($setMenuMatrix as $item => $data)
+                                <tr>
+                                    <td class="text-start fw-bold text-muted">{{ $item }}</td>
+                                    @php $rowTotal = 0; @endphp
+                                    @foreach ($sessions as $sess)
+                                        @php
+                                            $val = $data[$sess] ?? 0;
+                                            $rowTotal += $val;
+                                        @endphp
+                                        <td>{{ $val > 0 ? number_format($val) : '-' }}</td>
+                                    @endforeach
+                                    <td class="fw-bold bg-light-secondary text-dark">{{ number_format($rowTotal) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                        @php
+                            $setMenuColTotals = array_fill_keys($sessions, 0);
+                            $setMenuGrandTotal = 0;
+                            foreach ($setMenuMatrix as $data) {
+                                foreach ($sessions as $sess) {
+                                    $val = $data[$sess] ?? 0;
+                                    $setMenuColTotals[$sess] += $val;
+                                    $setMenuGrandTotal += $val;
+                                }
+                            }
+                        @endphp
+                        <tfoot class="table-light fw-bold">
+                            <tr>
+                                <td class="text-start">GRAND TOTAL PAX</td>
+                                @foreach ($sessions as $sess)
+                                    <td>{{ number_format($setMenuColTotals[$sess]) }}</td>
+                                @endforeach
+                                <td class="bg-secondary text-white">{{ number_format($setMenuGrandTotal) }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            @endif
+            @if ($hasSetMenuRevenue)
+                <h6 class="text-muted text-uppercase small fw-bold mb-3">Set Menu Revenue</h6>
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered table-sm table-hover text-center align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-start">Set Menu</th>
+                                @foreach ($sessions as $sess)
+                                    <th class="text-capitalize">{{ $sess }}</th>
+                                @endforeach
+                                <th class="bg-light-secondary text-dark">TOTAL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($setMenuRevenueMatrix as $item => $data)
+                                <tr>
+                                    <td class="text-start fw-bold text-muted">{{ $item }}</td>
+                                    @php $rowTotal = 0; @endphp
+                                    @foreach ($sessions as $sess)
+                                        @php
+                                            $val = $data[$sess] ?? 0;
+                                            $rowTotal += $val;
+                                        @endphp
+                                        <td>
+                                            @if ($val > 0)
+                                                <small>Rp</small> {{ number_format($val, 0, ',', '.') }}
+                                            @else
+                                                -
+                                            @endif
+                                        </td>
+                                    @endforeach
+                                    <td class="fw-bold bg-light-secondary text-dark">
+                                        <small>Rp</small> {{ number_format($rowTotal, 0, ',', '.') }}
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                        @php
+                            $setMenuRevColTotals = array_fill_keys($sessions, 0);
+                            $setMenuRevGrandTotal = 0;
+                            foreach ($setMenuRevenueMatrix as $data) {
+                                foreach ($sessions as $sess) {
+                                    $val = $data[$sess] ?? 0;
+                                    $setMenuRevColTotals[$sess] += $val;
+                                    $setMenuRevGrandTotal += $val;
+                                }
+                            }
+                        @endphp
+                        <tfoot class="table-light fw-bold">
+                            <tr>
+                                <td class="text-start">TOTAL REVENUE</td>
+                                @foreach ($sessions as $sess)
+                                    <td><small>Rp</small> {{ number_format($setMenuRevColTotals[$sess], 0, ',', '.') }}</td>
+                                @endforeach
+                                <td class="bg-secondary text-white"><small>Rp</small> {{ number_format($setMenuRevGrandTotal, 0, ',', '.') }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            @endif
+
+            @php
+                $hasUpsellingFood = !empty($upsellingFoodMatrix);
+                $hasUpsellingBeverage = !empty($upsellingBeverageMatrix);
+            @endphp
+            @if ($hasUpsellingFood)
+                <h6 class="text-muted text-uppercase small fw-bold mb-3 mt-4">Upselling Food</h6>
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered table-sm table-hover text-center align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-start">Item</th>
+                                @foreach ($sessions as $sess)
+                                    <th class="text-capitalize">{{ $sess }}</th>
+                                @endforeach
+                                <th class="bg-light-info text-info">TOTAL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($upsellingFoodMatrix as $item => $data)
+                                <tr>
+                                    <td class="text-start fw-bold text-muted">{{ $item }}</td>
+                                    @php $rowTotal = 0; @endphp
+                                    @foreach ($sessions as $sess)
+                                        @php
+                                            $val = $data[$sess] ?? 0;
+                                            $rowTotal += $val;
+                                        @endphp
+                                        <td>{{ $val > 0 ? number_format($val) : '-' }}</td>
+                                    @endforeach
+                                    <td class="fw-bold bg-light-info text-info">{{ number_format($rowTotal) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                        @php
+                            $upFoodColTotals = array_fill_keys($sessions, 0);
+                            $upFoodGrandTotal = 0;
+                            foreach ($upsellingFoodMatrix as $data) {
+                                foreach ($sessions as $sess) {
+                                    $val = $data[$sess] ?? 0;
+                                    $upFoodColTotals[$sess] += $val;
+                                    $upFoodGrandTotal += $val;
+                                }
+                            }
+                        @endphp
+                        <tfoot class="table-light fw-bold">
+                            <tr>
+                                <td class="text-start">GRAND TOTAL PAX</td>
+                                @foreach ($sessions as $sess)
+                                    <td>{{ number_format($upFoodColTotals[$sess]) }}</td>
+                                @endforeach
+                                <td class="bg-info text-white">{{ number_format($upFoodGrandTotal) }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            @endif
+
+            @if ($hasUpsellingBeverage)
+                <h6 class="text-muted text-uppercase small fw-bold mb-3 mt-4">Upselling Beverage</h6>
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered table-sm table-hover text-center align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-start">Item</th>
+                                @foreach ($sessions as $sess)
+                                    <th class="text-capitalize">{{ $sess }}</th>
+                                @endforeach
+                                <th class="bg-light-info text-info">TOTAL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($upsellingBeverageMatrix as $item => $data)
+                                <tr>
+                                    <td class="text-start fw-bold text-muted">{{ $item }}</td>
+                                    @php $rowTotal = 0; @endphp
+                                    @foreach ($sessions as $sess)
+                                        @php
+                                            $val = $data[$sess] ?? 0;
+                                            $rowTotal += $val;
+                                        @endphp
+                                        <td>{{ $val > 0 ? number_format($val) : '-' }}</td>
+                                    @endforeach
+                                    <td class="fw-bold bg-light-info text-info">{{ number_format($rowTotal) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                        @php
+                            $upBevColTotals = array_fill_keys($sessions, 0);
+                            $upBevGrandTotal = 0;
+                            foreach ($upsellingBeverageMatrix as $data) {
+                                foreach ($sessions as $sess) {
+                                    $val = $data[$sess] ?? 0;
+                                    $upBevColTotals[$sess] += $val;
+                                    $upBevGrandTotal += $val;
+                                }
+                            }
+                        @endphp
+                        <tfoot class="table-light fw-bold">
+                            <tr>
+                                <td class="text-start">GRAND TOTAL PAX</td>
+                                @foreach ($sessions as $sess)
+                                    <td>{{ number_format($upBevColTotals[$sess]) }}</td>
+                                @endforeach
+                                <td class="bg-info text-white">{{ number_format($upBevGrandTotal) }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            @endif
+
+            @if (!$hasPromo && !$hasSetMenu && !$hasUpsellingFood && !$hasUpsellingBeverage)
+                <div class="text-center py-5 text-muted">
+                    <i class="ti ti-info-circle fs-1 mb-3 d-block"></i>
+                    <p>No Promo, Set Menu, or Upselling data found for this period.</p>
+                </div>
+            @endif
         </div>
 
     </div>

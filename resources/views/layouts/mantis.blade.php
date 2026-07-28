@@ -67,14 +67,14 @@
                         <label>Daily Report</label>
                         <i class="ti ti-file-text"></i>
                     </li>
-                    @if (Auth::user()->restaurants->isEmpty())
+                    {{-- @if (Auth::user()->restaurants->isEmpty())
                         <li class="pc-item">
                             <a href="#" class="pc-link">
                                 <span class="pc-micon"><i class="ti ti-building"></i></span>
                                 <span class="pc-mtext">Hotels</span>
                             </a>
                         </li>
-                    @endif
+                    @endif --}}
                     <li class="pc-item">
                         <a href="{{ route('daily-reports.index') }}" class="pc-link">
                             <span class="pc-micon"><i class="ti ti-tools-kitchen-2"></i></span>
@@ -97,7 +97,7 @@
                         <li class="pc-item">
                             <a href="{{ route('revenue-targets.index') }}" class="pc-link">
                                 <span class="pc-micon"><i class="ti ti-target"></i></span>
-                                <span class="pc-mtext">Revenue Targets</span>
+                                <span class="pc-mtext">Budget & Forecast</span>
                             </a>
                         </li>
                     @endhasanyrole
@@ -340,7 +340,7 @@
                             <div class="tab-content" id="mysrpTabContent">
                                 <div class="tab-pane fade show active" id="drp-tab-1" role="tabpanel"
                                     aria-labelledby="drp-t1" tabindex="0">
-                                    <a href="{{ env('APP_PORTAL_URL') }}/users/{{ Auth::user()->id }}/edit?redirect_to={{ urlencode(url()->current()) }}"
+                                    <a href="{{ env('SSO_PORTAL_URL') }}/profile" target="_blank"
                                         class="dropdown-item">
                                         <i class="ti ti-edit-circle"></i>
                                         <span>Edit Profile</span>
