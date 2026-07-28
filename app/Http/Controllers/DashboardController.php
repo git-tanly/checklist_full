@@ -308,6 +308,8 @@ class DashboardController extends Controller
         }
 
 
+        $mtdAverageFood = $mtdCoverReport > 0 ? $mtdFoodRevenue / $mtdCoverReport : 0;
+        $mtdAverageBeverage = $mtdCoverReport > 0 ? $mtdBeverageRevenue / $mtdCoverReport : 0;
 
         $totalMtdTarget = $this->calculateProratedTarget(
             $mtdStart,
