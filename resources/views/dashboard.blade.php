@@ -164,8 +164,8 @@
                                                 <h6 class="fw-bold mb-3">Rp {{ number_format($mtdFoodRevenue, 0, ',', '.') }}</h6>
                                             </div>
                                             <div class="pt-2 border-top">
-                                                <span class="small text-muted d-block">Average / Pax</span>
-                                                <span class="fw-bold text-dark">Rp {{ number_format($mtdAverageFood, 0, ',', '.') }}</span>
+                                                <span class="small text-muted d-block">Avg Pax / Day</span>
+                                                <span class="fw-bold text-dark">{{ number_format($mtdAverageFood, 0, ',', '.') }} <small class="text-muted fs-6">Pax</small></span>
                                             </div>
                                         </div>
                                     </div>
@@ -177,8 +177,8 @@
                                                 <h6 class="fw-bold mb-3">Rp {{ number_format($mtdBeverageRevenue, 0, ',', '.') }}</h6>
                                             </div>
                                             <div class="pt-2 border-top">
-                                                <span class="small text-muted d-block">Average / Pax</span>
-                                                <span class="fw-bold text-dark">Rp {{ number_format($mtdAverageBeverage, 0, ',', '.') }}</span>
+                                                <span class="small text-muted d-block">Avg Pax / Day</span>
+                                                <span class="fw-bold text-dark">{{ number_format($mtdAverageBeverage, 0, ',', '.') }} <small class="text-muted fs-6">Pax</small></span>
                                             </div>
                                         </div>
                                     </div>

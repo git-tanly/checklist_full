@@ -277,6 +277,8 @@ class DashboardController extends Controller
         $mtdStart = now()->startOfMonth()->format('Y-m-d');
         $mtdEnd = now()->format('Y-m-d');
 
+        $mtdDaysCount = \Carbon\Carbon::parse($mtdStart)->diffInDays(\Carbon\Carbon::parse($mtdEnd)) + 1;
+
         $mtdQuery = DailyReport::whereBetween('date', [$mtdStart, $mtdEnd]);
 
         if ($restaurantFilter) {
@@ -308,8 +310,8 @@ class DashboardController extends Controller
             }
         }
 
-        $mtdAverageFood = $mtdCoverReport > 0 ? $mtdFoodRevenue / $mtdCoverReport : 0;
-        $mtdAverageBeverage = $mtdCoverReport > 0 ? $mtdBeverageRevenue / $mtdCoverReport : 0;
+        $mtdAverageFood = $mtdDaysCount > 0 ? $mtdCoverReport / $mtdDaysCount : 0;
+        $mtdAverageBeverage = $mtdDaysCount > 0 ? $mtdCoverReport / $mtdDaysCount : 0;
 
         $totalMtdTarget = $this->calculateProratedTarget(
             $mtdStart,
