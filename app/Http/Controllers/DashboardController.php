@@ -783,18 +783,18 @@ class DashboardController extends Controller
                     if (is_array($teppanItems)) {
                         foreach ($teppanItems as $item) {
                             $floor = $item['floor'] ?? '';
-                            $rev = $item['revenue'] ?? 0;
+                            $rev = floatval(str_replace('.', '', $item['revenue'] ?? '0'));
                             $key = 'Teppan (' . $floor . ')';
-                            if (isset($naganoRevenueMatrix[$key])) {
+                            if (isset($naganoRevenueMatrix[$key]) && $rev > 0) {
                                 $naganoRevenueMatrix[$key][$sess] += $rev;
                             }
                         }
                     }
-                    $yakinikuRev = $addData['revenue_yakiniku'] ?? 0;
+                    $yakinikuRev = floatval(str_replace('.', '', $addData['revenue_yakiniku'] ?? '0'));
                     if ($yakinikuRev > 0) {
                         $naganoRevenueMatrix['Yakiniku'][$sess] += $yakinikuRev;
                     }
-                    $alaCarteRev = $addData['revenue_ala_carte'] ?? 0;
+                    $alaCarteRev = floatval(str_replace('.', '', $addData['revenue_ala_carte'] ?? '0'));
                     if ($alaCarteRev > 0) {
                         $naganoRevenueMatrix['Ala Carte'][$sess] += $alaCarteRev;
                     }
