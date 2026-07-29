@@ -420,8 +420,8 @@
                         @php
                             $teppanItems = $data->additional_data['revenue_teppan_items'] ?? [];
                             if (is_string($teppanItems)) $teppanItems = json_decode($teppanItems, true) ?? [];
-                            $revYakiniku = $data->additional_data['revenue_yakiniku'] ?? 0;
-                            $revAlaCarte = $data->additional_data['revenue_ala_carte'] ?? 0;
+                            $revYakiniku = floatval(str_replace('.', '', $data->additional_data['revenue_yakiniku'] ?? '0'));
+                            $revAlaCarte = floatval(str_replace('.', '', $data->additional_data['revenue_ala_carte'] ?? '0'));
                             $hasNaganoRevenue = (!empty($teppanItems) && is_array($teppanItems)) || $revYakiniku > 0 || $revAlaCarte > 0;
                         @endphp
                         @if ($hasNaganoRevenue)
@@ -439,7 +439,7 @@
                                             @foreach ($teppanItems as $item)
                                                 <tr>
                                                     <td>Teppan ({{ $item['floor'] ?? '-' }})</td>
-                                                    <td class="text-end">Rp {{ number_format($item['revenue'] ?? 0, 0, ',', '.') }}</td>
+                                                    <td class="text-end">Rp {{ number_format(floatval(str_replace('.', '', $item['revenue'] ?? '0')), 0, ',', '.') }}</td>
                                                 </tr>
                                             @endforeach
                                         @endif
