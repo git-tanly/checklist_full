@@ -118,6 +118,15 @@
                                                 role="progressbar" style="width: {{ min($overallBudgetPercentage, 100) }}%">
                                             </div>
                                         </div>
+                                        @php
+                                            $budgetBalance = $mtdRevenue - $monthlyBudget;
+                                        @endphp
+                                        <div class="d-flex justify-content-between mt-2 pt-1">
+                                            <small class="text-muted">Balance</small>
+                                            <small class="fw-bold {{ $budgetBalance >= 0 ? 'text-success' : 'text-danger' }}">
+                                                {{ $budgetBalance >= 0 ? '+' : '' }}Rp {{ number_format($budgetBalance, 0, ',', '.') }}
+                                            </small>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -138,6 +147,15 @@
                                             <div class="progress-bar {{ $achievementPercent >= 100 ? 'bg-success' : ($achievementPercent >= 80 ? 'bg-warning' : 'bg-danger') }}"
                                                 role="progressbar" style="width: {{ min($achievementPercent, 100) }}%">
                                             </div>
+                                        </div>
+                                        @php
+                                            $forecastBalance = $mtdRevenue - $monthlyTarget;
+                                        @endphp
+                                        <div class="d-flex justify-content-between mt-2 pt-1">
+                                            <small class="text-muted">Balance</small>
+                                            <small class="fw-bold {{ $forecastBalance >= 0 ? 'text-info' : 'text-danger' }}">
+                                                {{ $forecastBalance >= 0 ? '+' : '' }}Rp {{ number_format($forecastBalance, 0, ',', '.') }}
+                                            </small>
                                         </div>
                                     </div>
                                 </div>
