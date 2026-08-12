@@ -78,8 +78,8 @@
                             </a>
                         </li>
 
-                        {{-- Tab 2: Outlet Details (Hanya muncul jika Multi-Resto) --}}
-                        @if (Auth::user()->hasRole('Super Admin') || Auth::user()->restaurants->count() > 1)
+                        {{-- Tab 2: Outlet Details (Super Admin atau Restaurant Manager) --}}
+                        @if (Auth::user()->hasRole('Super Admin') || Auth::user()->hasRole('Restaurant Manager'))
                             <li class="nav-item" role="presentation">
                                 <a class="nav-link pb-2" id="breakdown-tab" data-bs-toggle="tab" href="#breakdown"
                                     role="tab" aria-selected="false">
@@ -243,7 +243,7 @@
                         </div>
 
                         {{-- KONTEN TAB 2: BREAKDOWN LIST --}}
-                        @if (Auth::user()->hasRole('Super Admin') || Auth::user()->restaurants->count() > 1)
+                        @if (Auth::user()->hasRole('Super Admin') || Auth::user()->hasRole('Restaurant Manager'))
                             <div class="tab-pane fade" id="breakdown" role="tabpanel" aria-labelledby="breakdown-tab">
                                 <div style="max-height: 400px; overflow-y: auto;">
                                     <ul class="list-group list-group-flush">

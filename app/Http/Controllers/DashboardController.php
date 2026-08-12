@@ -480,7 +480,7 @@ class DashboardController extends Controller
     {
         // 1. Validasi Akses (Security)
         $user = Auth::user();
-        if (!$user->hasRole('Super Admin') && !$user->restaurants->contains($restaurant->id)) {
+        if (!$user->hasRole('Super Admin') && (!$user->hasRole('Restaurant Manager') || !$user->restaurants->contains($restaurant->id))) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
