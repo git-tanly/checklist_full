@@ -25,6 +25,11 @@ class Restaurant extends Model
         return $this->hasMany(UpsellingItem::class);
     }
 
+    public function employees()
+    {
+        return $this->hasMany(Employee::class);
+    }
+
     public function users()
     {
         // return $this->belongsToMany(LocalUser::class, 'restaurant_user')->withTimestamps();

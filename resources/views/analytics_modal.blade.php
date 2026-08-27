@@ -138,6 +138,17 @@
                     @endif
                 </table>
             </div>
+            @if (isset($beoMatrix) && count($beoMatrix) > 0)
+                @php
+                    $beoGrandTotal = 0;
+                    foreach($beoMatrix as $data) {
+                        $beoGrandTotal += array_sum($data);
+                    }
+                @endphp
+                    <div class="mt-2 text-muted small">
+                        <i class="ti ti-info-circle me-1 text-info"></i> <strong>BEO Total (Event Pax):</strong> {{ number_format($beoGrandTotal) }} Pax (Not included in Grand Total Pax)
+                    </div>
+            @endif
         </div>
 
         {{-- TAB 2: REVENUE REPORT --}}
@@ -193,6 +204,17 @@
                     </tfoot>
                 </table>
             </div>
+            @if (isset($eventRevenueMatrix) && count($eventRevenueMatrix) > 0)
+                @php
+                    $eventRevGrandTotal = 0;
+                    foreach($eventRevenueMatrix as $data) {
+                        $eventRevGrandTotal += array_sum($data);
+                    }
+                @endphp
+                    <div class="mt-2 text-muted small">
+                        <i class="ti ti-info-circle me-1 text-info"></i> <strong>Event Revenue Total:</strong> Rp {{ number_format($eventRevGrandTotal, 0, ',', '.') }} (Not included in Total Revenue)
+                    </div>
+            @endif
 
             @if (isset($restaurant) && $restaurant->code === 'NJR')
                 @php

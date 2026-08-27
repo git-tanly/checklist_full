@@ -8,7 +8,7 @@
 
     // 2. Ambil Data Master (Staff) - BQT tidak butuh menu upselling
     $restoBqt = $restaurants->where('code', 'BQT')->first();
-    $myStaffList = $restoBqt ? $restoBqt->users : [];
+    $myStaffList = $restoBqt ? $restoBqt->employees : [];
 @endphp
 
 {{-- ============================================================ --}}

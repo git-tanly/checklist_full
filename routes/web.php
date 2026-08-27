@@ -72,6 +72,8 @@ Route::middleware(['auth', 'can:access-checklist-app'])->group(function () {
         Route::put('/restaurants/{restaurant}', [RestaurantController::class, 'update'])->name('restaurants.update');
         Route::delete('/restaurants/{restaurant}', [RestaurantController::class, 'destroy'])->name('restaurants.destroy');
 
+        Route::resource('employees', \App\Http\Controllers\EmployeeController::class);
+
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
         Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');

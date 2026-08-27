@@ -371,7 +371,7 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
-                    <h5>Revenue Analytics (Last 7 Days)</h5>
+                    <h5>Revenue Analytics ({{ \Carbon\Carbon::parse($startDate)->format('d M') }} - {{ \Carbon\Carbon::parse($endDate)->format('d M Y') }})</h5>
                 </div>
                 <div class="card-body">
                     <div id="revenue-chart"></div>
@@ -383,7 +383,7 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
-                    <h5>Competitor Cover Comparison (Last 7 Days)</h5>
+                    <h5>Competitor Cover Comparison ({{ \Carbon\Carbon::parse($startDate)->format('d M') }} - {{ \Carbon\Carbon::parse($endDate)->format('d M Y') }})</h5>
                 </div>
                 <div class="card-body">
                     <div id="competitor-chart"></div>

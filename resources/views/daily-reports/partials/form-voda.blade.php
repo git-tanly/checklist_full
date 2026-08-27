@@ -6,7 +6,7 @@
     $dn = $details['dinner'] ?? null;
 
     $restoVda = $restaurants->where('code', 'VODA')->first();
-    $myStaffList = $restoVda ? $restoVda->users : [];
+    $myStaffList = $restoVda ? $restoVda->employees : [];
 
     $myMenu = $restoVda && isset($upsellingItems[$restoVda->id]) ? $upsellingItems[$restoVda->id] : collect([]);
     $foods = $myMenu->where('type', 'food');
@@ -163,12 +163,7 @@
                 <input type="hidden" id="input-lunch-food-VODA" name="session[lunch][upselling_data][food]"
                     value="{{ is_array($lcFoodVal) ? json_encode($lcFoodVal) : $lcFoodVal }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-lunch-food-VODA">
-                        <option value="" selected>Select Food...</option>
-                        @foreach ($foods as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                        @endforeach
-                    </select>
+                    <input type="text" class="form-control form-control-sm" id="select-lunch-food-VODA" placeholder="Enter Food Name">
                     <input type="number" class="form-control form-control-sm" id="pax-lunch-food-VODA"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"
@@ -182,12 +177,7 @@
                 <input type="hidden" id="input-lunch-beverage-VODA" name="session[lunch][upselling_data][beverage]"
                     value="{{ is_array($lcBevVal) ? json_encode($lcBevVal) : $lcBevVal }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-lunch-beverage-VODA">
-                        <option value="" selected>Select Drink...</option>
-                        @foreach ($beverages as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                        @endforeach
-                    </select>
+                    <input type="text" class="form-control form-control-sm" id="select-lunch-beverage-VODA" placeholder="Enter Beverage Name">
                     <input type="number" class="form-control form-control-sm" id="pax-lunch-beverage-VODA"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"
@@ -377,12 +367,7 @@
                 <input type="hidden" id="input-dinner-food-VODA" name="session[dinner][upselling_data][food]"
                     value="{{ is_array($dnFoodVal) ? json_encode($dnFoodVal) : $dnFoodVal }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-dinner-food-VODA">
-                        <option value="" selected>Select Food...</option>
-                        @foreach ($foods as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                        @endforeach
-                    </select>
+                    <input type="text" class="form-control form-control-sm" id="select-dinner-food-VODA" placeholder="Enter Food Name">
                     <input type="number" class="form-control form-control-sm" id="pax-dinner-food-VODA"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"
@@ -398,12 +383,7 @@
                     name="session[dinner][upselling_data][beverage]"
                     value="{{ is_array($dnBevVal) ? json_encode($dnBevVal) : $dnBevVal }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-dinner-beverage-VODA">
-                        <option value="" selected>Select Drink...</option>
-                        @foreach ($beverages as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                        @endforeach
-                    </select>
+                    <input type="text" class="form-control form-control-sm" id="select-dinner-beverage-VODA" placeholder="Enter Beverage Name">
                     <input type="number" class="form-control form-control-sm" id="pax-dinner-beverage-VODA"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"

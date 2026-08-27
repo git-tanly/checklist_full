@@ -150,7 +150,14 @@
         <div class="section-title">
             {{ strtoupper($detail->session_type) }} SESSION
             @if ($detail->thematic)
-                <span style="font-weight: normal">| Theme: {{ $detail->thematic }}</span>
+                <span style="font-weight: normal">| Theme: {{ $detail->thematic }}
+                    @if (!empty($detail->additional_data['thematic_pax']))
+                        | Pax: {{ $detail->additional_data['thematic_pax'] }}
+                    @endif
+                    @if (!empty($detail->additional_data['thematic_revenue']))
+                        | Rev: Rp {{ number_format($detail->additional_data['thematic_revenue'], 0, ',', '.') }}
+                    @endif
+                </span>
             @endif
         </div>
 

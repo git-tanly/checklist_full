@@ -188,7 +188,14 @@
                             {{ $detail->session_type }} Report
                         </h5>
                         @if ($detail->thematic)
-                            <span class="badge bg-dark">{{ $detail->thematic }}</span>
+                            <span class="badge bg-dark">Theme: {{ $detail->thematic }}
+                                @if (!empty($detail->additional_data['thematic_pax']))
+                                    | Pax: {{ $detail->additional_data['thematic_pax'] }}
+                                @endif
+                                @if (!empty($detail->additional_data['thematic_revenue']))
+                                    | Rev: Rp {{ number_format($detail->additional_data['thematic_revenue'], 0, ',', '.') }}
+                                @endif
+                            </span>
                         @endif
                     </div>
                     <div class="card-body">

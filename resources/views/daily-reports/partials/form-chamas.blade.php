@@ -9,7 +9,7 @@
     $restoCms = $restaurants->where('code', 'CHA')->first();
 
     // A. Staff List
-    $myStaffList = $restoCms ? $restoCms->users : [];
+    $myStaffList = $restoCms ? $restoCms->employees : [];
 
     // B. Upselling Menu
     $myMenu = $restoCms && isset($upsellingItems[$restoCms->id]) ? $upsellingItems[$restoCms->id] : collect([]);
@@ -207,12 +207,7 @@
                 <input type="hidden" id="input-lunch-food-CHA" name="session[lunch][upselling_data][food]"
                     value="{{ is_array($lcFoodVal) ? json_encode($lcFoodVal) : $lcFoodVal }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-lunch-food-CHA">
-                        <option value="" selected>Select Food...</option>
-                        @foreach ($foods as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                        @endforeach
-                    </select>
+                    <input type="text" class="form-control form-control-sm" id="select-lunch-food-CHA" placeholder="Enter Food Name">
                     <input type="number" class="form-control form-control-sm" id="pax-lunch-food-CHA"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"
@@ -227,12 +222,7 @@
                 <input type="hidden" id="input-lunch-beverage-CHA" name="session[lunch][upselling_data][beverage]"
                     value="{{ is_array($lcBevVal) ? json_encode($lcBevVal) : $lcBevVal }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-lunch-beverage-CHA">
-                        <option value="" selected>Select Drink...</option>
-                        @foreach ($beverages as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                        @endforeach
-                    </select>
+                    <input type="text" class="form-control form-control-sm" id="select-lunch-beverage-CHA" placeholder="Enter Beverage Name">
                     <input type="number" class="form-control form-control-sm" id="pax-lunch-beverage-CHA"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"
@@ -452,12 +442,7 @@
                 <input type="hidden" id="input-dinner-food-CHA" name="session[dinner][upselling_data][food]"
                     value="{{ is_array($dnFoodVal) ? json_encode($dnFoodVal) : $dnFoodVal }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-dinner-food-CHA">
-                        <option value="" selected>Select Food...</option>
-                        @foreach ($foods as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                        @endforeach
-                    </select>
+                    <input type="text" class="form-control form-control-sm" id="select-dinner-food-CHA" placeholder="Enter Food Name">
                     <input type="number" class="form-control form-control-sm" id="pax-dinner-food-CHA"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"
@@ -472,12 +457,7 @@
                 <input type="hidden" id="input-dinner-beverage-CHA" name="session[dinner][upselling_data][beverage]"
                     value="{{ is_array($dnBevVal) ? json_encode($dnBevVal) : $dnBevVal }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-dinner-beverage-CHA">
-                        <option value="" selected>Select Drink...</option>
-                        @foreach ($beverages as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                        @endforeach
-                    </select>
+                    <input type="text" class="form-control form-control-sm" id="select-dinner-beverage-CHA" placeholder="Enter Beverage Name">
                     <input type="number" class="form-control form-control-sm" id="pax-dinner-beverage-CHA"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"

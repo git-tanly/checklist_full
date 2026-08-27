@@ -14,8 +14,8 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
 
-        $startDate = $request->input('start_date', now()->subDays(6)->format('Y-m-d'));
-        $endDate = $request->input('end_date', now()->format('Y-m-d'));
+        $startDate = $request->input('start_date', now()->subDay()->format('Y-m-d'));
+        $endDate = $request->input('end_date', now()->subDay()->format('Y-m-d'));
         $restaurantFilter = $request->input('restaurant_id');
 
         $today = now()->format('Y-m-d');
@@ -503,10 +503,14 @@ class DashboardController extends Controller
             'Food Revenue' => array_fill_keys($sessions, 0),
             'Beverage Revenue' => array_fill_keys($sessions, 0),
             'Others Revenue' => array_fill_keys($sessions, 0),
+        ];
+        
+        $eventRevenueMatrix = [
             'Event Revenue' => array_fill_keys($sessions, 0),
         ];
 
         $coverMatrix = []; // Dinamis (tergantung key yang ditemukan)
+        $beoMatrix = []; // Untuk Event (BEO) yang dipisah dari GRAND TOTAL PAX
         $competitorMatrix = []; // Dinamis
         $usCoverTotal = array_fill_keys($sessions, 0); // Untuk baris "Us" di tabel kompetitor
 
@@ -539,7 +543,7 @@ class DashboardController extends Controller
                 $revenueMatrix['Food Revenue'][$sess] += $detail->revenue_food;
                 $revenueMatrix['Beverage Revenue'][$sess] += $detail->revenue_beverage;
                 $revenueMatrix['Others Revenue'][$sess] += $detail->revenue_others;
-                $revenueMatrix['Event Revenue'][$sess] += $detail->revenue_event;
+                $eventRevenueMatrix['Event Revenue'][$sess] += $detail->revenue_event;
 
                 // B. Agregasi Cover (Dinamis)
                 if (!empty($detail->cover_data) && is_array($detail->cover_data)) {
@@ -548,13 +552,20 @@ class DashboardController extends Controller
                             // Bersihkan nama key (misal: "in_house_adult" -> "In House Adult")
                             $cleanKey = ucwords(str_replace('_', ' ', $key));
 
-                            // Init jika belum ada di matriks
-                            if (!isset($coverMatrix[$cleanKey])) {
-                                $coverMatrix[$cleanKey] = array_fill_keys($sessions, 0);
-                            }
+                            if (in_array($key, ['beo_total', 'event_adult', 'event_child'])) {
+                                if (!isset($beoMatrix[$cleanKey])) {
+                                    $beoMatrix[$cleanKey] = array_fill_keys($sessions, 0);
+                                }
+                                $beoMatrix[$cleanKey][$sess] += $val;
+                            } else {
+                                // Init jika belum ada di matriks
+                                if (!isset($coverMatrix[$cleanKey])) {
+                                    $coverMatrix[$cleanKey] = array_fill_keys($sessions, 0);
+                                }
 
-                            $coverMatrix[$cleanKey][$sess] += $val;
-                            $usCoverTotal[$sess] += $val; // Tambah ke total kita
+                                $coverMatrix[$cleanKey][$sess] += $val;
+                                $usCoverTotal[$sess] += $val; // Tambah ke total kita
+                            }
                         }
                     }
                 }
@@ -879,7 +890,9 @@ class DashboardController extends Controller
             'endDate',
             'sessions',
             'revenueMatrix',
+            'eventRevenueMatrix',
             'coverMatrix',
+            'beoMatrix',
             'competitorMatrix',
             'daysOfWeek',
             'dayTrendMatrix',

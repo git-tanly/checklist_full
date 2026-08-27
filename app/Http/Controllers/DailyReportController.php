@@ -51,10 +51,9 @@ class DailyReportController extends Controller
         $user = Auth::user();
 
         if ($user->hasRole('Super Admin')) {
-            $restaurants = Restaurant::with('users')->get();
+            $restaurants = Restaurant::with(['users', 'employees'])->get();
         } else {
-            // BERSIH DARI SHARED COOKIE: Langsung panggil relasi restaurants dari User
-            $restaurants = $user->restaurants()->with('users')->get();
+            $restaurants = $user->restaurants()->with(['users', 'employees'])->get();
         }
 
         $details = [];
@@ -169,9 +168,9 @@ class DailyReportController extends Controller
         $user = Auth::user();
 
         if ($user->hasRole('Super Admin')) {
-            $restaurants = Restaurant::with('users')->get();
+            $restaurants = Restaurant::with(['users', 'employees'])->get();
         } else {
-            $restaurants = $user->restaurants()->with('users')->get();
+            $restaurants = $user->restaurants()->with(['users', 'employees'])->get();
         }
 
         $details = $dailyReport->details->keyBy('session_type');
@@ -397,6 +396,10 @@ class DailyReportController extends Controller
                     $decoded = json_decode($cleanedData[$field], true);
                     $cleanedData[$field] = $decoded ?: [];
                 }
+            }
+
+            if (isset($cleanedData['additional_data']['thematic_revenue'])) {
+                $cleanedData['additional_data']['thematic_revenue'] = str_replace('.', '', $cleanedData['additional_data']['thematic_revenue']);
             }
 
             $cleanedSessions[$session] = $cleanedData;

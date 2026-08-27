@@ -9,7 +9,7 @@
 
     // 2. Ambil Data Master
     $restoIrd = $restaurants->where('code', 'IRD')->first();
-    $myStaffList = $restoIrd ? $restoIrd->users : [];
+    $myStaffList = $restoIrd ? $restoIrd->employees : [];
 
     // 3. Upselling Menu
     $myMenu = $restoIrd && isset($upsellingItems[$restoIrd->id]) ? $upsellingItems[$restoIrd->id] : collect([]);
@@ -73,12 +73,7 @@
                 <input type="hidden" id="input-breakfast-food-IRD" name="session[breakfast][upselling_data][food]"
                     value="{{ is_array($bfFoodVal) ? json_encode($bfFoodVal) : $bfFoodVal }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-breakfast-food-IRD">
-                        <option value="" selected>Select Food...</option>
-                        @foreach ($foods as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                        @endforeach
-                    </select>
+                    <input type="text" class="form-control form-control-sm" id="select-breakfast-food-IRD" placeholder="Enter Food Name">
                     <input type="number" class="form-control form-control-sm" id="pax-breakfast-food-IRD"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"
@@ -94,12 +89,7 @@
                     name="session[breakfast][upselling_data][beverage]"
                     value="{{ is_array($bfBevVal) ? json_encode($bfBevVal) : $bfBevVal }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-breakfast-beverage-IRD">
-                        <option value="" selected>Select Drink...</option>
-                        @foreach ($beverages as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                        @endforeach
-                    </select>
+                    <input type="text" class="form-control form-control-sm" id="select-breakfast-beverage-IRD" placeholder="Enter Beverage Name">
                     <input type="number" class="form-control form-control-sm" id="pax-breakfast-beverage-IRD"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"
@@ -223,12 +213,7 @@
                 <input type="hidden" id="input-lunch-food-IRD" name="session[lunch][upselling_data][food]"
                     value="{{ is_array($lcFoodVal) ? json_encode($lcFoodVal) : $lcFoodVal }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-lunch-food-IRD">
-                        <option value="" selected>Select Food...</option>
-                        @foreach ($foods as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                        @endforeach
-                    </select>
+                    <input type="text" class="form-control form-control-sm" id="select-lunch-food-IRD" placeholder="Enter Food Name">
                     <input type="number" class="form-control form-control-sm" id="pax-lunch-food-IRD"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"
@@ -243,12 +228,7 @@
                 <input type="hidden" id="input-lunch-beverage-IRD" name="session[lunch][upselling_data][beverage]"
                     value="{{ is_array($lcBevVal) ? json_encode($lcBevVal) : $lcBevVal }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-lunch-beverage-IRD">
-                        <option value="" selected>Select Drink...</option>
-                        @foreach ($beverages as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                        @endforeach
-                    </select>
+                    <input type="text" class="form-control form-control-sm" id="select-lunch-beverage-IRD" placeholder="Enter Beverage Name">
                     <input type="number" class="form-control form-control-sm" id="pax-lunch-beverage-IRD"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"
@@ -370,12 +350,7 @@
                 <input type="hidden" id="input-dinner-food-IRD" name="session[dinner][upselling_data][food]"
                     value="{{ is_array($dnFoodVal) ? json_encode($dnFoodVal) : $dnFoodVal }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-dinner-food-IRD">
-                        <option value="" selected>Select Food...</option>
-                        @foreach ($foods as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                        @endforeach
-                    </select>
+                    <input type="text" class="form-control form-control-sm" id="select-dinner-food-IRD" placeholder="Enter Food Name">
                     <input type="number" class="form-control form-control-sm" id="pax-dinner-food-IRD"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"
@@ -390,12 +365,7 @@
                 <input type="hidden" id="input-dinner-beverage-IRD" name="session[dinner][upselling_data][beverage]"
                     value="{{ is_array($dnBevVal) ? json_encode($dnBevVal) : $dnBevVal }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-dinner-beverage-IRD">
-                        <option value="" selected>Select Drink...</option>
-                        @foreach ($beverages as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                        @endforeach
-                    </select>
+                    <input type="text" class="form-control form-control-sm" id="select-dinner-beverage-IRD" placeholder="Enter Beverage Name">
                     <input type="number" class="form-control form-control-sm" id="pax-dinner-beverage-IRD"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"
@@ -518,12 +488,7 @@
                 <input type="hidden" id="input-supper-food-IRD" name="session[supper][upselling_data][food]"
                     value="{{ is_array($spFoodVal) ? json_encode($spFoodVal) : $spFoodVal }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-supper-food-IRD">
-                        <option value="" selected>Select Food...</option>
-                        @foreach ($foods as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                        @endforeach
-                    </select>
+                    <input type="text" class="form-control form-control-sm" id="select-supper-food-IRD" placeholder="Enter Food Name">
                     <input type="number" class="form-control form-control-sm" id="pax-supper-food-IRD"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"
@@ -538,12 +503,7 @@
                 <input type="hidden" id="input-supper-beverage-IRD" name="session[supper][upselling_data][beverage]"
                     value="{{ is_array($spBevVal) ? json_encode($spBevVal) : $spBevVal }}">
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-supper-beverage-IRD">
-                        <option value="" selected>Select Drink...</option>
-                        @foreach ($beverages as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                        @endforeach
-                    </select>
+                    <input type="text" class="form-control form-control-sm" id="select-supper-beverage-IRD" placeholder="Enter Beverage Name">
                     <input type="number" class="form-control form-control-sm" id="pax-supper-beverage-IRD"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"

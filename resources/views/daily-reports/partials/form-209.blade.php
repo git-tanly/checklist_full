@@ -9,7 +9,7 @@
     $beverages = $myMenu->where('type', 'beverage');
 
     $resto209 = $restaurants->where('code', '209')->first();
-    $myStaffList = $resto209 ? $resto209->users : [];
+    $myStaffList = $resto209 ? $resto209->employees : [];
 
     // Ambil data (bisa dari old input array, atau database array)
     $bfOccasionData = old('session.breakfast.additional_data.occasion_items', $bf->additional_data['occasion_items'] ?? []);
@@ -196,12 +196,7 @@
 
                 {{-- 2. Area Input (Dropdown & Pax) --}}
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-breakfast-food-209">
-                        <option value="" selected>Select Food...</option>
-                        @foreach ($foods as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                        @endforeach
-                    </select>
+                    <input type="text" class="form-control form-control-sm" id="select-breakfast-food-209" placeholder="Enter Food Name">
                     <input type="number" class="form-control form-control-sm" id="pax-breakfast-food-209"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"
@@ -226,12 +221,7 @@
 
                 {{-- 2. Area Input --}}
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-breakfast-beverage-209">
-                        <option value="" selected>Select Drink...</option>
-                        @foreach ($beverages as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                        @endforeach
-                    </select>
+                    <input type="text" class="form-control form-control-sm" id="select-breakfast-beverage-209" placeholder="Enter Beverage Name">
                     <input type="number" class="form-control form-control-sm" id="pax-breakfast-beverage-209"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"
@@ -318,19 +308,22 @@
         <h5 class="mb-0 text-capitalize"><i class="ti ti-soup me-2"></i> Lunch Report</h5>
     </div>
     <div class="card-body">
-        <div class="col-md-3">
-            <label class="form-label small fw-bold text-muted mt-3">Thematic</label>
-
-            <select class="form-select" name="session[lunch][thematic]">
-                <option value="" selected disabled>-- Select Thematic --</option>
-
-                @foreach (['Sulawesi', 'Seafood', 'Western', 'Japanese', 'Texas'] as $theme)
-                    <option value="{{ $theme }}" {{-- Logika Cek: Jika old input ATAU data database sama dengan opsi ini, maka pilih (selected) --}}
-                        {{ old('session.lunch.thematic', $lc->thematic ?? '') == $theme ? 'selected' : '' }}>
-                        {{ $theme }}
-                    </option>
-                @endforeach
-            </select>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label small fw-bold text-muted mt-3">Thematic Name</label>
+                <input type="text" class="form-control" name="session[lunch][thematic]"
+                    value="{{ old('session.lunch.thematic', $lc->thematic ?? '') }}" placeholder="Enter thematic name">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-muted mt-3">Thematic Pax</label>
+                <input type="number" class="form-control" name="session[lunch][additional_data][thematic_pax]"
+                    value="{{ old('session.lunch.additional_data.thematic_pax', $lc->additional_data['thematic_pax'] ?? '') }}" placeholder="0">
+            </div>
+            <div class="col-md-5">
+                <label class="form-label small fw-bold text-muted mt-3">Thematic Revenue</label>
+                <input type="text" class="form-control rupiah" name="session[lunch][additional_data][thematic_revenue]"
+                    value="{{ old('session.lunch.additional_data.thematic_revenue', isset($lc->additional_data['thematic_revenue']) ? number_format($lc->additional_data['thematic_revenue'], 0, ',', '.') : '') }}" placeholder="0" autocomplete="off">
+            </div>
         </div>
         <h6 class="fw-bold text-muted mt-3">1. Cover Report</h6>
         <div class="row g-3">
@@ -472,12 +465,7 @@
 
                 {{-- 2. Area Input (Dropdown & Pax) --}}
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-lunch-food-209">
-                        <option value="" selected>Select Food...</option>
-                        @foreach ($foods as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                        @endforeach
-                    </select>
+                    <input type="text" class="form-control form-control-sm" id="select-lunch-food-209" placeholder="Enter Food Name">
                     <input type="number" class="form-control form-control-sm" id="pax-lunch-food-209"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"
@@ -502,12 +490,7 @@
 
                 {{-- 2. Area Input --}}
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-lunch-beverage-209">
-                        <option value="" selected>Select Drink...</option>
-                        @foreach ($beverages as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                        @endforeach
-                    </select>
+                    <input type="text" class="form-control form-control-sm" id="select-lunch-beverage-209" placeholder="Enter Beverage Name">
                     <input type="number" class="form-control form-control-sm" id="pax-lunch-beverage-209"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"
@@ -583,19 +566,22 @@
         <h5 class="mb-0 text-capitalize"><i class="ti ti-moon-stars me-2"></i> Dinner Report</h5>
     </div>
     <div class="card-body">
-        <div class="col-md-3">
-            <label class="form-label small fw-bold text-muted mt-3">Thematic</label>
-
-            <select class="form-select" name="session[dinner][thematic]">
-                <option value="" selected disabled>-- Select Thematic --</option>
-
-                @foreach (['Sulawesi', 'Seafood', 'Western', 'Japanese', 'Texas'] as $theme)
-                    <option value="{{ $theme }}" {{-- Logika Cek: Jika old input ATAU data database sama dengan opsi ini, maka pilih (selected) --}}
-                        {{ old('session.dinner.thematic', $dn->thematic ?? '') == $theme ? 'selected' : '' }}>
-                        {{ $theme }}
-                    </option>
-                @endforeach
-            </select>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label small fw-bold text-muted mt-3">Thematic Name</label>
+                <input type="text" class="form-control" name="session[dinner][thematic]"
+                    value="{{ old('session.dinner.thematic', $dn->thematic ?? '') }}" placeholder="Enter thematic name">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-muted mt-3">Thematic Pax</label>
+                <input type="number" class="form-control" name="session[dinner][additional_data][thematic_pax]"
+                    value="{{ old('session.dinner.additional_data.thematic_pax', $dn->additional_data['thematic_pax'] ?? '') }}" placeholder="0">
+            </div>
+            <div class="col-md-5">
+                <label class="form-label small fw-bold text-muted mt-3">Thematic Revenue</label>
+                <input type="text" class="form-control rupiah" name="session[dinner][additional_data][thematic_revenue]"
+                    value="{{ old('session.dinner.additional_data.thematic_revenue', isset($dn->additional_data['thematic_revenue']) ? number_format($dn->additional_data['thematic_revenue'], 0, ',', '.') : '') }}" placeholder="0" autocomplete="off">
+            </div>
         </div>
         <h6 class="fw-bold text-muted mt-3">1. Cover Report</h6>
         <div class="row g-3">
@@ -737,12 +723,7 @@
 
                 {{-- 2. Area Input (Dropdown & Pax) --}}
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-dinner-food-209">
-                        <option value="" selected>Select Food...</option>
-                        @foreach ($foods as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                        @endforeach
-                    </select>
+                    <input type="text" class="form-control form-control-sm" id="select-dinner-food-209" placeholder="Enter Food Name">
                     <input type="number" class="form-control form-control-sm" id="pax-dinner-food-209"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"
@@ -767,12 +748,7 @@
 
                 {{-- 2. Area Input --}}
                 <div class="input-group mb-2">
-                    <select class="form-select form-select-sm" id="select-dinner-beverage-209">
-                        <option value="" selected>Select Drink...</option>
-                        @foreach ($beverages as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                        @endforeach
-                    </select>
+                    <input type="text" class="form-control form-control-sm" id="select-dinner-beverage-209" placeholder="Enter Beverage Name">
                     <input type="number" class="form-control form-control-sm" id="pax-dinner-beverage-209"
                         placeholder="Qty" style="max-width: 70px;">
                     <button class="btn btn-sm btn-dark" type="button"

@@ -183,12 +183,7 @@
             value="{{ $dataFoodJson }}">
 
         <div class="input-group mb-2">
-            <select class="form-select form-select-sm" id="select-{{ $sessionName }}-food-NJR-{{ $floor }}">
-                <option value="" selected>Select Food...</option>
-                @foreach ($foods as $item)
-                    <option value="{{ $item->id }}">{{ $item->name }}</option>
-                @endforeach
-            </select>
+            <input type="text" class="form-control form-control-sm" id="select-{{ $sessionName }}-food-NJR-{{ $floor }}" placeholder="Enter Food Name">
             <input type="number" class="form-control form-control-sm" id="pax-{{ $sessionName }}-food-NJR-{{ $floor }}"
                 placeholder="Qty" style="max-width: 70px;">
             <button class="btn btn-sm btn-dark" type="button"
@@ -208,12 +203,7 @@
             value="{{ $dataBevJson }}">
 
         <div class="input-group mb-2">
-            <select class="form-select form-select-sm" id="select-{{ $sessionName }}-beverage-NJR-{{ $floor }}">
-                <option value="" selected>Select Drink...</option>
-                @foreach ($beverages as $item)
-                    <option value="{{ $item->id }}">{{ $item->name }}</option>
-                @endforeach
-            </select>
+            <input type="text" class="form-control form-control-sm" id="select-{{ $sessionName }}-beverage-NJR-{{ $floor }}" placeholder="Enter Beverage Name">
             <input type="number" class="form-control form-control-sm" id="pax-{{ $sessionName }}-beverage-NJR-{{ $floor }}"
                 placeholder="Qty" style="max-width: 70px;">
             <button class="btn btn-sm btn-dark" type="button"

@@ -120,6 +120,13 @@
                             </a>
                         </li>
                         <li class="pc-item">
+                            <a href="{{ route('employees.index') }}" class="pc-link">
+                                <span class="pc-micon"><i class="ti ti-briefcase"></i></span>
+                                <span class="pc-mtext">Employees</span>
+                            </a>
+                        </li>
+
+                        <li class="pc-item">
                             <a href="{{ route('upselling-items.index') }}" class="pc-link">
                                 <span class="pc-micon"><i class="ti ti-list"></i></span>
                                 <span class="pc-mtext">Master Menu Items</span>
