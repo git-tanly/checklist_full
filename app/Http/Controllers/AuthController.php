@@ -52,8 +52,8 @@ class AuthController extends Controller
 
         // 3. Ambil Data Profil User dari Portal SSO
         $userResponse = Http::withToken($accessToken)
-                            ->acceptJson()
-                            ->get(env('SSO_PORTAL_URL') . '/api/user');
+            ->acceptJson()
+            ->get(env('SSO_PORTAL_URL') . '/api/user');
 
         if ($userResponse->failed()) {
             return redirect('/')->withErrors(['error' => 'Gagal mengambil data profil dari Portal SSO.']);
@@ -80,17 +80,25 @@ class AuthController extends Controller
             // B. ASSIGN ROLE DEFAULT: Daily Worker
             // Kita bungkus dalam try-catch berjaga-jaga jika role belum ada di DB
             try {
-                $user->assignRole('Daily Worker');
+                $user->assignRole($ssoData['role'] ?? 'Daily Worker');
             } catch (\Exception $e) {
                 // Abaikan jika role belum di-seed ke DB
             }
 
             // C. ASSIGN RESTAURANT DEFAULT: 209 Dining
-            $defaultRestaurant = Restaurant::where('name', '209 Dining')->first();
-            if ($defaultRestaurant) {
-                $user->restaurants()->attach($defaultRestaurant->id);
+            if (!empty($ssoData['outlet_id'])) {
+                if (is_array($ssoData['outlet_id'])) {
+                    $validRestaurantIds = Restaurant::whereIn('id', $ssoData['outlet_id'])->pluck('id')->toArray();
+                    if (!empty($validRestaurantIds)) {
+                        $user->restaurants()->sync($validRestaurantIds);
+                    }
+                } else {
+                    $restaurant = Restaurant::find($ssoData['outlet_id']);
+                    if ($restaurant) {
+                        $user->restaurants()->sync([$restaurant->id]);
+                    }
+                }
             }
-
         } else {
             // JIKA USER SUDAH ADA: Update data dasar (tanpa menyentuh Role/Restoran)
             $user->update([
@@ -102,7 +110,7 @@ class AuthController extends Controller
 
         // 5. Login Lokal & Buat Sesi
         Auth::login($user);
-        $request->session()->save(); 
+        $request->session()->save();
 
         // 6. Redirect ke halaman tujuan atau ke halaman utama Dashboard
         return redirect()->intended('/dashboard');
