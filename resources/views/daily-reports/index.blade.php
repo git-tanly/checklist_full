@@ -1,22 +1,9 @@
-@extends('layouts.mantis')
+@extends('layouts.portal')
+
+@section('title', 'Daily Reports')
+@section('breadcrumb', 'Daily Reports')
 
 @section('header')
-    <div class="page-header">
-        <div class="page-block">
-            <div class="row align-items-center">
-                <div class="col-md-12">
-                    <div class="page-header-title">
-                        <h5 class="m-b-10">Daily Reports - Restaurants</h5>
-                    </div>
-                    <ul class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
-                        <li class="breadcrumb-item" aria-current="page">Restaurants</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-
     {{-- JavaScript for Export Modal --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -29,43 +16,25 @@
             if (exportAllCheckbox) {
                 exportAllCheckbox.addEventListener('change', function() {
                     if (this.checked) {
-                        // Disable date inputs
                         startDateInput.disabled = true;
                         endDateInput.disabled = true;
-
-                        // Remove required attribute
                         startDateInput.removeAttribute('required');
                         endDateInput.removeAttribute('required');
-
-                        // Hide required asterisk
                         startRequired.style.display = 'none';
                         endRequired.style.display = 'none';
-
-                        // Clear values (optional)
                         startDateInput.value = '';
                         endDateInput.value = '';
-
-                        // Visual feedback
-                        startDateInput.style.backgroundColor = '#f8f9fa';
-                        endDateInput.style.backgroundColor = '#f8f9fa';
+                        startDateInput.style.backgroundColor = '#f8fafc';
+                        endDateInput.style.backgroundColor = '#f8fafc';
                     } else {
-                        // Enable date inputs
                         startDateInput.disabled = false;
                         endDateInput.disabled = false;
-
-                        // Add back required attribute
                         startDateInput.setAttribute('required', 'required');
                         endDateInput.setAttribute('required', 'required');
-
-                        // Show required asterisk
                         startRequired.style.display = 'inline';
                         endRequired.style.display = 'inline';
-
-                        // Restore default values
                         startDateInput.value = '{{ now()->subDays(30)->format('Y-m-d') }}';
                         endDateInput.value = '{{ now()->format('Y-m-d') }}';
-
-                        // Remove visual feedback
                         startDateInput.style.backgroundColor = '';
                         endDateInput.style.backgroundColor = '';
                     }
@@ -90,8 +59,8 @@
                         endRequiredPdf.style.display = 'none';
                         startDateInputPdf.value = '';
                         endDateInputPdf.value = '';
-                        startDateInputPdf.style.backgroundColor = '#f8f9fa';
-                        endDateInputPdf.style.backgroundColor = '#f8f9fa';
+                        startDateInputPdf.style.backgroundColor = '#f8fafc';
+                        endDateInputPdf.style.backgroundColor = '#f8fafc';
                     } else {
                         startDateInputPdf.disabled = false;
                         endDateInputPdf.disabled = false;
@@ -108,63 +77,64 @@
             }
         });
     </script>
+
+    <!-- EXECUTIVE PAGE HEADER -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border border-slate-200/90 rounded-2xl p-5 md:p-6 shadow-sm mb-4">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-[#172a40] text-white flex items-center justify-center text-2xl shadow-sm shrink-0">
+                <i class="ti ti-tools-kitchen-2"></i>
+            </div>
+            <div>
+                <h1 class="text-lg md:text-xl font-bold text-slate-800 tracking-tight mb-0.5">Daily Reports - Restaurants</h1>
+                <p class="text-xs text-slate-500 mb-0">Kelola, tinjau, dan ekspor laporan harian seluruh restoran & outlet.</p>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 self-start md:self-auto">
+            {{-- TOMBOL EXPORT EXCEL --}}
+            <button type="button" class="btn btn-sm btn-outline-success rounded-xl px-3.5 py-2 text-xs font-semibold d-inline-flex align-items-center gap-1.5 shadow-sm" data-bs-toggle="modal" data-bs-target="#exportModal">
+                <i class="ti ti-file-spreadsheet text-base"></i> Export Excel
+            </button>
+            {{-- TOMBOL EXPORT PDF --}}
+            <button type="button" class="btn btn-sm btn-outline-danger rounded-xl px-3.5 py-2 text-xs font-semibold d-inline-flex align-items-center gap-1.5 shadow-sm" data-bs-toggle="modal" data-bs-target="#exportPdfModal">
+                <i class="ti ti-file-type-pdf text-base"></i> Export PDF
+            </button>
+            {{-- TOMBOL BUAT LAPORAN BARU --}}
+            <a href="{{ route('daily-reports.create') }}" class="btn btn-sm btn-primary rounded-xl px-4 py-2 text-xs font-semibold d-inline-flex align-items-center gap-1.5 shadow-sm">
+                <i class="ti ti-plus text-base"></i> Create Report
+            </a>
+        </div>
+    </div>
 @endsection
 
 @section('content')
-    <div class="row">
-        <div class="col-md-12">
+    <div class="row g-4">
+        <div class="col-12">
 
-            {{-- Alert Messages --}}
-            @if (session('success'))
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    {{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
-
-            @if (session('error'))
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    {{ session('error') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
-
-            @if ($errors->any())
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <strong>Validation Error:</strong>
-                    <ul class="mb-0">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
-
-            {{-- Filter Form --}}
-            <div class="card mb-3">
-                <div class="card-body">
+            {{-- Filter Form Card --}}
+            <div class="card border border-slate-200/90 rounded-2xl shadow-sm bg-white mb-4">
+                <div class="card-body p-4">
                     <form action="{{ route('daily-reports.index') }}" method="GET" class="row g-3 align-items-end">
-                        <div class="col-md-3">
-                            <label for="filter_start_date" class="form-label small fw-bold">
-                                <i class="ti ti-calendar"></i> Start Date
+                        <div class="col-12 col-sm-6 col-md-3">
+                            <label for="filter_start_date" class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                                <i class="ti ti-calendar me-1 text-slate-400"></i> Start Date
                             </label>
-                            <input type="date" class="form-control" id="filter_start_date" name="start_date" 
-                                   value="{{ request('start_date') }}" placeholder="Start Date">
+                            <input type="date" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#172a40] focus:ring-2 focus:ring-[#172a40]/10 transition" id="filter_start_date" name="start_date" 
+                                   value="{{ request('start_date') }}">
                         </div>
-                        <div class="col-md-3">
-                            <label for="filter_end_date" class="form-label small fw-bold">
-                                <i class="ti ti-calendar"></i> End Date
+                        <div class="col-12 col-sm-6 col-md-3">
+                            <label for="filter_end_date" class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                                <i class="ti ti-calendar me-1 text-slate-400"></i> End Date
                             </label>
-                            <input type="date" class="form-control" id="filter_end_date" name="end_date" 
-                                   value="{{ request('end_date') }}" placeholder="End Date">
+                            <input type="date" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#172a40] focus:ring-2 focus:ring-[#172a40]/10 transition" id="filter_end_date" name="end_date" 
+                                   value="{{ request('end_date') }}">
                         </div>
-                        <div class="col-md-4">
-                            <label for="filter_restaurant" class="form-label small fw-bold">
-                                <i class="ti ti-building-store"></i> Restaurant
+                        <div class="col-12 col-sm-8 col-md-4">
+                            <label for="filter_restaurant" class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                                <i class="ti ti-building-store me-1 text-slate-400"></i> Restaurant
                             </label>
-                            <select class="form-select" id="filter_restaurant" name="restaurant_id">
-                                <option value="">All Restaurants</option>
+                            <select class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#172a40] focus:ring-2 focus:ring-[#172a40]/10 transition" id="filter_restaurant" name="restaurant_id">
+                                <option value="">Semua Restoran (All Restaurants)</option>
                                 @foreach($restaurants as $restaurant)
                                     <option value="{{ $restaurant->id }}" 
                                         {{ request('restaurant_id') == $restaurant->id ? 'selected' : '' }}>
@@ -173,13 +143,13 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-2">
-                            <button type="submit" class="btn btn-primary w-100">
+                        <div class="col-12 col-sm-4 col-md-2 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary w-100 rounded-xl text-xs font-semibold py-2 d-inline-flex align-items-center justify-center gap-1 shadow-sm">
                                 <i class="ti ti-filter"></i> Filter
                             </button>
                             @if(request()->hasAny(['start_date', 'end_date', 'restaurant_id']))
-                                <a href="{{ route('daily-reports.index') }}" class="btn btn-secondary w-100 mt-2">
-                                    <i class="ti ti-x"></i> Clear
+                                <a href="{{ route('daily-reports.index') }}" class="btn btn-outline-secondary rounded-xl text-xs font-semibold py-2 px-3 d-inline-flex align-items-center justify-center" title="Reset Filter">
+                                    <i class="ti ti-x"></i>
                                 </a>
                             @endif
                         </div>
@@ -187,104 +157,121 @@
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5>Recent Reports</h5>
-                    <div class="d-flex gap-2">
-                        {{-- TOMBOL EXPORT TO EXCEL --}}
-                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exportModal">
-                            <i class="ti ti-file-spreadsheet"></i> Export to Excel
-                        </button>
-                        {{-- TOMBOL EXPORT TO PDF (BULK) --}}
-                        <button type="button" class="btn btn-danger" data-bs-toggle="modal"
-                            data-bs-target="#exportPdfModal">
-                            <i class="ti ti-file-type-pdf"></i> Export PDF
-                        </button>
-                        {{-- TOMBOL MENUJU HALAMAN CREATE --}}
-                        <a href="{{ route('daily-reports.create') }}" class="btn btn-primary">
-                            <i class="ti ti-plus"></i> Create New Report
-                        </a>
+            {{-- Table Card --}}
+            <div class="card border border-slate-200/90 rounded-2xl shadow-sm bg-white overflow-hidden">
+                <div class="p-4 md:p-5 border-b border-slate-100 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-0.5">
+                            <i class="ti ti-list me-1.5 text-[#172a40]"></i> Daftar Laporan Harian
+                        </h2>
+                        <p class="text-xs text-slate-500 mb-0">Menampilkan {{ $reports->total() }} laporan yang tersimpan dalam sistem.</p>
                     </div>
                 </div>
-                <div class="card-body table-border-style">
+                <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover">
+                        <table class="table table-hover align-middle mb-0">
                             <thead>
-                                <tr>
-                                    <th>Report Date</th>
-                                    <th>Created At</th>
-                                    <th>Restaurant</th>
-                                    <th>Created By</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
+                                <tr class="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                    <th class="ps-4 py-3">Tanggal Laporan</th>
+                                    <th class="py-3">Waktu Input</th>
+                                    <th class="py-3">Restoran / Outlet</th>
+                                    <th class="py-3">Dibuat Oleh</th>
+                                    <th class="py-3">Status</th>
+                                    <th class="text-end pe-4 py-3">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody class="divide-y divide-slate-100 text-xs">
                                 @forelse($reports as $report)
                                     <tr>
-                                        <td>
-                                            <div class="fw-bold">{{ $report->date->format('d M Y') }}</div>
-                                            <div class="small text-muted">{{ $report->date->format('H:i') }}</div>
+                                        <td class="ps-4 py-3">
+                                            <div class="font-bold text-slate-800">{{ $report->date->format('d M Y') }}</div>
+                                            <div class="text-[11px] text-slate-400">{{ $report->date->format('H:i') }} WIB</div>
                                         </td>
-                                        <td>
-                                            <div class="fw-bold">{{ $report->created_at->format('d M Y') }}</div>
-                                            <div class="small text-muted">{{ $report->created_at->format('H:i') }}</div>
+                                        <td class="py-3">
+                                            <div class="font-medium text-slate-700">{{ $report->created_at->format('d M Y') }}</div>
+                                            <div class="text-[11px] text-slate-400">{{ $report->created_at->format('H:i') }} WIB</div>
                                         </td>
-                                        <td>{{ $report->restaurant->name }}</td>
-                                        <td>{{ $report->user->name }}</td>
-                                        <td>
+                                        <td class="py-3">
+                                            <span class="font-bold text-slate-800">{{ $report->restaurant->name }}</span>
+                                            <span class="ms-1 px-1.5 py-0.2 rounded bg-slate-100 text-slate-500 font-mono text-[10px]">{{ $report->restaurant->code }}</span>
+                                        </td>
+                                        <td class="py-3">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="w-7 h-7 rounded-full bg-[#172a40] text-white flex items-center justify-center font-bold text-[10px]">
+                                                    {{ strtoupper(substr($report->user->name ?? 'U', 0, 2)) }}
+                                                </div>
+                                                <span class="font-medium text-slate-700">{{ $report->user->name }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-3">
                                             @if ($report->status == 'approved')
-                                                <span class="badge bg-success">Approved</span>
+                                                <span class="badge bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full px-2.5 py-1 font-semibold text-[11px]">
+                                                    <i class="ti ti-check me-0.5"></i> Approved
+                                                </span>
                                             @elseif($report->status == 'submitted')
-                                                <span class="badge bg-primary">Submitted</span>
+                                                <span class="badge bg-blue-50 text-blue-700 border border-blue-200 rounded-full px-2.5 py-1 font-semibold text-[11px]">
+                                                    <i class="ti ti-clock me-0.5"></i> Submitted
+                                                </span>
                                             @else
-                                                <span class="badge bg-warning text-dark">Draft</span>
+                                                <span class="badge bg-amber-50 text-amber-700 border border-amber-200 rounded-full px-2.5 py-1 font-semibold text-[11px]">
+                                                    <i class="ti ti-pencil me-0.5"></i> Draft
+                                                </span>
                                             @endif
                                         </td>
-                                        <td>
-                                            {{-- Link ke Detail (Show) --}}
-                                            <a href="{{ route('daily-reports.show', $report->id) }}"
-                                                class="btn btn-icon btn-link-secondary">
-                                                <i class="ti ti-eye"></i>
-                                            </a>
-
-                                            {{-- Tombol Edit (Draft, atau Approved khusus Super Admin) --}}
-                                            @if ($report->status == 'draft' || ($report->status == 'approved' && auth()->user()->hasRole('Super Admin')))
-                                                <a href="{{ route('daily-reports.edit', $report->id) }}"
-                                                    class="btn btn-icon btn-link-warning">
-                                                    <i class="ti ti-pencil"></i>
+                                        <td class="text-end pe-4 py-3">
+                                            <div class="d-inline-flex align-items-center gap-1">
+                                                {{-- Link ke Detail (Show) --}}
+                                                <a href="{{ route('daily-reports.show', $report->id) }}"
+                                                    class="btn btn-sm btn-outline-secondary rounded-lg p-1.5 text-slate-600 hover:text-[#172a40] transition"
+                                                    title="Lihat Detail">
+                                                    <i class="ti ti-eye text-sm"></i>
                                                 </a>
-                                            @endif
 
-                                            {{-- TOMBOL HAPUS (Hanya Manager & Super Admin) --}}
-                                            @hasanyrole('Super Admin|Restaurant Manager')
-                                                <form action="{{ route('daily-reports.destroy', $report->id) }}" method="POST"
-                                                    class="d-inline-block">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-icon btn-link-danger"
-                                                        onclick="return confirm('Apakah Anda yakin ingin menghapus laporan tanggal {{ $report->date->format('d M Y') }} ini? Tindakan ini tidak bisa dibatalkan.')">
-                                                        <i class="ti ti-trash"></i>
-                                                    </button>
-                                                </form>
-                                            @endhasanyrole
+                                                {{-- Tombol Edit (Draft, atau Approved khusus Super Admin) --}}
+                                                @if ($report->status == 'draft' || ($report->status == 'approved' && auth()->user()->hasRole('Super Admin')))
+                                                    <a href="{{ route('daily-reports.edit', $report->id) }}"
+                                                        class="btn btn-sm btn-outline-warning rounded-lg p-1.5 text-amber-600 hover:bg-amber-50 transition"
+                                                        title="Edit Laporan">
+                                                        <i class="ti ti-pencil text-sm"></i>
+                                                    </a>
+                                                @endif
+
+                                                {{-- TOMBOL HAPUS (Hanya Manager & Super Admin) --}}
+                                                @hasanyrole('Super Admin|Restaurant Manager')
+                                                    <form action="{{ route('daily-reports.destroy', $report->id) }}" method="POST"
+                                                        class="d-inline-block">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-lg p-1.5 text-rose-600 hover:bg-rose-50 transition"
+                                                            onclick="return confirm('Apakah Anda yakin ingin menghapus laporan tanggal {{ $report->date->format('d M Y') }} ini? Tindakan ini tidak bisa dibatalkan.')"
+                                                            title="Hapus Laporan">
+                                                            <i class="ti ti-trash text-sm"></i>
+                                                        </button>
+                                                    </form>
+                                                @endhasanyrole
+                                            </div>
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="text-center py-4 text-muted">
-                                            No reports found. Start by creating one!
+                                        <td colspan="6" class="text-center py-5 text-slate-400">
+                                            <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center text-2xl mx-auto mb-2">
+                                                <i class="ti ti-folder-off"></i>
+                                            </div>
+                                            <p class="text-xs mb-0">Tidak ada laporan yang ditemukan. Mulai dengan membuat laporan baru!</p>
                                         </td>
                                     </tr>
                                 @endforelse
                             </tbody>
                         </table>
+                    </div>
 
-                        {{-- Pagination --}}
-                        <div class="mt-3">
+                    {{-- Pagination --}}
+                    @if($reports->hasPages())
+                        <div class="p-4 border-t border-slate-100">
                             {{ $reports->links() }}
                         </div>
-                    </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -293,75 +280,67 @@
     {{-- Modal Export to Excel --}}
     <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
         <div class="modal-dialog">
-            <div class="modal-content">
+            <div class="modal-content border-0 rounded-2xl shadow-2xl overflow-hidden">
                 <form action="{{ route('daily-reports.export') }}" method="POST">
                     @csrf
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exportModalLabel">
-                            <i class="ti ti-file-spreadsheet"></i> Export Daily Reports to Excel
+                    <div class="modal-header bg-[#172a40] text-white px-5 py-4 border-b border-[#0f1c2b] relative overflow-hidden">
+                        <div class="absolute top-0 left-0 right-0 h-1 bg-[#10b981]"></div>
+                        <h5 class="modal-title font-bold text-white text-sm d-flex align-items-center gap-2" id="exportModalLabel">
+                            <i class="ti ti-file-spreadsheet text-emerald-400 text-base"></i> Export Daily Reports to Excel
                         </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
+                    <div class="modal-body p-4 md:p-5">
+                        <div class="p-3 bg-emerald-50/70 border border-emerald-200 rounded-xl mb-3.5">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="export_all_dates"
                                     name="export_all_dates" value="1">
-                                <label class="form-check-label fw-bold text-primary" for="export_all_dates">
-                                    <i class="ti ti-database"></i> Export All Historical Data (No Date Filter)
+                                <label class="form-check-label font-bold text-emerald-800 text-xs" for="export_all_dates">
+                                    <i class="ti ti-database me-1"></i> Export Semua Data Historis (Tanpa Filter Tanggal)
                                 </label>
                             </div>
-                            <small class="text-muted">Check this to export all data from the beginning without date
-                                limitation</small>
+                            <small class="text-emerald-700/80 block mt-1 text-[11px]">Centang opsi ini untuk mengunduh seluruh data laporan dari awal tanpa batasan tanggal.</small>
                         </div>
 
                         <div class="mb-3">
-                            <label for="start_date" class="form-label">Start Date <span class="text-danger"
-                                    id="start_required">*</span></label>
-                            <input type="date" class="form-control" id="start_date" name="start_date"
+                            <label for="start_date" class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                                Start Date <span class="text-danger" id="start_required">*</span>
+                            </label>
+                            <input type="date" class="form-control rounded-xl text-xs" id="start_date" name="start_date"
                                 value="{{ now()->subDays(30)->format('Y-m-d') }}" required>
-                            <small class="text-muted">Reports from this date onwards</small>
+                            <small class="text-slate-400 text-[11px]">Laporan dimulai dari tanggal ini.</small>
                         </div>
 
                         <div class="mb-3">
-                            <label for="end_date" class="form-label">End Date <span class="text-danger"
-                                    id="end_required">*</span></label>
-                            <input type="date" class="form-control" id="end_date" name="end_date"
+                            <label for="end_date" class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                                End Date <span class="text-danger" id="end_required">*</span>
+                            </label>
+                            <input type="date" class="form-control rounded-xl text-xs" id="end_date" name="end_date"
                                 value="{{ now()->format('Y-m-d') }}" required>
-                            <small class="text-muted">Reports up to this date</small>
+                            <small class="text-slate-400 text-[11px]">Laporan sampai dengan tanggal ini.</small>
                         </div>
 
                         <div class="mb-3">
-                            <label for="restaurant_id" class="form-label">Restaurant</label>
-                            <select class="form-select" id="restaurant_id" name="restaurant_id">
+                            <label for="restaurant_id" class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Restaurant</label>
+                            <select class="form-select rounded-xl text-xs" id="restaurant_id" name="restaurant_id">
                                 @hasrole('Super Admin')
-                                    <option value="">All Restaurants</option>
+                                    <option value="">Semua Restoran (All Restaurants)</option>
                                 @else
-                                    <option value="">All My Restaurants</option>
+                                    <option value="">Semua Restoran yang Diakses (All My Restaurants)</option>
                                 @endhasrole
                                 @foreach ($restaurants as $restaurant)
                                     <option value="{{ $restaurant->id }}">{{ $restaurant->name }}</option>
                                 @endforeach
                             </select>
-                            <small class="text-muted">
-                                @hasrole('Super Admin')
-                                    Leave blank to export all restaurants
-                                @else
-                                    Leave blank to export all your accessible restaurants
-                                @endhasrole
+                            <small class="text-slate-400 text-[11px]">
+                                Kosongkan pilihan jika ingin mengunduh semua restoran sekaligus.
                             </small>
                         </div>
-
-                        @if (session('error'))
-                            <div class="alert alert-danger">
-                                {{ session('error') }}
-                            </div>
-                        @endif
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-success">
-                            <i class="ti ti-download"></i> Export to Excel
+                    <div class="modal-footer bg-slate-50 border-t border-slate-100 px-5 py-3">
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-xl px-4 py-2 text-xs font-semibold" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-sm btn-success rounded-xl px-4 py-2 text-xs font-semibold d-inline-flex align-items-center gap-1.5 shadow-sm">
+                            <i class="ti ti-download"></i> Unduh File Excel
                         </button>
                     </div>
                 </form>
@@ -370,72 +349,58 @@
     </div>
 
     {{-- Modal Bulk Export PDF --}}
-    <div class="modal fade" id="exportPdfModal" tabindex="-1" aria-labelledby="exportPdfModalLabel"
-        aria-hidden="true">
+    <div class="modal fade" id="exportPdfModal" tabindex="-1" aria-labelledby="exportPdfModalLabel" aria-hidden="true">
         <div class="modal-dialog">
-            <div class="modal-content">
+            <div class="modal-content border-0 rounded-2xl shadow-2xl overflow-hidden">
                 <form action="{{ route('daily-reports.export-pdf') }}" method="POST">
                     @csrf
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exportPdfModalLabel">
-                            <i class="ti ti-file-type-pdf"></i> Bulk Export Daily Reports to PDF
+                    <div class="modal-header bg-[#172a40] text-white px-5 py-4 border-b border-[#0f1c2b] relative overflow-hidden">
+                        <div class="absolute top-0 left-0 right-0 h-1 bg-[#ef4444]"></div>
+                        <h5 class="modal-title font-bold text-white text-sm d-flex align-items-center gap-2" id="exportPdfModalLabel">
+                            <i class="ti ti-file-type-pdf text-rose-400 text-base"></i> Bulk Export Daily Reports to PDF
                         </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body">
-                        {{-- <div class="mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="export_all_dates_pdf"
-                                    name="export_all_dates_pdf" value="1">
-                                <label class="form-check-label fw-bold text-danger" for="export_all_dates_pdf">
-                                    <i class="ti ti-database"></i> Export All Historical Data (No Date Filter)
-                                </label>
-                            </div>
-                            <small class="text-muted">Check this to export all data from the beginning without date
-                                limitation</small>
-                        </div> --}}
-
+                    <div class="modal-body p-4 md:p-5">
                         <div class="mb-3">
-                            <label for="start_date_pdf" class="form-label">Start Date <span class="text-danger"
-                                    id="start_required_pdf">*</span></label>
-                            <input type="date" class="form-control" id="start_date_pdf" name="start_date_pdf"
+                            <label for="start_date_pdf" class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                                Start Date <span class="text-danger" id="start_required_pdf">*</span>
+                            </label>
+                            <input type="date" class="form-control rounded-xl text-xs" id="start_date_pdf" name="start_date_pdf"
                                 value="{{ now()->subDays(30)->format('Y-m-d') }}" required>
-                            <small class="text-muted">Reports from this date onwards</small>
+                            <small class="text-slate-400 text-[11px]">Laporan dimulai dari tanggal ini.</small>
                         </div>
 
                         <div class="mb-3">
-                            <label for="end_date_pdf" class="form-label">End Date <span class="text-danger"
-                                    id="end_required_pdf">*</span></label>
-                            <input type="date" class="form-control" id="end_date_pdf" name="end_date_pdf"
+                            <label for="end_date_pdf" class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                                End Date <span class="text-danger" id="end_required_pdf">*</span>
+                            </label>
+                            <input type="date" class="form-control rounded-xl text-xs" id="end_date_pdf" name="end_date_pdf"
                                 value="{{ now()->format('Y-m-d') }}" required>
-                            <small class="text-muted">Reports up to this date</small>
+                            <small class="text-slate-400 text-[11px]">Laporan sampai dengan tanggal ini.</small>
                         </div>
 
                         <div class="mb-3">
-                            <label for="restaurant_id_pdf" class="form-label">Restaurant</label>
-                            <select class="form-select" id="restaurant_id_pdf" name="restaurant_id">
+                            <label for="restaurant_id_pdf" class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Restaurant</label>
+                            <select class="form-select rounded-xl text-xs" id="restaurant_id_pdf" name="restaurant_id">
                                 @hasrole('Super Admin')
-                                    <option value="">All Restaurants</option>
+                                    <option value="">Semua Restoran (All Restaurants)</option>
                                 @else
-                                    <option value="">All My Restaurants</option>
+                                    <option value="">Semua Restoran yang Diakses (All My Restaurants)</option>
                                 @endhasrole
                                 @foreach ($restaurants as $restaurant)
                                     <option value="{{ $restaurant->id }}">{{ $restaurant->name }}</option>
                                 @endforeach
                             </select>
-                            <small class="text-muted">
-                                @hasrole('Super Admin')
-                                    Leave blank to export all restaurants
-                                @else
-                                    Leave blank to export all your accessible restaurants
-                                @endhasrole
+                            <small class="text-slate-400 text-[11px]">
+                                Kosongkan pilihan jika ingin mengunduh semua restoran sekaligus.
                             </small>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-danger">
-                            <i class="ti ti-download"></i> Export to PDF
+                    <div class="modal-footer bg-slate-50 border-t border-slate-100 px-5 py-3">
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-xl px-4 py-2 text-xs font-semibold" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-sm btn-danger rounded-xl px-4 py-2 text-xs font-semibold d-inline-flex align-items-center gap-1.5 shadow-sm">
+                            <i class="ti ti-download"></i> Unduh File PDF
                         </button>
                     </div>
                 </form>

@@ -1,151 +1,160 @@
-@extends('layouts.mantis')
+@extends('layouts.portal')
 
-@section('header')
-    <div class="page-header">
-        <div class="page-block">
-            <div class="row align-items-center">
-                <div class="col-md-12">
-                    <div class="page-header-title">
-                        <h5 class="m-b-10">Create Daily Report</h5>
+@section('title', 'Create Daily Report - Tanly Hospitality')
+
+@section('content')
+    <div class="space-y-6">
+        {{-- Executive Banner Card --}}
+        <div class="rounded-2xl border border-slate-200/90 shadow-sm bg-white p-5 md:p-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-sm" style="background-color: #172a40; color: #B89047;">
+                        <i class="ti ti-file-plus text-2xl"></i>
                     </div>
-                    <ul class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('daily-reports.index') }}">Dashboard</a></li>
-                        <li class="breadcrumb-item" aria-current="page">Create Report</li>
-                    </ul>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h1 class="text-xl font-bold tracking-tight text-slate-800">Create Daily Report</h1>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                New Submission
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5">Input daily operations, cover breakdown, and session revenue</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('daily-reports.index') }}" class="btn btn-light rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 transition inline-flex items-center gap-1.5 shadow-sm">
+                        <i class="ti ti-arrow-left text-base"></i> Back to List
+                    </a>
                 </div>
             </div>
         </div>
-    </div>
-@endsection
 
-@section('content')
-    <div class="row">
-        <div class="col-md-12">
+        {{-- Error Validation Alert --}}
+        @if ($errors->any())
+            <div class="rounded-2xl border border-rose-200 bg-rose-50/80 p-4 text-rose-800 shadow-sm">
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-rose-100 flex items-center justify-center shrink-0 text-rose-600">
+                        <i class="ti ti-alert-triangle text-lg"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-rose-900">Gagal Menyimpan Laporan!</h4>
+                        <p class="text-xs text-rose-700 mt-0.5 mb-2">Harap periksa kembali isian form di bawah ini:</p>
+                        <ul class="list-disc list-inside text-xs space-y-1 text-rose-700">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        @endif
 
-            {{-- Tampilkan Error Validasi jika ada --}}
-            @if ($errors->any())
-                <div class="alert alert-danger border-0 shadow-sm mb-4">
-                    <div class="d-flex align-items-center">
-                        <i class="ti ti-alert-circle fs-2 me-3"></i>
-                        <div>
-                            <h5 class="mb-1">Gagal Menyimpan Laporan!</h5>
-                            <ul class="mb-0 ps-3">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
+        <form action="{{ route('daily-reports.store') }}" method="POST" id="reportForm">
+            @csrf
+
+            {{-- CARD 1: General Info --}}
+            <div class="rounded-2xl border border-slate-200/90 shadow-sm bg-white overflow-hidden mb-6">
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <div class="flex items-center gap-2">
+                        <i class="ti ti-info-circle text-lg" style="color: #172a40;"></i>
+                        <h3 class="text-sm font-bold text-slate-800">General Information</h3>
+                    </div>
+                    <span class="text-xs text-slate-400 font-medium">* Wajib diisi</span>
+                </div>
+                <div class="p-6">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">Select Restaurant / Outlet</label>
+                            <div class="relative">
+                                <select name="restaurant_id" id="restaurant_selector" class="form-select rounded-xl border-slate-300 py-2.5 text-sm font-medium focus:border-[#172a40] focus:ring-[#172a40]" required>
+                                    <option value="" selected disabled>-- Choose Restaurant / Outlet --</option>
+                                    @foreach ($restaurants as $rest)
+                                        <option value="{{ $rest->id }}" data-code="{{ $rest->code }}"
+                                            {{ old('restaurant_id') == $rest->id ? 'selected' : '' }}>
+                                            {{ $rest->name }} ({{ $rest->code }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-1.5">Pilih outlet untuk memuat modul form laporan yang sesuai</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">Date & Time</label>
+                            <input type="datetime-local" name="date" class="form-control rounded-xl border-slate-300 py-2.5 text-sm font-medium focus:border-[#172a40] focus:ring-[#172a40]"
+                                value="{{ old('date', now()->format('Y-m-d\TH:i')) }}" required>
+                            <p class="text-[11px] text-slate-400 mt-1.5">Ubah tanggal jika sedang menginput laporan operasional lampau</p>
                         </div>
                     </div>
                 </div>
-            @endif
+            </div>
 
-            <form action="{{ route('daily-reports.store') }}" method="POST" id="reportForm">
-                @csrf
-
-                {{-- CARD 1: General Info --}}
-                <div class="card">
-                    <div class="card-header">
-                        <h5>General Information</h5>
+            {{-- CARD 2: Dynamic Forms Container --}}
+            <div id="form-container">
+                {{-- Empty state sebelum memilih resto --}}
+                <div id="empty-state" class="rounded-2xl border border-dashed border-slate-300 bg-white/70 p-12 text-center my-4">
+                    <div class="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center mb-3 shadow-inner" style="background: rgba(23, 42, 64, 0.05); color: #172a40;">
+                        <i class="ti ti-building-store text-3xl"></i>
                     </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">Select Restaurant</label>
-                                    <select name="restaurant_id" id="restaurant_selector" class="form-select" required>
-                                        <option value="" selected disabled>-- Choose Restaurant --</option>
-                                        @foreach ($restaurants as $rest)
-                                            {{-- Kita simpan 'code' di atribut data-code untuk dipanggil JS --}}
-                                            <option value="{{ $rest->id }}" data-code="{{ $rest->code }}"
-                                                {{ old('restaurant_id') == $rest->id ? 'selected' : '' }}>
-                                                {{ $rest->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">Date & Time</label>
-
-                                    {{-- GANTI MENJADI INPUT DATETIME-LOCAL --}}
-                                    {{-- Format value harus 'Y-m-d\TH:i' agar terbaca oleh input HTML5 --}}
-                                    <input type="datetime-local" name="date" class="form-control"
-                                        value="{{ old('date', now()->format('Y-m-d\TH:i')) }}" required>
-
-                                    <small class="text-muted">You can change this date if reporting for past events.</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <h3 class="text-base font-bold text-slate-700">Pilih Outlet / Restaurant Terlebih Dahulu</h3>
+                    <p class="text-xs text-slate-500 max-w-sm mx-auto mt-1">Formulir operasional restoran (cover, revenue, upselling, occasion) akan muncul otomatis setelah Anda memilih outlet di atas.</p>
                 </div>
 
-                {{-- CARD 2: Dynamic Forms Container --}}
-                <div id="form-container">
-                    {{-- Pesan awal sebelum memilih resto --}}
-                    <div id="empty-state" class="text-center py-5 text-muted">
-                        <i class="ti ti-hand-click fs-1 mb-2"></i>
-                        <p>Please select a restaurant to fill the report.</p>
-                    </div>
-
-                    {{-- INCLUDE PARTIAL FORM DI SINI --}}
-                    {{-- Defaultnya disembunyikan (d-none) --}}
-
-                    <div id="form-209" class="resto-form d-none">
-                        @include('daily-reports.partials.form-209')
-                    </div>
-
-                    <div id="form-XFH" class="resto-form d-none">
-                        @include('daily-reports.partials.form-xfh')
-                    </div>
-
-                    <div id="form-CHA" class="resto-form d-none">
-                        @include('daily-reports.partials.form-chamas')
-                        {{-- <div class="alert alert-warning">Form Chamas belum dibuat</div> --}}
-                    </div>
-
-                    <div id="form-NJR" class="resto-form d-none">
-                        @include('daily-reports.partials.form-nagano')
-                        {{-- <div class="alert alert-warning">Form Nagano belum dibuat</div> --}}
-                    </div>
-
-                    <div id="form-VODA" class="resto-form d-none">
-                        @include('daily-reports.partials.form-voda')
-                        {{-- <div class="alert alert-warning">Form Nagano belum dibuat</div> --}}
-                    </div>
-
-                    <div id="form-JM" class="resto-form d-none">
-                        @include('daily-reports.partials.form-jm')
-                    </div>
-
-                    <div id="form-BQT" class="resto-form d-none">
-                        @include('daily-reports.partials.form-bqt')
-                        {{-- <div class="alert alert-warning">Form Nagano belum dibuat</div> --}}
-                    </div>
-
-                    <div id="form-IRD" class="resto-form d-none">
-                        @include('daily-reports.partials.form-ird')
-                        {{-- <div class="alert alert-warning">Form Nagano belum dibuat</div> --}}
-                    </div>
+                {{-- INCLUDE PARTIAL FORM --}}
+                <div id="form-209" class="resto-form d-none">
+                    @include('daily-reports.partials.form-209')
                 </div>
 
-                {{-- ACTION BUTTONS --}}
-                <div class="card mt-3 d-none" id="submit-actions">
-                    <div class="card-body text-end">
-                        <a href="{{ route('daily-reports.index') }}" class="btn btn-light me-2">
+                <div id="form-XFH" class="resto-form d-none">
+                    @include('daily-reports.partials.form-xfh')
+                </div>
+
+                <div id="form-CHA" class="resto-form d-none">
+                    @include('daily-reports.partials.form-chamas')
+                </div>
+
+                <div id="form-NJR" class="resto-form d-none">
+                    @include('daily-reports.partials.form-nagano')
+                </div>
+
+                <div id="form-VODA" class="resto-form d-none">
+                    @include('daily-reports.partials.form-voda')
+                </div>
+
+                <div id="form-JM" class="resto-form d-none">
+                    @include('daily-reports.partials.form-jm')
+                </div>
+
+                <div id="form-BQT" class="resto-form d-none">
+                    @include('daily-reports.partials.form-bqt')
+                </div>
+
+                <div id="form-IRD" class="resto-form d-none">
+                    @include('daily-reports.partials.form-ird')
+                </div>
+            </div>
+
+            {{-- ACTION BUTTONS --}}
+            <div class="rounded-2xl border border-slate-200/90 shadow-sm bg-white p-4 mt-6 d-none" id="submit-actions">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div class="text-xs text-slate-500 flex items-center gap-1.5">
+                        <i class="ti ti-shield-check text-emerald-600 text-sm"></i>
+                        Pastikan seluruh data cover & revenue terisi dengan valid sebelum submit.
+                    </div>
+                    <div class="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+                        <a href="{{ route('daily-reports.index') }}" class="btn btn-light rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition shadow-sm">
                             Cancel
                         </a>
-                        <button type="submit" name="action" value="draft" class="btn btn-secondary me-2">
-                            <i class="ti ti-device-floppy"></i> Save as Draft
+                        <button type="submit" name="action" value="draft" class="btn rounded-xl border border-slate-300 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition inline-flex items-center gap-1.5 shadow-sm">
+                            <i class="ti ti-device-floppy text-sm"></i> Save as Draft
                         </button>
-                        <button type="submit" name="action" value="submit" class="btn btn-primary">
-                            <i class="ti ti-send"></i> Submit Report
+                        <button type="submit" name="action" value="submit" class="btn rounded-xl px-5 py-2.5 text-xs font-semibold text-white inline-flex items-center gap-1.5 shadow-sm transition" style="background-color: #172a40; border-color: #172a40;">
+                            <i class="ti ti-send text-sm" style="color: #B89047;"></i> Submit Report
                         </button>
                     </div>
                 </div>
+            </div>
 
-            </form>
-        </div>
+        </form>
     </div>
 
     <script>

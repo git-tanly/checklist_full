@@ -1,116 +1,153 @@
-@extends('layouts.mantis')
+@extends('layouts.portal')
 
-@section('header')
-    <div class="page-header">
-        <div class="page-block">
-            <div class="row align-items-center">
-                <div class="col-md-12">
-                    <div class="page-header-title">
-                        <h5 class="m-b-10">Edit Daily Report (Draft)</h5>
+@section('title', 'Edit Daily Report - ' . $dailyReport->restaurant->name . ' - Tanly Hospitality')
+
+@section('content')
+    <div class="space-y-6">
+        {{-- Executive Banner Card --}}
+        <div class="rounded-2xl border border-slate-200/90 shadow-sm bg-white p-5 md:p-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-sm" style="background-color: #172a40; color: #B89047;">
+                        <i class="ti ti-file-pencil text-2xl"></i>
                     </div>
-                    <ul class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('daily-reports.index') }}">Dashboard</a></li>
-                        <li class="breadcrumb-item" aria-current="page">Edit Report</li>
-                    </ul>
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <h1 class="text-xl font-bold tracking-tight text-slate-800">Edit Daily Report</h1>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold tracking-wider uppercase" style="background-color: rgba(23, 42, 64, 0.08); color: #172a40;">
+                                {{ $dailyReport->restaurant->code }}
+                            </span>
+                            @if ($dailyReport->status == 'approved')
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    <i class="ti ti-check text-xs"></i> Approved
+                                </span>
+                            @elseif($dailyReport->status == 'submitted')
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                                    <i class="ti ti-clock text-xs"></i> Submitted
+                                </span>
+                            @else
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                    <i class="ti ti-edit text-xs"></i> Draft Mode
+                                </span>
+                            @endif
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">Perbarui data operasional dan breakdown sesi untuk {{ $dailyReport->restaurant->name }}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('daily-reports.index') }}" class="btn btn-light rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition inline-flex items-center gap-1.5 shadow-sm">
+                        <i class="ti ti-arrow-left text-sm"></i> Back to List
+                    </a>
+                    <a href="{{ route('daily-reports.show', $dailyReport->id) }}" class="btn rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition inline-flex items-center gap-1.5 shadow-sm">
+                        <i class="ti ti-eye text-sm text-[#B89047]"></i> View Detail
+                    </a>
                 </div>
             </div>
         </div>
-    </div>
-@endsection
 
-@section('content')
-    <div class="row">
-        <div class="col-md-12">
-
-            @if ($errors->any())
-                <div class="alert alert-danger">
-                    <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
-            {{-- ERROR SYSTEM --}}
-            @if (session('error'))
-                <div class="alert alert-danger">
-                    {{ session('error') }}
-                </div>
-            @endif
-
-            {{-- FORM EDIT: Menggunakan Method PUT --}}
-            <form action="{{ route('daily-reports.update', $dailyReport->id) }}" method="POST">
-                @csrf
-                @method('PUT')
-
-                {{-- CARD 1: General Info --}}
-                <div class="card">
-                    <div class="card-header">
-                        <h5>General Information</h5>
+        {{-- Error Validation Alert --}}
+        @if ($errors->any())
+            <div class="rounded-2xl border border-rose-200 bg-rose-50/80 p-4 text-rose-800 shadow-sm">
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-rose-100 flex items-center justify-center shrink-0 text-rose-600">
+                        <i class="ti ti-alert-triangle text-lg"></i>
                     </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">Restaurant</label>
-                                    {{-- Disabled karena resto tidak boleh diganti saat edit agar form tidak rusak --}}
-                                    <input type="text" class="form-control" value="{{ $dailyReport->restaurant->name }}"
-                                        disabled>
-                                    {{-- Kirim ID sebagai hidden jika perlu, tapi di controller kita pakai data lama --}}
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">Report Date & Time</label>
+                    <div>
+                        <h4 class="text-sm font-bold text-rose-900">Gagal Memperbarui Laporan!</h4>
+                        <p class="text-xs text-rose-700 mt-0.5 mb-2">Harap periksa kembali isian form berikut:</p>
+                        <ul class="list-disc list-inside text-xs space-y-1 text-rose-700">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        @endif
 
-                                    {{-- GANTI JADI EDITABLE --}}
-                                    <input type="datetime-local" name="date" class="form-control" {{-- Format tanggal dari database harus diubah ke format HTML5 --}}
-                                        value="{{ old('date', $dailyReport->date->format('Y-m-d\TH:i')) }}" required>
-                                </div>
+        {{-- Error Session Alert --}}
+        @if (session('error'))
+            <div class="rounded-2xl border border-rose-200 bg-rose-50/80 p-4 text-rose-800 shadow-sm">
+                <div class="flex items-center gap-3">
+                    <i class="ti ti-alert-circle text-xl text-rose-600"></i>
+                    <div class="text-xs font-semibold">{{ session('error') }}</div>
+                </div>
+            </div>
+        @endif
+
+        {{-- FORM EDIT: Method PUT --}}
+        <form action="{{ route('daily-reports.update', $dailyReport->id) }}" method="POST" id="reportForm">
+            @csrf
+            @method('PUT')
+
+            {{-- CARD 1: General Info --}}
+            <div class="rounded-2xl border border-slate-200/90 shadow-sm bg-white overflow-hidden mb-6">
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <div class="flex items-center gap-2">
+                        <i class="ti ti-info-circle text-lg" style="color: #172a40;"></i>
+                        <h3 class="text-sm font-bold text-slate-800">General Information</h3>
+                    </div>
+                    <span class="text-xs text-slate-400 font-medium">Outlet terkunci selama proses edit</span>
+                </div>
+                <div class="p-6">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">Restaurant / Outlet</label>
+                            <div class="relative">
+                                <input type="text" class="form-control rounded-xl border-slate-200 bg-slate-100/80 py-2.5 text-sm font-semibold text-slate-600 cursor-not-allowed"
+                                    value="{{ $dailyReport->restaurant->name }} ({{ $dailyReport->restaurant->code }})" disabled>
                             </div>
+                            <p class="text-[11px] text-slate-400 mt-1.5">Outlet tidak dapat diubah agar struktur data sesi tetap konsisten</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">Report Date & Time</label>
+                            <input type="datetime-local" name="date" class="form-control rounded-xl border-slate-300 py-2.5 text-sm font-medium focus:border-[#172a40] focus:ring-[#172a40]"
+                                value="{{ old('date', $dailyReport->date->format('Y-m-d\TH:i')) }}" required>
+                            <p class="text-[11px] text-slate-400 mt-1.5">Ubah tanggal/waktu bila dibutuhkan</p>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                {{-- INCLUDE PARTIAL FORM SESUAI KODE RESTO --}}
-                {{-- Logika: Kita include langsung file berdasarkan kode restoran --}}
+            {{-- INCLUDE PARTIAL FORM SESUAI KODE RESTO --}}
+            <div id="form-container">
+                @php
+                    $code = $dailyReport->restaurant->code; // 209, NJR, XFH, dll
+                    $viewName = 'daily-reports.partials.form-' . strtolower($code === 'NJR' ? 'nagano' : $code);
+                    $chamasName = 'daily-reports.partials.form-' . strtolower($code === 'CHA' ? 'chamas' : $code);
+                @endphp
 
-                <div id="form-container">
-                    @php
-                        $code = $dailyReport->restaurant->code; // 209, NGN, XFH
-                        $viewName = 'daily-reports.partials.form-' . strtolower($code === 'NJR' ? 'nagano' : $code);
-                        $chamasName = 'daily-reports.partials.form-' . strtolower($code === 'CHA' ? 'chamas' : $code);
-                        // Note: sesuaikan logika nama file Anda di sini.
-                        // Jika code 209 -> form-209.blade.php
-                        // Jika code NGN -> form-nagano.blade.php (jika namanya itu)
-                    @endphp
+                @if (View::exists($viewName))
+                    @include($viewName)
+                @elseif (View::exists($chamasName))
+                    @include($chamasName)
+                @else
+                    @include('daily-reports.partials.form-' . strtolower($dailyReport->restaurant->code))
+                @endif
+            </div>
 
-                    @if (View::exists($viewName))
-                        @include($viewName)
-                    @elseif (View::exists($chamasName))
-                        @include($chamasName)
-                    @else
-                        @include('daily-reports.partials.form-' . strtolower($dailyReport->restaurant->code))
-                    @endif
-                </div>
-
-                {{-- ACTION BUTTONS --}}
-                <div class="card mt-3">
-                    <div class="card-body text-end">
-                        <a href="{{ route('daily-reports.index') }}" class="btn btn-light me-2">Cancel</a>
-
-                        <button type="submit" name="action" value="draft" class="btn btn-secondary me-2">
-                            <i class="ti ti-device-floppy"></i> Update Draft
+            {{-- ACTION BUTTONS --}}
+            <div class="rounded-2xl border border-slate-200/90 shadow-sm bg-white p-4 mt-6">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div class="text-xs text-slate-500 flex items-center gap-1.5">
+                        <i class="ti ti-shield-check text-emerald-600 text-sm"></i>
+                        Pilih <strong>Update Draft</strong> untuk menyimpan sementara, atau <strong>Submit Final</strong> untuk diverifikasi manager.
+                    </div>
+                    <div class="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+                        <a href="{{ route('daily-reports.index') }}" class="btn btn-light rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition shadow-sm">
+                            Cancel
+                        </a>
+                        <button type="submit" name="action" value="draft" class="btn rounded-xl border border-slate-300 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition inline-flex items-center gap-1.5 shadow-sm">
+                            <i class="ti ti-device-floppy text-sm"></i> Update Draft
                         </button>
-                        <button type="submit" name="action" value="submit" class="btn btn-primary">
-                            <i class="ti ti-send"></i> Submit Final Report
+                        <button type="submit" name="action" value="submit" class="btn rounded-xl px-5 py-2.5 text-xs font-semibold text-white inline-flex items-center gap-1.5 shadow-sm transition" style="background-color: #172a40; border-color: #172a40;">
+                            <i class="ti ti-send text-sm" style="color: #B89047;"></i> Submit Final Report
                         </button>
                     </div>
                 </div>
+            </div>
 
-            </form>
-        </div>
+        </form>
     </div>
 
     <script>

@@ -1,169 +1,307 @@
-@extends('layouts.mantis')
+@extends('layouts.portal')
 
-@section('header')
-    <div class="page-header">
-        <div class="page-block">
-            <div class="row align-items-center">
-                <div class="col-md-12">
-                    <div class="page-header-title">
-                        <h5 class="m-b-10">Budget & Forecast</h5>
+@section('title', 'Budget & Forecast')
+@section('breadcrumb', 'Budget & Forecast')
+
+@section('content')
+<div class="space-y-6">
+
+    {{-- 1. EXECUTIVE HEADER BANNER --}}
+    <div class="rounded-2xl border border-slate-200/90 shadow-sm bg-white p-5 md:p-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-sm" style="background-color: #172a40; color: #B89047;">
+                    <i class="ti ti-target text-2xl"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-xl font-bold tracking-tight text-slate-800">Budget & Forecast</h1>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            Fiscal Year {{ $year }}
+                        </span>
                     </div>
-                    <ul class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('daily-reports.index') }}">Dashboard</a></li>
-                        <li class="breadcrumb-item">Settings</li>
-                        <li class="breadcrumb-item" aria-current="page">Budget & Forecast</li>
+                    <p class="text-xs text-slate-500 mt-0.5">Kelola target anggaran (budget) dan estimasi pendapatan (forecast) bulanan seluruh outlet</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <a href="{{ route('dashboard') }}" class="btn btn-light rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 transition inline-flex items-center gap-1.5 shadow-sm">
+                    <i class="ti ti-arrow-left text-base"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {{-- ALERTS --}}
+    @if (session('success'))
+        <div class="rounded-2xl border border-emerald-200 bg-emerald-50/90 p-4 text-emerald-800 shadow-sm flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
+                    <i class="ti ti-check text-lg"></i>
+                </div>
+                <div>
+                    <h5 class="text-xs font-bold uppercase tracking-wider text-emerald-900 mb-0.5">Berhasil</h5>
+                    <p class="text-xs font-medium text-emerald-800 mb-0">{{ session('success') }}</p>
+                </div>
+            </div>
+            <button type="button" class="btn-close text-xs text-emerald-700" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if ($errors->any())
+        <div class="rounded-2xl border border-rose-200 bg-rose-50/90 p-4 text-rose-800 shadow-sm">
+            <div class="flex items-start gap-3">
+                <div class="w-9 h-9 rounded-xl bg-rose-100 flex items-center justify-center text-rose-700 shrink-0">
+                    <i class="ti ti-alert-triangle text-lg"></i>
+                </div>
+                <div class="flex-1">
+                    <h5 class="text-xs font-bold uppercase tracking-wider text-rose-900 mb-1">Terjadi Kesalahan Validasi</h5>
+                    <ul class="text-xs space-y-1 list-disc list-inside text-rose-700">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
                     </ul>
                 </div>
             </div>
         </div>
-    </div>
-@endsection
+    @endif
 
-@section('content')
-    <div class="row">
+    {{-- TWO COLUMN MAIN GRID --}}
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-        {{-- FORM INPUT (KIRI) --}}
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Set Budget & Forecast</h5>
+        {{-- LEFT COLUMN: FORM SET BUDGET & FORECAST --}}
+        <div class="lg:col-span-5 xl:col-span-4">
+            <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden sticky top-24">
+                {{-- Header --}}
+                <div class="bg-gradient-to-r from-slate-900 via-[#172a40] to-slate-800 text-white px-5 py-4 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-[#B89047]">
+                            <i class="ti ti-adjustments text-base"></i>
+                        </span>
+                        <div>
+                            <h2 class="text-sm font-bold text-white tracking-tight">Set Budget & Forecast</h2>
+                            <p class="text-[11px] text-slate-300 mb-0">Input target baru atau perbarui eksisting</p>
+                        </div>
+                    </div>
+                    <span class="w-2 h-2 rounded-full bg-[#B89047]"></span>
                 </div>
-                <div class="card-body">
-                    @if (session('success'))
-                        <div class="alert alert-success">{{ session('success') }}</div>
-                    @endif
 
-                    <form action="{{ route('revenue-targets.store') }}" method="POST">
+                {{-- Form Body --}}
+                <div class="p-5">
+                    <form action="{{ route('revenue-targets.store') }}" method="POST" id="form-target">
                         @csrf
 
-                        <div class="form-group mb-3">
-                            <label class="form-label">Restaurant</label>
-                            <select name="restaurant_id" class="form-select" required>
+                        {{-- Outlet / Restaurant Select --}}
+                        <div class="mb-4">
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                                <i class="ti ti-building-store text-slate-400"></i> Restaurant / Outlet
+                                <span class="text-rose-500">*</span>
+                            </label>
+                            <select name="restaurant_id" class="w-full px-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#172a40]/20 focus:border-[#172a40] transition-all" required>
                                 @foreach ($restaurants as $rest)
-                                    <option value="{{ $rest->id }}">{{ $rest->name }}</option>
+                                    <option value="{{ $rest->id }}" {{ old('restaurant_id') == $rest->id ? 'selected' : '' }}>
+                                        {{ $rest->name }} ({{ $rest->code }})
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
 
-                        <div class="row">
-                            {{-- <div class="col-12 mb-2">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" name="is_full_year" id="is_full_year"
-                                        value="1">
-                                    <label class="form-check-label" for="is_full_year">Set for Full Year (Jan - Dec)</label>
+                        {{-- Full Year Switch Option --}}
+                        <div class="p-3 bg-slate-50 border border-slate-200/90 rounded-xl mb-4 transition-colors hover:border-slate-300">
+                            <div class="flex items-center justify-between gap-3">
+                                <div>
+                                    <label for="is_full_year" class="text-xs font-bold text-slate-700 cursor-pointer flex items-center gap-1.5 mb-0.5">
+                                        <i class="ti ti-calendar-repeat text-[#B89047]"></i> Set for Full Year
+                                    </label>
+                                    <p class="text-[11px] text-slate-500 mb-0">Terapkan nominal ke seluruh bulan (Jan - Des)</p>
                                 </div>
-                            </div> --}}
-
-                            <div class="col-6">
-                                <div class="form-group mb-3">
-                                    <label class="form-label">Month</label>
-                                    <select name="month" id="month_select" class="form-select">
-                                        @foreach (range(1, 12) as $m)
-                                            <option value="{{ $m }}" {{ $m == date('n') ? 'selected' : '' }}>
-                                                {{ DateTime::createFromFormat('!m', $m)->format('F') }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="form-group mb-3">
-                                    <label class="form-label">Year</label>
-                                    <select name="year" class="form-select" required>
-                                        @foreach (range(date('Y') - 1, date('Y') + 1) as $y)
-                                            <option value="{{ $y }}" {{ $y == $year ? 'selected' : '' }}>
-                                                {{ $y }}</option>
-                                        @endforeach
-                                    </select>
+                                <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input cursor-pointer" type="checkbox" name="is_full_year" id="is_full_year" value="1" {{ old('is_full_year') ? 'checked' : '' }}>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="form-group mb-3">
-                            <label class="form-label">Budget Amount (IDR)</label>
-                            <input type="text" name="budget_amount" class="form-control rupiah" placeholder="0" required>
+                        {{-- Month & Year Grid --}}
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                                    <i class="ti ti-calendar text-slate-400"></i> Month
+                                </label>
+                                <select name="month" id="month_select" class="w-full px-3 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#172a40]/20 focus:border-[#172a40] transition-all">
+                                    @foreach (range(1, 12) as $m)
+                                        <option value="{{ $m }}" {{ (old('month') ?? date('n')) == $m ? 'selected' : '' }}>
+                                            {{ DateTime::createFromFormat('!m', $m)->format('F') }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                                    <i class="ti ti-calendar-event text-slate-400"></i> Year
+                                    <span class="text-rose-500">*</span>
+                                </label>
+                                <select name="year" class="w-full px-3 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#172a40]/20 focus:border-[#172a40] transition-all" required>
+                                    @foreach (range(date('Y') - 1, date('Y') + 1) as $y)
+                                        <option value="{{ $y }}" {{ (old('year') ?? $year) == $y ? 'selected' : '' }}>
+                                            {{ $y }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
 
-                        <div class="form-group mb-4">
-                            <label class="form-label">Forecast Amount (IDR)</label>
-                            <input type="text" name="amount" class="form-control rupiah" placeholder="0" required>
+                        {{-- Budget Amount --}}
+                        <div class="mb-4">
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+                                <span class="flex items-center gap-1.5">
+                                    <i class="ti ti-coin text-slate-400"></i> Budget Amount (IDR)
+                                    <span class="text-rose-500">*</span>
+                                </span>
+                                <span class="text-[10px] font-medium text-slate-400 uppercase">Anggaran Resmi</span>
+                            </label>
+                            <div class="relative">
+                                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">Rp</span>
+                                <input type="text" name="budget_amount" class="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#172a40]/20 focus:border-[#172a40] transition-all rupiah"
+                                    value="{{ old('budget_amount') }}" placeholder="0" required autocomplete="off">
+                            </div>
                         </div>
 
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">Save Budget & Forecast</button>
+                        {{-- Forecast Amount --}}
+                        <div class="mb-5">
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+                                <span class="flex items-center gap-1.5">
+                                    <i class="ti ti-trending-up text-slate-400"></i> Forecast Amount (IDR)
+                                    <span class="text-rose-500">*</span>
+                                </span>
+                                <span class="text-[10px] font-medium text-slate-400 uppercase">Estimasi Aktual</span>
+                            </label>
+                            <div class="relative">
+                                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">Rp</span>
+                                <input type="text" name="amount" class="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#172a40]/20 focus:border-[#172a40] transition-all rupiah"
+                                    value="{{ old('amount') }}" placeholder="0" required autocomplete="off">
+                            </div>
                         </div>
+
+                        {{-- Action Button --}}
+                        <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm text-white bg-[#172a40] hover:bg-[#112031] transition-all shadow-sm hover:shadow cursor-pointer">
+                            <i class="ti ti-device-floppy text-base"></i> Save Budget & Forecast
+                        </button>
                     </form>
                 </div>
             </div>
         </div>
 
-        {{-- LIST DATA (KANAN) --}}
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5>Budget & Forecast List ({{ $year }})</h5>
+        {{-- RIGHT COLUMN: LIST DATA --}}
+        <div class="lg:col-span-7 xl:col-span-8">
+            <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
+                {{-- Header with Year Filter --}}
+                <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/40">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-[#172a40]/5 border border-[#172a40]/10 flex items-center justify-center text-[#172a40]">
+                            <i class="ti ti-list text-base"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-sm font-bold text-slate-800 tracking-tight">Budget & Forecast Directory</h2>
+                            <p class="text-[11px] text-slate-400 mb-0">Daftar target pendapatan tahun buku <strong>{{ $year }}</strong></p>
+                        </div>
+                    </div>
+
                     {{-- Filter Tahun --}}
-                    <form action="{{ route('revenue-targets.index') }}" method="GET" class="d-flex align-items-center">
-                        <select name="year" class="form-select form-select-sm" onchange="this.form.submit()">
-                            @foreach (range(date('Y') - 1, date('Y') + 1) as $y)
-                                <option value="{{ $y }}" {{ $y == $year ? 'selected' : '' }}>
-                                    {{ $y }}</option>
-                            @endforeach
-                        </select>
+                    <form action="{{ route('revenue-targets.index') }}" method="GET" class="flex items-center gap-2">
+                        <span class="text-xs font-medium text-slate-500">Tahun:</span>
+                        <div class="relative">
+                            <select name="year" class="px-3 py-1.5 pr-8 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#172a40]/20 focus:border-[#172a40] transition-all cursor-pointer"
+                                onchange="this.form.submit()">
+                                @foreach (range(date('Y') - 1, date('Y') + 1) as $y)
+                                    <option value="{{ $y }}" {{ $y == $year ? 'selected' : '' }}>
+                                        {{ $y }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </form>
                 </div>
-                <div class="card-body table-border-style">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Restaurant</th>
-                                    <th>Month</th>
-                                    <th class="text-end">Budget</th>
-                                    <th class="text-end">Forecast</th>
-                                    <th>Last Updated</th>
+
+                {{-- Table Responsive --}}
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-200/80 bg-slate-50/70 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                                <th class="py-3 px-4">Restaurant</th>
+                                <th class="py-3 px-4">Month</th>
+                                <th class="py-3 px-4 text-right">Budget (IDR)</th>
+                                <th class="py-3 px-4 text-right">Forecast (IDR)</th>
+                                <th class="py-3 px-4 text-right">Last Updated</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-xs">
+                            @forelse($targets as $target)
+                                <tr class="hover:bg-slate-50/60 transition-colors">
+                                    <td class="py-3.5 px-4">
+                                        <div class="flex items-center gap-2.5">
+                                            <div class="w-7 h-7 rounded-lg bg-[#172a40]/5 border border-[#172a40]/10 flex items-center justify-center text-[#172a40] font-bold text-[10px] shrink-0">
+                                                {{ $target->restaurant->code ?? 'RES' }}
+                                            </div>
+                                            <span class="font-bold text-slate-800">{{ $target->restaurant->name }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3.5 px-4">
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-sky-50 text-sky-800 border border-sky-200">
+                                            <i class="ti ti-calendar text-xs text-sky-600"></i>
+                                            {{ DateTime::createFromFormat('!m', $target->month)->format('F') }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3.5 px-4 text-right font-bold text-slate-800">
+                                        Rp {{ number_format($target->budget_amount, 0, ',', '.') }}
+                                    </td>
+                                    <td class="py-3.5 px-4 text-right font-bold text-[#172a40]">
+                                        Rp {{ number_format($target->amount, 0, ',', '.') }}
+                                    </td>
+                                    <td class="py-3.5 px-4 text-right text-slate-400">
+                                        <span class="inline-flex items-center gap-1 text-[11px]">
+                                            <i class="ti ti-clock text-xs"></i>
+                                            {{ $target->updated_at->diffForHumans() }}
+                                        </span>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($targets as $target)
-                                    <tr>
-                                        <td>
-                                            <span class="fw-bold">{{ $target->restaurant->name }}</span>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-light-primary text-primary">
-                                                {{ DateTime::createFromFormat('!m', $target->month)->format('F') }}
-                                            </span>
-                                        </td>
-                                        <td class="text-end fw-bold">
-                                            Rp {{ number_format($target->budget_amount, 0, ',', '.') }}
-                                        </td>
-                                        <td class="text-end fw-bold">
-                                            Rp {{ number_format($target->amount, 0, ',', '.') }}
-                                        </td>
-                                        <td class="small text-muted">{{ $target->updated_at->diffForHumans() }}</td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="4" class="text-center py-4 text-muted">
-                                            No targets set for {{ $year }}.
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="mt-3">
-                        {{-- withQueryString() PENTING agar filter tahun tidak hilang saat pindah halaman --}}
-                        {{ $targets->withQueryString()->links() }}
-                    </div>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="py-12 text-center">
+                                        <div class="flex flex-col items-center justify-center">
+                                            <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 text-xl mb-3">
+                                                <i class="ti ti-database-off"></i>
+                                            </div>
+                                            <h6 class="text-sm font-bold text-slate-700 mb-1">Belum Ada Target Revenue</h6>
+                                            <p class="text-xs text-slate-400 max-w-sm">Tidak ditemukan data budget & forecast untuk tahun <strong>{{ $year }}</strong>. Silakan masukkan data melalui formulir di samping.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
+
+                {{-- Pagination Footer --}}
+                @if ($targets->hasPages())
+                    <div class="px-5 py-3.5 border-t border-slate-100 bg-slate-50/30 flex items-center justify-between">
+                        <div class="text-xs text-slate-500">
+                            Showing {{ $targets->firstItem() }} to {{ $targets->lastItem() }} of {{ $targets->total() }} entries
+                        </div>
+                        <div>
+                            {{ $targets->withQueryString()->links() }}
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
+</div>
 
-    {{-- Script Rupiah (Wajib Ada) --}}
-    <script>
+{{-- SCRIPT: RUPIAH FORMATTER & FULL YEAR TOGGLE --}}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 1. Rupiah input masking
         document.addEventListener('input', function(e) {
             if (e.target.classList.contains('rupiah')) {
                 let value = e.target.value;
@@ -182,15 +320,26 @@
             }
         });
 
+        // 2. Full Year checkbox handling
         const checkFullYear = document.getElementById('is_full_year');
         const selectMonth = document.getElementById('month_select');
 
-        checkFullYear.addEventListener('change', function() {
-            if (this.checked) {
-                selectMonth.disabled = true; // Matikan dropdown bulan
+        function updateMonthDisabledState() {
+            if (!checkFullYear || !selectMonth) return;
+            if (checkFullYear.checked) {
+                selectMonth.disabled = true;
+                selectMonth.classList.add('bg-slate-100', 'text-slate-400', 'cursor-not-allowed');
             } else {
-                selectMonth.disabled = false; // Hidupkan kembali
+                selectMonth.disabled = false;
+                selectMonth.classList.remove('bg-slate-100', 'text-slate-400', 'cursor-not-allowed');
             }
-        });
-    </script>
+        }
+
+        if (checkFullYear && selectMonth) {
+            checkFullYear.addEventListener('change', updateMonthDisabledState);
+            // Run on initial load in case old input was checked
+            updateMonthDisabledState();
+        }
+    });
+</script>
 @endsection
