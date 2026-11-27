@@ -99,6 +99,12 @@
                             {{-- Actions --}}
                             <td class="py-4 px-5 text-right">
                                 <div class="inline-flex items-center gap-1.5">
+                                    <a href="{{ route('restaurants.barcode', $rest->id) }}"
+                                        class="w-8 h-8 rounded-lg bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-200/60 flex items-center justify-center transition shadow-2xs"
+                                        title="QR Code Checklist">
+                                        <i class="ti ti-qrcode text-sm"></i>
+                                    </a>
+
                                     <a href="{{ route('restaurants.edit', $rest->id) }}"
                                         class="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200/60 flex items-center justify-center transition shadow-2xs"
                                         title="Edit Restaurant">

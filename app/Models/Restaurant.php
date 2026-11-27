@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\User;
 
 class Restaurant extends Model
 {
     protected $connection = 'mysql';
+
     protected $tabel = 'restaurants';
+
     //
     protected $fillable = [
         'code',
@@ -34,5 +35,15 @@ class Restaurant extends Model
     {
         // return $this->belongsToMany(LocalUser::class, 'restaurant_user')->withTimestamps();
         return $this->belongsToMany(User::class, 'restaurant_user', 'restaurant_id', 'user_id');
+    }
+
+    public function checklistSections()
+    {
+        return $this->hasMany(ChecklistSection::class);
+    }
+
+    public function checklistSubmissions()
+    {
+        return $this->hasMany(ChecklistSubmission::class);
     }
 }

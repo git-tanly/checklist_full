@@ -19,4 +19,9 @@ class Employee extends Model
     {
         return $this->belongsTo(Restaurant::class);
     }
+
+    public function checklistSubmissions()
+    {
+        return $this->hasMany(ChecklistSubmission::class);
+    }
 }

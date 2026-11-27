@@ -10,7 +10,7 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, HasRoles, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -95,5 +95,10 @@ class User extends Authenticatable
     public function isTrainee()
     {
         return $this->hasRole('Trainee');
+    }
+
+    public function verifiedChecklists()
+    {
+        return $this->hasMany(ChecklistSubmission::class, 'verified_by');
     }
 }

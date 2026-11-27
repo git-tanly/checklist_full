@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Restaurant;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class RestaurantController extends Controller
 {
@@ -11,6 +14,7 @@ class RestaurantController extends Controller
     public function index()
     {
         $restaurants = Restaurant::all();
+
         return view('restaurants.index', compact('restaurants'));
     }
 
@@ -53,7 +57,7 @@ class RestaurantController extends Controller
     {
         $request->validate([
             // Validasi unique, tapi kecualikan ID restoran ini sendiri
-            'code' => 'required|string|max:10|unique:restaurants,code,' . $restaurant->id,
+            'code' => 'required|string|max:10|unique:restaurants,code,'.$restaurant->id,
             'name' => 'required|string|max:255',
         ]);
 
@@ -72,5 +76,32 @@ class RestaurantController extends Controller
         $restaurant->delete();
 
         return back()->with('success', 'Restoran berhasil dihapus.');
+    }
+
+    /**
+     * Halaman cetak QR Code checklist operasional untuk outlet ini.
+     */
+    public function barcode(Restaurant $restaurant): View
+    {
+        $url = $restaurant->checklist_token
+            ? route('operational.entry', $restaurant->checklist_token)
+            : null;
+
+        return view('restaurants.barcode', [
+            'restaurant' => $restaurant,
+            'checklistUrl' => $url,
+        ]);
+    }
+
+    /**
+     * Buat token QR baru (QR lama otomatis tidak berlaku).
+     */
+    public function regenerateToken(Restaurant $restaurant): RedirectResponse
+    {
+        $restaurant->update(['checklist_token' => Str::random(32)]);
+
+        return redirect()
+            ->route('restaurants.barcode', $restaurant->id)
+            ->with('success', 'Token QR berhasil diperbarui. Cetak ulang QR Code outlet ini.');
     }
 }

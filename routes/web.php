@@ -1,16 +1,20 @@
 <?php
 
-use App\Http\Controllers\DailyReportController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\UpsellingItemController;
-use App\Http\Controllers\RestaurantController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\RevenueTargetController;
 use App\Http\Controllers\AuthController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DailyReportController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Operational\ChecklistQuestionController;
+use App\Http\Controllers\Operational\ChecklistSectionController;
+use App\Http\Controllers\Operational\ChecklistSessionWindowController;
+use App\Http\Controllers\Operational\OperationalChecklistController;
+use App\Http\Controllers\Operational\OperationalChecklistReviewController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RestaurantController;
+use App\Http\Controllers\RevenueTargetController;
+use App\Http\Controllers\UpsellingItemController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 // Route::get('/', function () {
 //     if (!Auth::check()) {
@@ -20,7 +24,7 @@ use Illuminate\Http\Request;
 //     $user = Auth::user();
 
 //     if ($user->hasAnyRole([
-//         'Super Admin', 'Restaurant Manager', 'Assistant Restaurant Manager', 
+//         'Super Admin', 'Restaurant Manager', 'Assistant Restaurant Manager',
 //         'F&B Supervisor', 'Waiter', 'Cashier', 'Bartender', 'Daily Worker', 'Trainee'
 //     ])) {
 //         return redirect()->route('dashboard');
@@ -37,8 +41,20 @@ Route::get('/auth/redirect', [AuthController::class, 'redirect']);
 Route::get('/auth/callback', [AuthController::class, 'callback']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+// Checklist operasional publik (staff scan QR, tanpa login).
+Route::middleware('throttle:60,1')->group(function () {
+    Route::get('/o/{restaurant:checklist_token}', [OperationalChecklistController::class, 'entry'])
+        ->name('operational.entry');
+    Route::get('/o/{restaurant:checklist_token}/submitted', [OperationalChecklistController::class, 'submitted'])
+        ->name('operational.submitted');
+    Route::get('/o/{restaurant:checklist_token}/s/{section}', [OperationalChecklistController::class, 'section'])
+        ->name('operational.section');
+    Route::post('/o/{restaurant:checklist_token}/s/{section}', [OperationalChecklistController::class, 'submit'])
+        ->name('operational.submit');
+});
+
 Route::middleware(['auth', 'can:access-checklist-app'])->group(function () {
-    
+
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/analytics/{restaurant}', [DashboardController::class, 'getOutletAnalytics'])->name('dashboard.analytics');
 
@@ -55,9 +71,27 @@ Route::middleware(['auth', 'can:access-checklist-app'])->group(function () {
     Route::patch('/daily-reports/{dailyReport}/reject', [DailyReportController::class, 'reject'])->name('daily-reports.reject');
     Route::delete('/daily-reports/{dailyReport}', [DailyReportController::class, 'destroy'])->name('daily-reports.destroy');
 
-
     Route::middleware(['role:Super Admin'])->group(function () {
-        
+
+        // Master data checklist operasional (sections).
+        Route::get('/operational/sections', [ChecklistSectionController::class, 'index'])->name('operational.sections.index');
+        Route::get('/operational/sections/create', [ChecklistSectionController::class, 'create'])->name('operational.sections.create');
+        Route::post('/operational/sections', [ChecklistSectionController::class, 'store'])->name('operational.sections.store');
+        Route::get('/operational/sections/{section}/edit', [ChecklistSectionController::class, 'edit'])->name('operational.sections.edit');
+        Route::put('/operational/sections/{section}', [ChecklistSectionController::class, 'update'])->name('operational.sections.update');
+        Route::delete('/operational/sections/{section}', [ChecklistSectionController::class, 'destroy'])->name('operational.sections.destroy');
+
+        // Master data checklist operasional (pertanyaan per section + sesi).
+        Route::get('/operational/sections/{section}/questions/create', [ChecklistQuestionController::class, 'create'])->name('operational.questions.create');
+        Route::post('/operational/sections/{section}/questions', [ChecklistQuestionController::class, 'store'])->name('operational.questions.store');
+        Route::get('/operational/questions/{question}/edit', [ChecklistQuestionController::class, 'edit'])->name('operational.questions.edit');
+        Route::put('/operational/questions/{question}', [ChecklistQuestionController::class, 'update'])->name('operational.questions.update');
+        Route::delete('/operational/questions/{question}', [ChecklistQuestionController::class, 'destroy'])->name('operational.questions.destroy');
+
+        // Master data jam sesi checklist (global + override per outlet).
+        Route::get('/operational/session-windows', [ChecklistSessionWindowController::class, 'edit'])->name('operational.session-windows.edit');
+        Route::put('/operational/session-windows', [ChecklistSessionWindowController::class, 'update'])->name('operational.session-windows.update');
+
         Route::get('/upselling-items', [UpsellingItemController::class, 'index'])->name('upselling-items.index');
         Route::get('/upselling-items/create', [UpsellingItemController::class, 'create'])->name('upselling-items.create');
         Route::post('/upselling-items', [UpsellingItemController::class, 'store'])->name('upselling-items.store');
@@ -72,6 +106,10 @@ Route::middleware(['auth', 'can:access-checklist-app'])->group(function () {
         Route::put('/restaurants/{restaurant}', [RestaurantController::class, 'update'])->name('restaurants.update');
         Route::delete('/restaurants/{restaurant}', [RestaurantController::class, 'destroy'])->name('restaurants.destroy');
 
+        // QR Code checklist operasional per outlet.
+        Route::get('/restaurants/{restaurant}/barcode', [RestaurantController::class, 'barcode'])->name('restaurants.barcode');
+        Route::post('/restaurants/{restaurant}/regenerate-token', [RestaurantController::class, 'regenerateToken'])->name('restaurants.regenerate-token');
+
         Route::resource('employees', \App\Http\Controllers\EmployeeController::class);
 
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
@@ -81,10 +119,15 @@ Route::middleware(['auth', 'can:access-checklist-app'])->group(function () {
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     });
 
-
     Route::middleware(['role:Super Admin|Restaurant Manager'])->group(function () {
         Route::get('/revenue-targets', [RevenueTargetController::class, 'index'])->name('revenue-targets.index');
         Route::post('/revenue-targets', [RevenueTargetController::class, 'store'])->name('revenue-targets.store');
+
+        // Verifikasi checklist operasional.
+        Route::get('/operational-checklists', [OperationalChecklistReviewController::class, 'index'])->name('operational-checklists.index');
+        Route::get('/operational-checklists/{submission}', [OperationalChecklistReviewController::class, 'show'])->name('operational-checklists.show');
+        Route::patch('/operational-checklists/{submission}/verify', [OperationalChecklistReviewController::class, 'verify'])->name('operational-checklists.verify');
+        Route::patch('/operational-checklists/{submission}/reject', [OperationalChecklistReviewController::class, 'reject'])->name('operational-checklists.reject');
     });
 
 });

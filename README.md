@@ -20,6 +20,7 @@ Aplikasi web internal untuk pelaporan operasional harian outlet F&B (Food & Beve
 - [Peran (Role) & Hak Akses](#peran-role--hak-akses)
 - [Daftar Route](#daftar-route)
 - [Integrasi SSO Portal](#integrasi-sso-portal)
+- [Operational Checklist](#operational-checklist)
 - [Perintah Artisan Kustom](#perintah-artisan-kustom)
 - [Dokumentasi Lanjutan](#dokumentasi-lanjutan)
 - [Issue & Catatan Teknis Saat Ini](#issue--catatan-teknis-saat-ini)
@@ -51,6 +52,7 @@ Laporan mengikuti workflow **Draft → Submitted → Approved** dengan pemilahan
 | **Dashboard Analytics** | Widget MTD vs Target, chart 7 hari, breakdown performance per outlet, modal analytics matriks per session & per hari. |
 | **SSO Login + JIT Provisioning** | Login OAuth ke Portal, otomatis membuat user lokal pada login pertama dengan role default `Daily Worker` dan outlet default `209 Dining`. |
 | **Single Logout (SLO)** | Webhook `POST /api/sso/slo` ber-HMAC untuk memutus sesi user di seluruh aplikasi satelit. |
+| **Operational Checklist** | Checklist harian staff per outlet **tanpa login** via scan QR, pertanyaan per section + sesi (breakfast/lunch/dinner), evaluasi OK/NOT OK otomatis, verifikasi Restaurant Manager. |
 
 ## Stack Teknologi
 
@@ -277,6 +279,64 @@ Aplikasi ini **tidak menyimpan password**; otentikasi sepenuhnya delegated ke Po
 **Single Logout** dikoordinasi via webhook `POST /api/sso/slo` dengan body `sso_id` + `signature`. Aplikasi memverifikasi `hash_hmac('sha256', sso_id, SSO_WEBHOOK_SECRET)` lalu `Session::where('user_id', $user->id)->delete()`.
 
 Detail dan diagram urutan: [`docs/architecture.md`](docs/architecture.md).
+
+## Operational Checklist
+
+Modul checklist operasional harian untuk staff lapangan. **Tanpa login**: staff membuka halaman publik lewat QR yang ditempel di outlet.
+
+### Alur
+
+1. Staff scan QR outlet → halaman `/o/{token}` menampilkan jadwal sesi dan daftar section yang punya checklist untuk sesi berjalan.
+2. Pilih section → pilih nama staff (dari tabel `employees` outlet tersebut) → isi pertanyaan.
+3. Jawaban disimpan dengan **snapshot pertanyaan** dan status **OK / NOT OK** yang dihitung otomatis.
+4. Restaurant Manager (atau Super Admin) membuka `/operational-checklists`, memeriksa hasil, lalu **Verifikasi** atau **Tolak** dengan catatan.
+5. Jika ditolak, staff memperbaiki submission yang sama dan mengirim ulang; status kembali `pending`.
+
+### Aturan sesi
+
+- 3 sesi: `breakfast`, `lunch`, `dinner`.
+- Window dianggap `[start, end)`; `end < start` berarti lintas tengah malam (mis. dinner 18:00–01:00).
+- **Tanggal bisnis** = tanggal mulai window, sehingga pengisian pukul 00:30 untuk dinner tercatat pada hari sebelumnya.
+- Window milik outlet menang; bila tidak ada, dipakai window global (`restaurant_id = NULL`).
+- Sesi yang dinonaktifkan pada scope outlet berarti sesi tersebut tidak tersedia untuk outlet itu.
+- Di luar semua window, halaman publik menampilkan "di luar jam checklist" dan submit ditolak di server.
+- Default global di-seed oleh `ChecklistSessionWindowSeeder` (06:00–11:00, 11:00–16:00, 16:00–23:00).
+
+### Evaluasi jawaban
+
+- `yes_no`: Yes → OK, No → NOT OK.
+- `number`: jika `temp_max` terisi, OK bila nilai ≤ `temp_max`; selain itu OK bila berada di rentang `std_min`–`std_max` (inklusif). Tanpa batas → selalu OK.
+
+### Satu checklist per section/sesi/tanggal
+
+Unique index `(restaurant_id, section_id, date, session_type)` mencegah pengisian ganda. Section yang sudah diisi menampilkan chip status di halaman publik.
+
+### Route
+
+| Method | URI | Keterangan |
+|---|---|---|
+| GET | `/o/{token}` | Halaman publik (daftar section) |
+| GET | `/o/{token}/s/{section}` | Form checklist |
+| POST | `/o/{token}/s/{section}` | Simpan jawaban |
+| GET | `/o/{token}/submitted` | Ringkasan setelah submit |
+| GET/POST/PUT/DELETE | `/operational/sections...` | Master section (Super Admin) |
+| GET/POST/PUT/DELETE | `/operational/questions...` | Master pertanyaan (Super Admin) |
+| GET/PUT | `/operational/session-windows` | Jam sesi global & override outlet (Super Admin) |
+| GET | `/restaurants/{restaurant}/barcode` | Halaman cetak QR |
+| GET/PATCH | `/operational-checklists...` | Verifikasi manager |
+
+Route publik memakai `throttle:60,1` dan berada di luar middleware `auth`. Master data hanya untuk **Super Admin**; verifikasi untuk **Super Admin** dan **Restaurant Manager** (dibatasi outlet pada pivot).
+
+### Cetak QR
+
+1. Login sebagai Super Admin → menu **Restaurants** → ikon QR pada baris outlet.
+2. Halaman QR menampilkan kode QR (dibuat client-side dengan `qrcodejs`), URL, tombol **Cetak**, dan **Buat Token Baru**.
+3. Cetak, laminasi, lalu tempel di area yang mudah dilihat staff.
+4. Bila QR bocor, gunakan **Buat Token Baru**; QR lama otomatis tidak berlaku.
+
+### Master data
+
+Menu **Master Data → Checklist Sections** untuk mengelola section, lalu tombol **Pertanyaan** pada tiap section untuk mengelola pertanyaan per sesi (check point, key check point, tipe jawaban, std min/max, suhu max, unit).
 
 ## Perintah Artisan Kustom
 

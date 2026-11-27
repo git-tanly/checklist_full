@@ -356,11 +356,25 @@
                                 class="portal-nav-link {{ request()->routeIs('revenue-targets.*') ? 'active' : '' }}">
                                 <i class="ti ti-target me-1.5 text-sm"></i> Budget & Forecast
                             </a>
+
+                            <a href="{{ route('operational-checklists.index') }}"
+                                class="portal-nav-link {{ request()->routeIs('operational-checklists.*') ? 'active' : '' }}">
+                                <i class="ti ti-clipboard-check me-1.5 text-sm"></i> Operational Checklist
+                                @php
+                                    $pendingChecklists = \App\Models\ChecklistSubmission::query()
+                                        ->where('status', 'pending')
+                                        ->when(! auth()->user()->hasRole('Super Admin'), fn ($query) => $query->whereIn('restaurant_id', auth()->user()->restaurants->pluck('id')))
+                                        ->count();
+                                @endphp
+                                @if ($pendingChecklists > 0)
+                                    <span class="ms-1 rounded-full bg-[#B89047] px-1.5 py-0.5 text-[10px] font-bold text-white">{{ $pendingChecklists }}</span>
+                                @endif
+                            </a>
                         @endhasanyrole
 
                         <!-- Master Data & Settings Dropdown (Super Admin Only) -->
                         @hasrole('Super Admin')
-                            <div class="nav-dropdown-trigger {{ request()->routeIs(['users.*', 'restaurants.*', 'employees.*', 'upselling-items.*']) ? 'active' : '' }}">
+                            <div class="nav-dropdown-trigger {{ request()->routeIs(['users.*', 'restaurants.*', 'employees.*', 'upselling-items.*', 'operational.sections.*', 'operational.questions.*', 'operational.session-windows.*']) ? 'active' : '' }}">
                                 <button onclick="toggleDropdown(this)">
                                     <i class="ti ti-settings me-1.5 text-sm"></i>
                                     <span>Master Data</span>
@@ -380,6 +394,13 @@
                                     </a>
                                     <a href="{{ route('upselling-items.index') }}" class="{{ request()->routeIs('upselling-items.*') ? 'active' : '' }}">
                                         <i class="ti ti-list mr-2.5 text-sm text-slate-500"></i> Master Menu Items
+                                    </a>
+                                    <div class="my-1 h-px bg-slate-100"></div>
+                                    <a href="{{ route('operational.sections.index') }}" class="{{ request()->routeIs('operational.sections.*') || request()->routeIs('operational.questions.*') ? 'active' : '' }}">
+                                        <i class="ti ti-layout-grid mr-2.5 text-sm text-slate-500"></i> Checklist Sections
+                                    </a>
+                                    <a href="{{ route('operational.session-windows.edit') }}" class="{{ request()->routeIs('operational.session-windows.*') ? 'active' : '' }}">
+                                        <i class="ti ti-clock mr-2.5 text-sm text-slate-500"></i> Session Windows
                                     </a>
                                 </div>
                             </div>
@@ -499,6 +520,11 @@
                         class="mobile-nav-link {{ request()->routeIs('revenue-targets.*') ? 'bg-white/15 text-white' : '' }}">
                         <i class="ti ti-target mr-3 text-lg text-white/50"></i> Budget & Forecast
                     </a>
+
+                    <a href="{{ route('operational-checklists.index') }}"
+                        class="mobile-nav-link {{ request()->routeIs('operational-checklists.*') ? 'bg-white/15 text-white' : '' }}">
+                        <i class="ti ti-clipboard-check mr-3 text-lg text-white/50"></i> Operational Checklist
+                    </a>
                 @endhasanyrole
 
                 @hasrole('Super Admin')
@@ -518,6 +544,14 @@
                     <a href="{{ route('upselling-items.index') }}"
                         class="mobile-nav-link {{ request()->routeIs('upselling-items.*') ? 'bg-white/15 text-white' : '' }}">
                         <i class="ti ti-list mr-3 text-lg text-white/50"></i> Master Menu Items
+                    </a>
+                    <a href="{{ route('operational.sections.index') }}"
+                        class="mobile-nav-link {{ request()->routeIs('operational.sections.*') || request()->routeIs('operational.questions.*') ? 'bg-white/15 text-white' : '' }}">
+                        <i class="ti ti-layout-grid mr-3 text-lg text-white/50"></i> Checklist Sections
+                    </a>
+                    <a href="{{ route('operational.session-windows.edit') }}"
+                        class="mobile-nav-link {{ request()->routeIs('operational.session-windows.*') ? 'bg-white/15 text-white' : '' }}">
+                        <i class="ti ti-clock mr-3 text-lg text-white/50"></i> Session Windows
                     </a>
                 @endhasrole
 
