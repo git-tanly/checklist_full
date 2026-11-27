@@ -42,7 +42,7 @@ class RoleAndUserSeeder extends Seeder
         // A. SUPER ADMIN (Global Access)
         // Tidak perlu di-sync ke restoran manapun
         $admin = User::firstOrCreate([
-            'nik' => '0000',
+            'email' => 'superadmin@tanly.id',
         ], [
             'name' => 'Super Admin',
             'password' => $password,
